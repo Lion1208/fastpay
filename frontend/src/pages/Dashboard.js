@@ -256,9 +256,9 @@ export default function Dashboard() {
               <CardTitle className="text-lg text-white">Movimentação (7 dias)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64 min-h-[256px]">
+              <div style={{ width: '100%', height: 256, minHeight: 256 }}>
                 {stats?.chart_data && stats.chart_data.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                <ResponsiveContainer width="100%" height={256}>
                   <AreaChart data={stats.chart_data}>
                     <defs>
                       <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
