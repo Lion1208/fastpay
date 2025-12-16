@@ -1214,6 +1214,7 @@ async def calculate_transfer(valor: float, user: dict = Depends(get_current_user
 async def create_transfer(data: TransferCreate, user: dict = Depends(get_current_user)):
     """Cria uma transferência entre usuários"""
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    config = await get_config()
     
     if data.carteira_destino == user_data.get("carteira_id"):
         raise HTTPException(status_code=400, detail="Não é possível transferir para sua própria carteira")
@@ -1222,10 +1223,11 @@ async def create_transfer(data: TransferCreate, user: dict = Depends(get_current
     if not destinatario:
         raise HTTPException(status_code=404, detail="Carteira de destino não encontrada")
     
-    if data.valor < 1:
-        raise HTTPException(status_code=400, detail="Valor mínimo de transferência é R$1,00")
+    valor_minimo = user_data.get("valor_minimo_transferencia") if user_data.get("valor_minimo_transferencia") is not None else config.get("valor_minimo_transferencia", 1.0)
+    if data.valor < valor_minimo:
+        raise HTTPException(status_code=400, detail=f"Valor mínimo de transferência é R${valor_minimo:.2f}")
     
-    taxa_transferencia = user_data.get("taxa_transferencia", 0.5)
+    taxa_transferencia = user_data.get("taxa_transferencia") if user_data.get("taxa_transferencia") is not None else config.get("taxa_transferencia_padrao", 0.5)
     valor_taxa = data.valor * (taxa_transferencia / 100)
     valor_recebido = data.valor - valor_taxa
     
