@@ -95,13 +95,13 @@ export const Layout = ({ children }) => {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Fixo na tela */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900/50 border-r border-white/5 
+        fixed inset-y-0 left-0 z-50 w-64 bg-slate-900/50 border-r border-white/5 
         transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-screen overflow-hidden">
           {/* Logo */}
           <div className="p-6 border-b border-white/5">
             <div className="flex items-center justify-between">
