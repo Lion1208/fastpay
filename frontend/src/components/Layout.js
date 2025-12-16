@@ -202,8 +202,8 @@ export const Layout = ({ children }) => {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      {/* Main Content - Com margem para o sidebar fixo */}
+      <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
         {/* Header */}
         <header className="sticky top-0 z-30 glass-heavy">
           <div className="px-4 lg:px-8 h-16 flex items-center justify-between">
