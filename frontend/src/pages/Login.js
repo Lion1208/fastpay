@@ -67,7 +67,6 @@ export default function Login() {
       // Login bem sucedido
       const { user, token } = response.data;
       localStorage.setItem("token", token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       
       // Atualiza o contexto de auth manualmente
       window.location.href = user.role === "admin" ? "/admin" : "/dashboard";
