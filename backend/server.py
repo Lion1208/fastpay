@@ -1880,11 +1880,15 @@ async def external_list_transactions(
 
 @api_router.get("/config/public")
 async def get_public_config():
-    """Retorna configurações públicas do sistema"""
+    """Retorna configurações públicas do sistema incluindo taxas"""
     config = await get_config()
     return {
         "nome_sistema": config.get("nome_sistema", "FastPay"),
-        "logo_url": config.get("logo_url", "")
+        "logo_url": config.get("logo_url", ""),
+        "taxa_percentual_padrao": config.get("taxa_percentual_padrao", 2.0),
+        "taxa_fixa_padrao": config.get("taxa_fixa_padrao", 0.99),
+        "comissao_indicacao": config.get("comissao_indicacao", 1.0),
+        "taxa_saque_padrao": config.get("taxa_saque_padrao", 1.5)
     }
 
 # Include router
