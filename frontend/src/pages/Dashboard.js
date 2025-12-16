@@ -170,6 +170,45 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Link de Pagamento */}
+        <Card className="card-dashboard border-green-500/30 bg-gradient-to-r from-green-500/10 to-slate-900/50">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-lg bg-green-500/20">
+                  <Link2 className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-white font-medium">Seu Link de Pagamento</p>
+                  <p className="text-slate-400 text-sm break-all">
+                    {window.location.origin}/p/{user?.codigo}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/p/${user?.codigo}`);
+                    toast.success("Link copiado!");
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar Link
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(`/p/${user?.codigo}`, '_blank')}
+                  className="border-slate-700"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Abrir
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Referral Progress & Chart Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Referral Progress */}
