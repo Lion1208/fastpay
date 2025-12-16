@@ -50,6 +50,7 @@ export default function Transfers() {
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [lastTransferData, setLastTransferData] = useState(null);
 
   useEffect(() => {
     fetchTransfers();
