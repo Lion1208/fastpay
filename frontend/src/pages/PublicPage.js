@@ -22,7 +22,10 @@ export default function PublicPage() {
     nome_pagador: "",
     cpf_pagador: ""
   });
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  const ANONYMOUS_LIMIT = 500; // Limite para pagamento anônimo
   const pollingRef = useRef(null);
 
   useEffect(() => {
