@@ -64,12 +64,15 @@ export default function Login() {
         return;
       }
       
-      // Login bem sucedido - usa a função login do contexto
+      // Login bem sucedido - salva token e usa a função login do contexto
       const { user: userData, token: newToken } = response.data;
       localStorage.setItem("token", newToken);
       
-      // Usa navigate ao invés de window.location para manter o estado do React
-      navigate(userData.role === "admin" ? "/admin" : "/dashboard");
+      // Chama login do contexto para atualizar o estado
+      await login(codigo, senha).catch(() => {});
+      
+      // Navega para o dashboard apropriado
+      navigate(userData.role === "admin" ? "/admin" : "/dashboard", { replace: true });
     } catch (error) {
       const detail = error.response?.data?.detail || "";
       
