@@ -45,10 +45,26 @@ export default function Settings() {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [changingPassword, setChangingPassword] = useState(false);
+  
+  // Push Notifications
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushPermission, setPushPermission] = useState('default');
 
   useEffect(() => {
     fetch2FAStatus();
+    checkPushStatus();
   }, []);
+
+  const checkPushStatus = async () => {
+    setPushSupported(isPushSupported());
+    setPushPermission(getNotificationPermission());
+    if (isPushSupported()) {
+      const subscribed = await isSubscribedToPush();
+      setPushEnabled(subscribed);
+    }
+  };
 
   const fetch2FAStatus = async () => {
     try {
