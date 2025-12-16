@@ -135,7 +135,7 @@ export default function AdminWithdrawals() {
           )}
         </div>
 
-        {/* Withdrawals Table */}
+        {/* Withdrawals - Mobile Cards / Desktop Table */}
         <Card className="bg-slate-900/50 border-slate-800">
           <CardContent className="p-0">
             {loading ? (
@@ -143,72 +143,109 @@ export default function AdminWithdrawals() {
                 <Loader2 className="w-8 h-8 animate-spin text-green-500" />
               </div>
             ) : withdrawals.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-800 bg-slate-800/50">
-                      <th className="text-left text-xs text-slate-400 font-medium p-4">Parceiro</th>
-                      <th className="text-left text-xs text-slate-400 font-medium p-4">Valor</th>
-                      <th className="text-left text-xs text-slate-400 font-medium p-4">Taxa</th>
-                      <th className="text-left text-xs text-slate-400 font-medium p-4">Chave PIX</th>
-                      <th className="text-left text-xs text-slate-400 font-medium p-4">Status</th>
-                      <th className="text-left text-xs text-slate-400 font-medium p-4">Data</th>
-                      <th className="text-right text-xs text-slate-400 font-medium p-4">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {withdrawals.map((w) => (
-                      <tr key={w.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                        <td className="p-4">
-                          <div>
-                            <p className="font-medium text-white">{w.parceiro?.nome}</p>
-                            <p className="text-sm text-slate-500 font-mono">{w.parceiro?.codigo}</p>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-white font-semibold">
-                            {formatCurrency(w.valor_solicitado || w.valor)}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-slate-400 text-sm">
-                            {w.taxa_percentual ? `${w.taxa_percentual}%` : '-'}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <div>
-                            <span className="text-xs text-slate-500">{w.tipo_chave?.toUpperCase()}</span>
-                            <p className="text-white text-sm truncate max-w-[150px]">{w.chave_pix}</p>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2">
-                            {getStatusBadge(w.status)}
-                            {w.observacoes?.length > 0 && (
-                              <MessageSquare className="w-4 h-4 text-blue-400" />
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-slate-500 text-sm">
-                            {new Date(w.created_at).toLocaleDateString("pt-BR")}
-                          </span>
-                        </td>
-                        <td className="p-4 text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDetails(w)}
-                            className="text-slate-400 hover:text-white"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </td>
+              <>
+                {/* Mobile Cards */}
+                <div className="md:hidden p-4 space-y-3">
+                  {withdrawals.map((w) => (
+                    <div 
+                      key={w.id} 
+                      className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 space-y-3"
+                      onClick={() => handleViewDetails(w)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium text-white">{w.parceiro?.nome}</p>
+                          <p className="text-xs text-green-400 font-mono">{w.parceiro?.codigo}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(w.status)}
+                          {w.observacoes?.length > 0 && (
+                            <MessageSquare className="w-4 h-4 text-blue-400" />
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-xs text-slate-500">Valor</p>
+                          <p className="text-white font-bold">{formatCurrency(w.valor_solicitado || w.valor)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Taxa</p>
+                          <p className="text-slate-300">{w.taxa_percentual ? `${w.taxa_percentual}%` : '-'}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-2 border-t border-slate-700">
+                        <p className="text-xs text-slate-500">Chave PIX ({w.tipo_chave?.toUpperCase()})</p>
+                        <p className="text-white text-sm truncate">{w.chave_pix}</p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span>{new Date(w.created_at).toLocaleDateString("pt-BR")}</span>
+                        <Button variant="ghost" size="sm" className="text-slate-400 h-6 px-2">
+                          <Eye className="w-4 h-4 mr-1" /> Ver
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-800 bg-slate-800/50">
+                        <th className="text-left text-xs text-slate-400 font-medium p-4">Parceiro</th>
+                        <th className="text-left text-xs text-slate-400 font-medium p-4">Valor</th>
+                        <th className="text-left text-xs text-slate-400 font-medium p-4">Taxa</th>
+                        <th className="text-left text-xs text-slate-400 font-medium p-4">Chave PIX</th>
+                        <th className="text-left text-xs text-slate-400 font-medium p-4">Status</th>
+                        <th className="text-left text-xs text-slate-400 font-medium p-4">Data</th>
+                        <th className="text-right text-xs text-slate-400 font-medium p-4">Ações</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {withdrawals.map((w) => (
+                        <tr key={w.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                          <td className="p-4">
+                            <div>
+                              <p className="font-medium text-white">{w.parceiro?.nome}</p>
+                              <p className="text-sm text-slate-500 font-mono">{w.parceiro?.codigo}</p>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-white font-semibold">{formatCurrency(w.valor_solicitado || w.valor)}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-slate-400 text-sm">{w.taxa_percentual ? `${w.taxa_percentual}%` : '-'}</span>
+                          </td>
+                          <td className="p-4">
+                            <div>
+                              <span className="text-xs text-slate-500">{w.tipo_chave?.toUpperCase()}</span>
+                              <p className="text-white text-sm truncate max-w-[150px]">{w.chave_pix}</p>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-2">
+                              {getStatusBadge(w.status)}
+                              {w.observacoes?.length > 0 && <MessageSquare className="w-4 h-4 text-blue-400" />}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-slate-500 text-sm">{new Date(w.created_at).toLocaleDateString("pt-BR")}</span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <Button variant="ghost" size="sm" onClick={() => handleViewDetails(w)} className="text-slate-400 hover:text-white">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="text-center py-12">
                 <Wallet className="w-12 h-12 text-slate-600 mx-auto mb-3" />
