@@ -1039,7 +1039,9 @@ async def list_commissions(user: dict = Depends(get_current_user)):
 async def calculate_withdrawal(valor: float, user: dict = Depends(get_current_user)):
     """Calcula quanto o usuário precisa ter para sacar um valor específico"""
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    config = await get_config()
     taxa_saque = user_data.get("taxa_saque", 1.5)
+    valor_minimo = user_data.get("valor_minimo_saque", config.get("valor_minimo_saque", 10.0))
     
     valor_taxa = valor * (taxa_saque / 100)
     valor_necessario = valor + valor_taxa
@@ -1051,7 +1053,8 @@ async def calculate_withdrawal(valor: float, user: dict = Depends(get_current_us
         "valor_taxa": round(valor_taxa, 2),
         "valor_necessario": round(valor_necessario, 2),
         "saldo_disponivel": total_disponivel,
-        "pode_sacar": total_disponivel >= valor_necessario
+        "pode_sacar": total_disponivel >= valor_necessario and valor >= valor_minimo,
+        "valor_minimo": valor_minimo
     }
 
 @api_router.post("/withdrawals")
