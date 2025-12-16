@@ -64,15 +64,13 @@ export default function Login() {
         return;
       }
       
-      // Login bem sucedido - salva token e usa a função login do contexto
+      // Login bem sucedido - salva token
       const { user: userData, token: newToken } = response.data;
       localStorage.setItem("token", newToken);
       
-      // Chama login do contexto para atualizar o estado
-      await login(codigo, senha).catch(() => {});
-      
-      // Navega para o dashboard apropriado
-      navigate(userData.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+      // Força recarga completa para garantir que o contexto carregue o token
+      const destino = userData.role === "admin" ? "/admin" : "/dashboard";
+      window.location.replace(destino);
     } catch (error) {
       const detail = error.response?.data?.detail || "";
       
