@@ -269,6 +269,53 @@ def validate_cpf_cnpj(value: str) -> bool:
     clean = re.sub(r'[^\d]', '', value)
     return len(clean) == 11 or len(clean) == 14
 
+# ===================== PUSH NOTIFICATION HELPERS =====================
+
+# VAPID keys for Web Push
+VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
+VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')
+VAPID_EMAIL = os.environ.get('VAPID_EMAIL', 'mailto:admin@sistema.com')
+
+async def send_push_notification(user_id: str, title: str, body: str, data: dict = None):
+    """Envia push notification para todas as subscriptions de um usuário"""
+    if not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
+        logger.warning("VAPID keys não configuradas, push notification não enviada")
+        return
+    
+    from pywebpush import webpush, WebPushException
+    import json
+    
+    subscriptions = await db.push_subscriptions.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    
+    payload = json.dumps({
+        "title": title,
+        "body": body,
+        "data": data or {},
+        "icon": "/logo192.png",
+        "badge": "/logo192.png"
+    })
+    
+    for sub in subscriptions:
+        try:
+            webpush(
+                subscription_info={
+                    "endpoint": sub["endpoint"],
+                    "keys": sub["keys"]
+                },
+                data=payload,
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims={"sub": VAPID_EMAIL}
+            )
+            logger.info(f"Push notification enviada para user {user_id}")
+        except WebPushException as e:
+            logger.error(f"Erro ao enviar push: {e}")
+            # Remove subscription inválida (410 Gone ou 404)
+            if e.response and e.response.status_code in [404, 410]:
+                await db.push_subscriptions.delete_one({"endpoint": sub["endpoint"]})
+                logger.info(f"Subscription removida: {sub['endpoint'][:50]}...")
+        except Exception as e:
+            logger.error(f"Erro geral ao enviar push: {e}")
+
 # ===================== INITIALIZATION =====================
 
 async def init_admin():
