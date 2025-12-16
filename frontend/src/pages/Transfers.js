@@ -50,6 +50,13 @@ export default function Transfers() {
   useEffect(() => {
     fetchTransfers();
     fetchFrequentes();
+    
+    // Atualiza o histórico a cada 5 segundos
+    const interval = setInterval(() => {
+      fetchTransfersSilent();
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchTransfers = async () => {
@@ -63,6 +70,18 @@ export default function Transfers() {
       toast.error("Erro ao carregar transferências");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Atualização silenciosa (sem loading, sem toast de erro)
+  const fetchTransfersSilent = async () => {
+    try {
+      const response = await axios.get(`${API}/transfers`);
+      setTransfers(response.data.transfers || []);
+      setCarteiraId(response.data.carteira_id || "");
+      setFrequentes(prev => prev); // Mantém frequentes
+    } catch (error) {
+      // Silencioso
     }
   };
 
