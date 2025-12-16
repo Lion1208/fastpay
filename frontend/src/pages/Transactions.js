@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { Layout } from "../components/Layout";
 import axios from "axios";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { 
   Plus, 
   Search, 
@@ -17,48 +18,99 @@ import {
   XCircle,
   QrCode,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Filter,
+  X,
+  TrendingUp,
+  DollarSign,
+  Receipt,
+  CreditCard,
+  Calendar
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
+  const [stats, setStats] = useState({
+    total_transacoes: 0,
+    volume_total: 0,
+    valor_liquido_total: 0,
+    transacoes_pagas: 0
+  });
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showQrDialog, setShowQrDialog] = useState(false);
   const [selectedTx, setSelectedTx] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  
+  // Filtros
+  const [filters, setFilters] = useState({
+    status: "",
+    data_inicial: "",
+    data_final: "",
+    busca: ""
+  });
+  const [activeFilters, setActiveFilters] = useState({
+    status: "",
+    data_inicial: "",
+    data_final: "",
+    busca: ""
+  });
+  
   const [newTx, setNewTx] = useState({ valor: "", cpf_cnpj: "", nome_pagador: "", descricao: "" });
   const pollingRef = useRef(null);
 
   useEffect(() => {
     fetchTransactions();
     
-    // Polling para atualizar lista de transações
-    pollingRef.current = setInterval(fetchTransactions, 10000);
+    pollingRef.current = setInterval(() => fetchTransactions(false), 15000);
     
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
   }, []);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
-      const response = await axios.get(`${API}/transactions`);
-      setTransactions(response.data.transactions);
+      const params = new URLSearchParams();
+      if (activeFilters.status) params.append("status", activeFilters.status);
+      if (activeFilters.data_inicial) params.append("data_inicial", activeFilters.data_inicial);
+      if (activeFilters.data_final) params.append("data_final", activeFilters.data_final);
+      if (activeFilters.busca) params.append("busca", activeFilters.busca);
+      params.append("limit", "500");
       
-      // Atualiza selectedTx se estiver aberto
+      const response = await axios.get(`${API}/transactions?${params.toString()}`);
+      setTransactions(response.data.transactions);
+      setStats(response.data.stats || {
+        total_transacoes: 0,
+        volume_total: 0,
+        valor_liquido_total: 0,
+        transacoes_pagas: 0
+      });
+      
       if (selectedTx) {
         const updated = response.data.transactions.find(t => t.id === selectedTx.id);
         if (updated) setSelectedTx(updated);
       }
     } catch (error) {
-      if (loading) toast.error("Erro ao carregar transações");
+      if (showLoading) toast.error("Erro ao carregar transações");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFilter = () => {
+    setActiveFilters({ ...filters });
+    setTimeout(() => fetchTransactions(), 100);
+  };
+
+  const handleClearFilters = () => {
+    const cleared = { status: "", data_inicial: "", data_final: "", busca: "" };
+    setFilters(cleared);
+    setActiveFilters(cleared);
+    setTimeout(() => fetchTransactions(), 100);
   };
 
   const handleCreate = async () => {
@@ -86,11 +138,11 @@ export default function Transactions() {
         descricao: newTx.descricao || null
       });
       
-      setTransactions([response.data, ...transactions]);
       setNewTx({ valor: "", cpf_cnpj: "", nome_pagador: "", descricao: "" });
       setShowNewDialog(false);
       setSelectedTx(response.data);
       setShowQrDialog(true);
+      fetchTransactions();
       toast.success("Transação criada com sucesso!");
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erro ao criar transação");
@@ -123,13 +175,13 @@ export default function Transactions() {
   const getStatusBadge = (status) => {
     switch (status) {
       case "paid":
-        return <Badge className="badge-success flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Pago</Badge>;
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Pago</Badge>;
       case "pending":
-        return <Badge className="badge-warning flex items-center gap-1"><Clock className="w-3 h-3" /> Pendente</Badge>;
+        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 flex items-center gap-1"><Clock className="w-3 h-3" /> Pendente</Badge>;
       case "cancelled":
-        return <Badge className="badge-error flex items-center gap-1"><XCircle className="w-3 h-3" /> Cancelado</Badge>;
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30 flex items-center gap-1"><XCircle className="w-3 h-3" /> Cancelado</Badge>;
       default:
-        return <Badge className="badge-info">{status}</Badge>;
+        return <Badge className="bg-slate-500/20 text-slate-400">{status}</Badge>;
     }
   };
 
@@ -138,12 +190,7 @@ export default function Transactions() {
     toast.success("Copiado!");
   };
 
-  const filteredTransactions = transactions.filter(tx => 
-    tx.nome_pagador?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tx.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tx.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tx.cpf_cnpj?.includes(searchTerm)
-  );
+  const hasActiveFilters = activeFilters.status || activeFilters.data_inicial || activeFilters.data_final || activeFilters.busca;
 
   return (
     <Layout>
@@ -158,15 +205,15 @@ export default function Transactions() {
           <div className="flex gap-2">
             <Button 
               variant="outline" 
-              onClick={fetchTransactions}
-              className="border-slate-700"
+              onClick={() => fetchTransactions()}
+              className="border-slate-700 hover:bg-slate-800"
             >
               <RefreshCw className="w-4 h-4" />
             </Button>
             
             <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
               <DialogTrigger asChild>
-                <Button className="btn-primary" data-testid="new-transaction-btn">
+                <Button className="bg-green-600 hover:bg-green-700 text-white" data-testid="new-transaction-btn">
                   <Plus className="mr-2 h-4 w-4" />
                   Nova Transação
                 </Button>
@@ -183,7 +230,7 @@ export default function Transactions() {
                       placeholder="Mínimo R$10,00"
                       value={newTx.valor}
                       onChange={(e) => setNewTx({ ...newTx, valor: e.target.value })}
-                      className="input-default"
+                      className="bg-slate-800 border-slate-700 text-white"
                       min="10"
                       step="0.01"
                       data-testid="tx-valor"
@@ -196,7 +243,7 @@ export default function Transactions() {
                       placeholder="Nome completo"
                       value={newTx.nome_pagador}
                       onChange={(e) => setNewTx({ ...newTx, nome_pagador: e.target.value })}
-                      className="input-default"
+                      className="bg-slate-800 border-slate-700 text-white"
                       data-testid="tx-nome"
                     />
                   </div>
@@ -207,7 +254,7 @@ export default function Transactions() {
                       placeholder="000.000.000-00"
                       value={newTx.cpf_cnpj}
                       onChange={(e) => setNewTx({ ...newTx, cpf_cnpj: formatCpf(e.target.value) })}
-                      className="input-default"
+                      className="bg-slate-800 border-slate-700 text-white"
                       maxLength={18}
                       data-testid="tx-cpf"
                     />
@@ -219,17 +266,17 @@ export default function Transactions() {
                       placeholder="Ex: Pagamento de serviço"
                       value={newTx.descricao}
                       onChange={(e) => setNewTx({ ...newTx, descricao: e.target.value })}
-                      className="input-default"
+                      className="bg-slate-800 border-slate-700 text-white"
                       data-testid="tx-descricao"
                     />
                   </div>
                   <Button 
                     onClick={handleCreate} 
                     disabled={creating}
-                    className="w-full btn-primary"
+                    className="w-full bg-green-600 hover:bg-green-700"
                     data-testid="create-tx-btn"
                   >
-                    {creating ? <div className="spinner w-5 h-5" /> : "Gerar QR Code PIX"}
+                    {creating ? <Loader2 className="w-5 h-5 animate-spin" /> : "Gerar QR Code PIX"}
                   </Button>
                 </div>
               </DialogContent>
@@ -237,61 +284,217 @@ export default function Transactions() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-          <Input
-            type="text"
-            placeholder="Buscar por nome, CPF ou descrição..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-default pl-10"
-            data-testid="search-transactions"
-          />
+        {/* Cards de Estatísticas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="bg-slate-900/50 border-slate-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-500/20">
+                  <Receipt className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Total de Transações</p>
+                  <p className="text-xl font-bold text-white">{stats.total_transacoes}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-slate-900/50 border-slate-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-500/20">
+                  <TrendingUp className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Volume Total</p>
+                  <p className="text-xl font-bold text-white">{formatCurrency(stats.volume_total)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-slate-900/50 border-slate-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-green-500/20">
+                  <DollarSign className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Valor Líquido Total</p>
+                  <p className="text-xl font-bold text-white">{formatCurrency(stats.valor_liquido_total)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-slate-900/50 border-slate-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-emerald-500/20">
+                  <CreditCard className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Transações Pagas</p>
+                  <p className="text-xl font-bold text-white">{stats.transacoes_pagas}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Transactions List */}
-        <Card className="card-dashboard">
+        {/* Filtros */}
+        <Card className="bg-slate-900/50 border-slate-800">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Filter className="w-4 h-4 text-slate-400" />
+              <span className="text-sm font-medium text-slate-300">Filtros</span>
+              {hasActiveFilters && (
+                <Badge className="bg-green-500/20 text-green-400 text-xs">Ativos</Badge>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              {/* Status */}
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-400">Status</Label>
+                <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="paid">Pago</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Data Inicial */}
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-400">Data Inicial</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Input
+                    type="date"
+                    value={filters.data_inicial}
+                    onChange={(e) => setFilters({ ...filters, data_inicial: e.target.value })}
+                    className="bg-slate-800 border-slate-700 text-white pl-10"
+                  />
+                </div>
+              </div>
+              
+              {/* Data Final */}
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-400">Data Final</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Input
+                    type="date"
+                    value={filters.data_final}
+                    onChange={(e) => setFilters({ ...filters, data_final: e.target.value })}
+                    className="bg-slate-800 border-slate-700 text-white pl-10"
+                  />
+                </div>
+              </div>
+              
+              {/* Buscar */}
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-400">Buscar (CPF, Nome ou ID)</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Input
+                    type="text"
+                    placeholder="Digite para buscar..."
+                    value={filters.busca}
+                    onChange={(e) => setFilters({ ...filters, busca: e.target.value })}
+                    className="bg-slate-800 border-slate-700 text-white pl-10"
+                    data-testid="search-transactions"
+                  />
+                </div>
+              </div>
+              
+              {/* Botões */}
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-400 opacity-0">Ações</Label>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleFilter}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    <Filter className="w-4 h-4 mr-1" />
+                    Filtrar
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={handleClearFilters}
+                    className="border-slate-700 hover:bg-slate-800"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabela de Transações */}
+        <Card className="bg-slate-900/50 border-slate-800">
           <CardContent className="p-0">
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="spinner w-8 h-8"></div>
+                <Loader2 className="w-8 h-8 animate-spin text-green-500" />
               </div>
-            ) : filteredTransactions.length > 0 ? (
+            ) : transactions.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-slate-800">
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Nome</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">CPF/CNPJ</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Valor</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Status</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Data</th>
-                      <th className="text-right text-xs text-slate-500 font-medium p-4">Ações</th>
+                    <tr className="border-b border-slate-800 bg-slate-800/50">
+                      <th className="text-left text-xs text-slate-400 font-medium p-4">ID</th>
+                      <th className="text-left text-xs text-slate-400 font-medium p-4">Usuário</th>
+                      <th className="text-left text-xs text-slate-400 font-medium p-4">CPF/CNPJ</th>
+                      <th className="text-left text-xs text-slate-400 font-medium p-4">Valor</th>
+                      <th className="text-left text-xs text-slate-400 font-medium p-4">Valor Líquido</th>
+                      <th className="text-left text-xs text-slate-400 font-medium p-4">Status</th>
+                      <th className="text-left text-xs text-slate-400 font-medium p-4">Data</th>
+                      <th className="text-right text-xs text-slate-400 font-medium p-4">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTransactions.map((tx) => (
-                      <tr key={tx.id} className="table-row">
+                    {transactions.map((tx) => (
+                      <tr key={tx.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                         <td className="p-4">
-                          <div>
-                            <p className="font-medium text-white">{tx.nome_pagador || "-"}</p>
-                            <p className="text-xs text-slate-500 truncate max-w-[150px]">{tx.descricao || "Pagamento PIX"}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-400 text-xs font-mono truncate max-w-[80px]" title={tx.id}>
+                              {tx.id.substring(0, 8)}...
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-slate-500 hover:text-white"
+                              onClick={() => copyToClipboard(tx.id)}
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
                           </div>
                         </td>
                         <td className="p-4">
-                          <span className="text-slate-400 mono text-sm">{tx.cpf_cnpj || "-"}</span>
+                          <span className="text-white font-medium">{tx.nome_pagador || "-"}</span>
                         </td>
                         <td className="p-4">
-                          <div>
-                            <p className="text-white font-medium">{formatCurrency(tx.valor)}</p>
-                            <p className="text-xs text-slate-500">Líquido: {formatCurrency(tx.valor_liquido)}</p>
-                          </div>
+                          <span className="text-slate-400 font-mono text-sm">{tx.cpf_cnpj || "-"}</span>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-white font-medium">{formatCurrency(tx.valor)}</span>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-green-400 font-medium">{formatCurrency(tx.valor_liquido)}</span>
                         </td>
                         <td className="p-4">{getStatusBadge(tx.status)}</td>
                         <td className="p-4">
                           <div>
-                            <p className="text-slate-400 text-sm">
+                            <p className="text-slate-300 text-sm">
                               {new Date(tx.created_at).toLocaleDateString("pt-BR")}
                             </p>
                             <p className="text-xs text-slate-500">
@@ -304,7 +507,7 @@ export default function Transactions() {
                             variant="ghost" 
                             size="sm"
                             onClick={() => { setSelectedTx(tx); setShowQrDialog(true); }}
-                            className="text-slate-400 hover:text-white"
+                            className="text-slate-400 hover:text-white hover:bg-slate-800"
                             data-testid={`view-qr-${tx.id}`}
                           >
                             <QrCode className="w-4 h-4" />
@@ -319,6 +522,15 @@ export default function Transactions() {
               <div className="text-center py-12">
                 <Clock className="w-12 h-12 text-slate-600 mx-auto mb-3" />
                 <p className="text-slate-500">Nenhuma transação encontrada</p>
+                {hasActiveFilters && (
+                  <Button 
+                    variant="link" 
+                    onClick={handleClearFilters}
+                    className="text-green-400 mt-2"
+                  >
+                    Limpar filtros
+                  </Button>
+                )}
               </div>
             )}
           </CardContent>
@@ -349,17 +561,24 @@ export default function Transactions() {
                   <p className="text-2xl font-bold text-white mt-4">
                     {formatCurrency(selectedTx.valor)}
                   </p>
+                  <p className="text-sm text-green-400">
+                    Líquido: {formatCurrency(selectedTx.valor_liquido)}
+                  </p>
                 </div>
 
                 {/* Info do pagador */}
                 <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400 text-sm">ID:</span>
+                    <span className="text-white text-sm font-mono text-xs">{selectedTx.id.substring(0, 16)}...</span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400 text-sm">Nome:</span>
                     <span className="text-white text-sm">{selectedTx.nome_pagador || "-"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400 text-sm">CPF/CNPJ:</span>
-                    <span className="text-white text-sm mono">{selectedTx.cpf_cnpj || "-"}</span>
+                    <span className="text-white text-sm font-mono">{selectedTx.cpf_cnpj || "-"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400 text-sm">Data:</span>
@@ -376,12 +595,12 @@ export default function Transactions() {
                       <Input
                         value={selectedTx.pix_copia_cola}
                         readOnly
-                        className="input-default mono text-xs"
+                        className="bg-slate-800 border-slate-700 text-white font-mono text-xs"
                       />
                       <Button
                         variant="outline"
                         onClick={() => copyToClipboard(selectedTx.pix_copia_cola)}
-                        className="border-slate-700"
+                        className="border-slate-700 hover:bg-slate-800"
                       >
                         <Copy className="w-4 h-4" />
                       </Button>
