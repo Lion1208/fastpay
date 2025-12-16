@@ -223,8 +223,6 @@ async def register(data: UserCreate):
         "codigo": generate_code(),
         "nome": data.nome,
         "email": data.email,
-        "cpf_cnpj": data.cpf_cnpj,
-        "whatsapp": data.whatsapp,
         "senha": hash_password(data.senha),
         "role": "user",
         "status": "active",
@@ -235,14 +233,14 @@ async def register(data: UserCreate):
         "indicacoes_usadas": 0,
         "taxa_percentual": config.get("taxa_percentual_padrao", 2.0),
         "taxa_fixa": config.get("taxa_fixa_padrao", 0.99),
-        "indicador_id": indicador["id"] if indicador else None,
+        "indicador_id": indicador["id"],
         "pagina_personalizada": {"titulo": data.nome, "cor_primaria": "#22c55e"},
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.users.insert_one(new_user)
     
-    if indicador:
+    if indicador and indicador.get("role") != "admin":
         await db.users.update_one(
             {"id": indicador["id"]},
             {"$inc": {"indicacoes_usadas": 1}}
