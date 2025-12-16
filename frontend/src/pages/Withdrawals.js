@@ -188,11 +188,11 @@ export default function Withdrawals() {
                   <Label className="text-slate-300">Valor do Saque (R$)</Label>
                   <Input
                     type="number"
-                    placeholder="Mínimo R$10,00"
+                    placeholder={`Mínimo ${formatCurrency(valorMinimo)}`}
                     value={newWithdrawal.valor}
                     onChange={(e) => setNewWithdrawal({ ...newWithdrawal, valor: e.target.value })}
                     className="bg-slate-800 border-slate-700 text-white"
-                    min="10"
+                    min={valorMinimo}
                     step="0.01"
                   />
                 </div>
