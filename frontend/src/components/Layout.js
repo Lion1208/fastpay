@@ -37,6 +37,7 @@ const userMenuItems = [
   { icon: Users, label: "Indicações", path: "/referrals" },
   { icon: DollarSign, label: "Comissões", path: "/commissions" },
   { icon: Wallet, label: "Saques", path: "/withdrawals" },
+  { icon: ArrowLeftRight, label: "Transferências", path: "/transfers" },
   { icon: Palette, label: "Personalização", path: "/personalization" },
   { icon: Code, label: "API", path: "/api-integration" },
   { icon: MessageSquare, label: "Suporte", path: "/tickets" },
