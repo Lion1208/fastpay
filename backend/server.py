@@ -713,6 +713,13 @@ async def login_with_2fa(data: UserLoginWith2FA):
     if not user or not verify_password(data.senha, user["senha"]):
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
     
+    if user.get("status") == "blocked":
+        block_reason = user.get("block_reason", "")
+        raise HTTPException(
+            status_code=403, 
+            detail=f"BLOCKED:{block_reason}" if block_reason else "Conta bloqueada"
+        )
+    
     if user.get("status") != "active":
         raise HTTPException(status_code=403, detail="Conta desativada")
     
