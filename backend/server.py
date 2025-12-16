@@ -901,10 +901,222 @@ async def get_public_page(codigo: str):
     if not user:
         raise HTTPException(status_code=404, detail="Página não encontrada")
     
+    config = await get_config()
+    
     return {
         "nome": user.get("nome"),
         "pagina_personalizada": user.get("pagina_personalizada", {}),
-        "codigo": user.get("codigo")
+        "codigo": user.get("codigo"),
+        "nome_sistema": config.get("nome_sistema", "FastPay"),
+        "logo_url": config.get("logo_url", "")
+    }
+
+@api_router.post("/p/{codigo}/pay")
+async def create_public_payment(codigo: str, data: PublicPaymentCreate):
+    """Criar pagamento público via link personalizado"""
+    user = await db.users.find_one({"codigo": codigo, "status": "active"}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Página não encontrada")
+    
+    if data.valor < 10:
+        raise HTTPException(status_code=400, detail="Valor mínimo é R$10,00")
+    
+    config = await get_config()
+    
+    taxa_percentual = user.get("taxa_percentual", 2.0)
+    taxa_fixa = user.get("taxa_fixa", 0.99)
+    taxa_total = (data.valor * taxa_percentual / 100) + taxa_fixa
+    valor_liquido = data.valor - taxa_total
+    
+    transaction = {
+        "id": str(uuid.uuid4()),
+        "parceiro_id": user["id"],
+        "valor": data.valor,
+        "valor_liquido": valor_liquido,
+        "taxa_percentual": taxa_percentual,
+        "taxa_fixa": taxa_fixa,
+        "taxa_total": taxa_total,
+        "cpf_cnpj": data.cpf_pagador,
+        "nome_pagador": data.nome_pagador,
+        "descricao": f"Pagamento para {user.get('nome', 'Parceiro')}",
+        "status": "pending",
+        "qr_code": None,
+        "qr_code_base64": None,
+        "pix_copia_cola": None,
+        "fastdepix_id": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    api_key = config.get("fastdepix_api_key")
+    if api_key:
+        try:
+            async with httpx.AsyncClient() as client_http:
+                response = await client_http.post(
+                    "https://api.fastdepix.com/api/v1/transactions",
+                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                    json={
+                        "amount": data.valor,
+                        "description": transaction["descricao"],
+                        "payer_cpf_cnpj": data.cpf_pagador,
+                        "custom_id": transaction["id"]
+                    },
+                    timeout=30.0
+                )
+                if response.status_code in [200, 201]:
+                    result = response.json()
+                    transaction["fastdepix_id"] = result.get("id")
+                    transaction["qr_code"] = result.get("qr_code")
+                    transaction["qr_code_base64"] = result.get("qr_code_base64")
+                    transaction["pix_copia_cola"] = result.get("pix_copy_paste")
+        except Exception as e:
+            logger.error(f"FastDePix API error: {e}")
+    
+    await db.transactions.insert_one(transaction)
+    del transaction["_id"]
+    
+    return transaction
+
+# ===================== EXTERNAL API (Para integrações de terceiros) =====================
+
+async def get_user_by_api_key(authorization: str = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="API Key inválida")
+    
+    api_key = authorization.replace("Bearer ", "")
+    key_doc = await db.api_keys.find_one({"key": api_key, "status": "active"})
+    if not key_doc:
+        raise HTTPException(status_code=401, detail="API Key inválida ou inativa")
+    
+    user = await db.users.find_one({"id": key_doc["parceiro_id"]}, {"_id": 0})
+    if not user or user.get("status") != "active":
+        raise HTTPException(status_code=401, detail="Usuário inativo")
+    
+    return user
+
+@api_router.post("/v1/transactions")
+async def external_create_transaction(data: ExternalTransactionCreate, user: dict = Depends(get_user_by_api_key)):
+    """API externa para criação de transações (compatível com FastDePix)"""
+    if data.amount < 10:
+        raise HTTPException(status_code=400, detail="Valor mínimo é R$10,00")
+    
+    config = await get_config()
+    
+    taxa_percentual = user.get("taxa_percentual", 2.0)
+    taxa_fixa = user.get("taxa_fixa", 0.99)
+    taxa_total = (data.amount * taxa_percentual / 100) + taxa_fixa
+    valor_liquido = data.amount - taxa_total
+    
+    transaction = {
+        "id": str(uuid.uuid4()),
+        "parceiro_id": user["id"],
+        "valor": data.amount,
+        "valor_liquido": valor_liquido,
+        "taxa_percentual": taxa_percentual,
+        "taxa_fixa": taxa_fixa,
+        "taxa_total": taxa_total,
+        "cpf_cnpj": data.payer_cpf_cnpj,
+        "nome_pagador": data.payer_name,
+        "descricao": data.description or f"Pagamento via API",
+        "custom_id": data.custom_id,
+        "status": "pending",
+        "qr_code": None,
+        "qr_code_base64": None,
+        "pix_copia_cola": None,
+        "fastdepix_id": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    api_key = config.get("fastdepix_api_key")
+    if api_key:
+        try:
+            async with httpx.AsyncClient() as client_http:
+                response = await client_http.post(
+                    "https://api.fastdepix.com/api/v1/transactions",
+                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                    json={
+                        "amount": data.amount,
+                        "description": transaction["descricao"],
+                        "payer_cpf_cnpj": data.payer_cpf_cnpj,
+                        "custom_id": transaction["id"]
+                    },
+                    timeout=30.0
+                )
+                if response.status_code in [200, 201]:
+                    result = response.json()
+                    transaction["fastdepix_id"] = result.get("id")
+                    transaction["qr_code"] = result.get("qr_code")
+                    transaction["qr_code_base64"] = result.get("qr_code_base64")
+                    transaction["pix_copia_cola"] = result.get("pix_copy_paste")
+        except Exception as e:
+            logger.error(f"FastDePix API error: {e}")
+    
+    await db.transactions.insert_one(transaction)
+    del transaction["_id"]
+    
+    # Retorno compatível com FastDePix
+    return {
+        "id": transaction["id"],
+        "amount": transaction["valor"],
+        "status": transaction["status"],
+        "qr_code": transaction["qr_code"],
+        "qr_code_base64": transaction["qr_code_base64"],
+        "pix_copy_paste": transaction["pix_copia_cola"],
+        "custom_id": transaction.get("custom_id"),
+        "created_at": transaction["created_at"]
+    }
+
+@api_router.get("/v1/transactions/{transaction_id}")
+async def external_get_transaction(transaction_id: str, user: dict = Depends(get_user_by_api_key)):
+    """API externa para consultar transação"""
+    transaction = await db.transactions.find_one(
+        {"id": transaction_id, "parceiro_id": user["id"]},
+        {"_id": 0}
+    )
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+    
+    return {
+        "id": transaction["id"],
+        "amount": transaction["valor"],
+        "status": transaction["status"],
+        "qr_code": transaction.get("qr_code"),
+        "qr_code_base64": transaction.get("qr_code_base64"),
+        "pix_copy_paste": transaction.get("pix_copia_cola"),
+        "custom_id": transaction.get("custom_id"),
+        "paid_at": transaction.get("paid_at"),
+        "created_at": transaction["created_at"]
+    }
+
+@api_router.get("/v1/transactions")
+async def external_list_transactions(
+    status: Optional[str] = None,
+    limit: int = Query(50, le=100),
+    user: dict = Depends(get_user_by_api_key)
+):
+    """API externa para listar transações"""
+    query = {"parceiro_id": user["id"]}
+    if status:
+        query["status"] = status
+    
+    transactions = await db.transactions.find(query, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    return {
+        "data": [{
+            "id": t["id"],
+            "amount": t["valor"],
+            "status": t["status"],
+            "custom_id": t.get("custom_id"),
+            "created_at": t["created_at"]
+        } for t in transactions]
+    }
+
+@api_router.get("/config/public")
+async def get_public_config():
+    """Retorna configurações públicas do sistema"""
+    config = await get_config()
+    return {
+        "nome_sistema": config.get("nome_sistema", "FastPay"),
+        "logo_url": config.get("logo_url", "")
     }
 
 # Include router
