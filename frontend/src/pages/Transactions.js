@@ -109,44 +109,6 @@ export default function Transactions() {
     setTimeout(() => fetchTransactions(), 100);
   };
 
-  const handleCreate = async () => {
-    if (!newTx.valor || parseFloat(newTx.valor) < 10) {
-      toast.error("Valor mínimo é R$10,00");
-      return;
-    }
-
-    if (!newTx.nome_pagador) {
-      toast.error("Informe o nome do pagador");
-      return;
-    }
-
-    if (!newTx.cpf_cnpj) {
-      toast.error("Informe o CPF/CNPJ do pagador");
-      return;
-    }
-
-    setCreating(true);
-    try {
-      const response = await axios.post(`${API}/transactions`, {
-        valor: parseFloat(newTx.valor),
-        cpf_cnpj: newTx.cpf_cnpj.replace(/\D/g, ""),
-        nome_pagador: newTx.nome_pagador,
-        descricao: newTx.descricao || null
-      });
-      
-      setNewTx({ valor: "", cpf_cnpj: "", nome_pagador: "", descricao: "" });
-      setShowNewDialog(false);
-      setSelectedTx(response.data);
-      setShowQrDialog(true);
-      fetchTransactions();
-      toast.success("Transação criada com sucesso!");
-    } catch (error) {
-      toast.error(error.response?.data?.detail || "Erro ao criar transação");
-    } finally {
-      setCreating(false);
-    }
-  };
-
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
   };
