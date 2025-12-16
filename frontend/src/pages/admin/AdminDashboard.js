@@ -111,13 +111,24 @@ export default function AdminDashboard() {
         </div>
 
         {/* Alerts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="card-dashboard border-l-4 border-yellow-500">
             <CardContent className="p-4 flex items-center gap-4">
               <Wallet className="w-8 h-8 text-yellow-400" />
               <div>
                 <p className="font-medium text-white">Saques Pendentes</p>
                 <p className="text-2xl font-bold text-yellow-400">{stats?.pending_withdrawals || 0}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="card-dashboard border-l-4 border-green-500">
+            <CardContent className="p-4 flex items-center gap-4">
+              <DollarSign className="w-8 h-8 text-green-400" />
+              <div>
+                <p className="font-medium text-white">Total Sacável da Rede</p>
+                <p className="text-2xl font-bold text-green-400">{formatCurrency(stats?.total_sacavel_rede)}</p>
+                <p className="text-xs text-slate-500">Disponível para saque</p>
               </div>
             </CardContent>
           </Card>
