@@ -531,11 +531,31 @@ export default function Transfers() {
             </DialogHeader>
             
             {success ? (
-              <div className="py-8 text-center">
-                <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
+              <div className="py-6 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto animate-pulse">
                   <CheckCircle className="w-8 h-8 text-green-400" />
                 </div>
-                <p className="text-green-400 font-medium">Transferência realizada com sucesso!</p>
+                <p className="text-green-400 font-medium text-lg">Transferência realizada com sucesso!</p>
+                <p className="text-slate-400 text-sm">
+                  {formatCurrency(lastTransferData?.valor_recebido)} enviado para {lastTransferData?.destinatario_nome}
+                </p>
+                
+                <div className="pt-4 space-y-3">
+                  <Button
+                    onClick={() => generatePDF(lastTransferData, true)}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Baixar Comprovante PDF
+                  </Button>
+                  <Button
+                    onClick={handleCloseSuccess}
+                    variant="outline"
+                    className="w-full border-slate-700"
+                  >
+                    Fechar
+                  </Button>
+                </div>
               </div>
             ) : processing ? (
               <div className="py-8 text-center">
