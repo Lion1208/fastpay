@@ -9,7 +9,8 @@ import { Label } from "../../components/ui/label";
 import { Badge } from "../../components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Search, Edit, Users } from "lucide-react";
+import { Search, Edit, Users, Ban, Trash2, Unlock, Loader2, AlertTriangle } from "lucide-react";
+import { Textarea } from "../../components/ui/textarea";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
