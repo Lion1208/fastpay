@@ -255,6 +255,29 @@ export default function AdminUsers() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-slate-300">Mín. Saque (R$)</Label>
+                    <Input
+                      type="number"
+                      value={editData.valor_minimo_saque}
+                      onChange={(e) => setEditData({ ...editData, valor_minimo_saque: e.target.value })}
+                      className="input-default"
+                      step="1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-300">Mín. Transferência (R$)</Label>
+                    <Input
+                      type="number"
+                      value={editData.valor_minimo_transferencia}
+                      onChange={(e) => setEditData({ ...editData, valor_minimo_transferencia: e.target.value })}
+                      className="input-default"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label className="text-slate-300">Indicações Liberadas</Label>
                   <Input
