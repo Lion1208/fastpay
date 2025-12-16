@@ -340,7 +340,7 @@ export default function Transactions() {
                         </div>
                         <div>
                           <p className="text-xs text-slate-500">Líquido</p>
-                          <p className="text-green-400 font-bold">{formatCurrency(tx.valor_liquido)}</p>
+                          <p className={`font-bold ${tx.valor_liquido < 0 ? 'text-red-400' : 'text-green-400'}`}>{formatCurrency(tx.valor_liquido)}</p>
                         </div>
                       </div>
                       
