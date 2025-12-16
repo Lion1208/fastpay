@@ -42,7 +42,6 @@ const userMenuItems = [
   { icon: Palette, label: "Personalização", path: "/personalization" },
   { icon: Code, label: "API", path: "/api-integration" },
   { icon: MessageSquare, label: "Suporte", path: "/tickets" },
-  { icon: Settings, label: "Configurações", path: "/settings" },
 ];
 
 const adminMenuItems = [
