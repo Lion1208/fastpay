@@ -314,37 +314,61 @@ export default function AdminConfig() {
           </Card>
         </div>
 
-        {/* Info Card */}
+        {/* Admin Credentials Card */}
         <Card className="card-dashboard">
           <CardHeader>
-            <CardTitle className="text-lg text-white">Informações do Sistema</CardTitle>
+            <CardTitle className="text-lg text-white flex items-center gap-2">
+              <Key className="w-5 h-5 text-red-400" />
+              Credenciais do Admin
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-4">
-                <div className="flex justify-between py-3 border-b border-slate-800">
-                  <span className="text-slate-400">Admin Padrão</span>
-                  <span className="text-white mono">ADMIN001</span>
-                </div>
-                <div className="flex justify-between py-3 border-b border-slate-800">
-                  <span className="text-slate-400">Senha Admin</span>
-                  <span className="text-white mono">admin123</span>
-                </div>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-slate-300">Novo Código de Acesso</Label>
+                <Input
+                  type="text"
+                  placeholder="Ex: ADMIN2024"
+                  value={adminCredentials.codigo}
+                  onChange={(e) => setAdminCredentials({ ...adminCredentials, codigo: e.target.value.toUpperCase() })}
+                  className="input-default"
+                />
               </div>
-
-              <div className="md:col-span-2">
-                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-                  <p className="text-sm text-yellow-400 font-medium mb-2">
-                    Importante
-                  </p>
-                  <ul className="text-sm text-slate-400 space-y-1">
-                    <li>• Altere a senha do admin após o primeiro acesso</li>
-                    <li>• O nome do sistema aparece em todas as páginas</li>
-                    <li>• Configure a API FastDePix para gerar QR codes reais</li>
-                    <li>• Admin tem indicações ilimitadas</li>
-                  </ul>
-                </div>
+              <div className="space-y-2">
+                <Label className="text-slate-300">Nova Senha</Label>
+                <Input
+                  type="password"
+                  placeholder="Nova senha (deixe vazio para manter)"
+                  value={adminCredentials.senha_nova}
+                  onChange={(e) => setAdminCredentials({ ...adminCredentials, senha_nova: e.target.value })}
+                  className="input-default"
+                />
               </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-slate-300">Senha Atual (obrigatório)</Label>
+              <Input
+                type="password"
+                placeholder="Digite sua senha atual para confirmar"
+                value={adminCredentials.senha_atual}
+                onChange={(e) => setAdminCredentials({ ...adminCredentials, senha_atual: e.target.value })}
+                className="input-default"
+              />
+            </div>
+            
+            <Button 
+              onClick={handleUpdateAdminCredentials}
+              disabled={savingCredentials || !adminCredentials.senha_atual}
+              className="btn-primary"
+            >
+              {savingCredentials ? "Salvando..." : "Atualizar Credenciais"}
+            </Button>
+            
+            <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+              <p className="text-sm text-yellow-400">
+                Após alterar as credenciais, você precisará fazer login novamente.
+              </p>
             </div>
           </CardContent>
         </Card>
