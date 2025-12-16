@@ -257,6 +257,14 @@ export default function Dashboard() {
                     />
                   </AreaChart>
                 </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-slate-500">
+                    <div className="text-center">
+                      <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Sem dados de movimentação</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
