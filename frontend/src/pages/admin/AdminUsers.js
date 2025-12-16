@@ -422,6 +422,109 @@ export default function AdminUsers() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Block Dialog */}
+        <Dialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
+          <DialogContent className="bg-slate-900 border-slate-800 max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-white flex items-center gap-2">
+                <Ban className="w-5 h-5 text-yellow-400" />
+                Bloquear Usuário
+              </DialogTitle>
+            </DialogHeader>
+            {selectedUser && (
+              <div className="space-y-4 mt-4">
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                  <p className="text-yellow-400 text-sm">
+                    O usuário não conseguirá fazer login e verá o motivo do bloqueio.
+                  </p>
+                </div>
+                
+                <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                  <p className="font-medium text-white">{selectedUser.nome}</p>
+                  <p className="text-sm text-slate-500">{selectedUser.email}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm text-slate-300">Motivo do bloqueio *</label>
+                  <Textarea
+                    placeholder="Ex: Atividade suspeita, violação dos termos..."
+                    value={blockReason}
+                    onChange={(e) => setBlockReason(e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-white"
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowBlockDialog(false)}
+                    className="flex-1 border-slate-700"
+                    disabled={processing}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleBlockUser}
+                    disabled={processing || !blockReason.trim()}
+                    className="flex-1 bg-yellow-600 hover:bg-yellow-700"
+                  >
+                    {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Bloquear"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Dialog */}
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent className="bg-slate-900 border-slate-800 max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-white flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+                Excluir Usuário
+              </DialogTitle>
+            </DialogHeader>
+            {selectedUser && (
+              <div className="space-y-4 mt-4">
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                  <p className="text-red-400 text-sm font-medium mb-2">
+                    ⚠️ Esta ação é irreversível!
+                  </p>
+                  <p className="text-slate-400 text-sm">
+                    Serão excluídos: transações, transferências, saques, comissões, indicações e todos os dados do usuário.
+                  </p>
+                </div>
+                
+                <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                  <p className="font-medium text-white">{selectedUser.nome}</p>
+                  <p className="text-sm text-slate-500">{selectedUser.email}</p>
+                  <p className="text-sm text-green-400 mono">{selectedUser.codigo}</p>
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteDialog(false)}
+                    className="flex-1 border-slate-700"
+                    disabled={processing}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleDeleteUser}
+                    disabled={processing}
+                    className="flex-1 bg-red-600 hover:bg-red-700"
+                  >
+                    {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Excluir Permanentemente"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
