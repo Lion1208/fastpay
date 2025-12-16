@@ -257,6 +257,75 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Push Notifications Card */}
+        <Card className="bg-slate-900/50 border-slate-800">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-500/20">
+                <Bell className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Notificações Push</CardTitle>
+                <CardDescription className="text-slate-400">
+                  Receba alertas mesmo com o navegador fechado
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!pushSupported ? (
+              <div className="flex items-center gap-2 text-slate-500">
+                <BellOff className="w-5 h-5" />
+                <span>Seu navegador não suporta notificações push</span>
+              </div>
+            ) : pushPermission === 'denied' ? (
+              <div className="space-y-3">
+                <div className="p-3 rounded-lg bg-yellow-500/20 border border-yellow-500/30">
+                  <p className="text-yellow-400 text-sm flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    Permissão bloqueada. Habilite nas configurações do navegador.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-slate-400" />
+                  <div>
+                    <p className="text-white">Alertas de transferências</p>
+                    <p className="text-sm text-slate-500">
+                      {pushEnabled ? "Ativado - você receberá notificações" : "Receba avisos ao receber dinheiro"}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  {pushEnabled && (
+                    <span className="flex items-center gap-1 text-green-400 text-sm">
+                      <CheckCircle className="w-4 h-4" />
+                      Ativo
+                    </span>
+                  )}
+                  <Button
+                    onClick={handleTogglePush}
+                    disabled={pushLoading}
+                    variant={pushEnabled ? "outline" : "default"}
+                    className={pushEnabled ? "border-slate-700" : "bg-purple-600 hover:bg-purple-700"}
+                  >
+                    {pushLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : pushEnabled ? (
+                      "Desativar"
+                    ) : (
+                      "Ativar"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Password Card */}
         <Card className="bg-slate-900/50 border-slate-800">
           <CardHeader>
