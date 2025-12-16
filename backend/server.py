@@ -138,6 +138,10 @@ class ExternalTransactionCreate(BaseModel):
     payer_cpf_cnpj: Optional[str] = None
     custom_id: Optional[str] = None
 
+class PushSubscription(BaseModel):
+    endpoint: str
+    keys: dict
+
 # ===================== UTILITIES =====================
 
 def generate_code():
