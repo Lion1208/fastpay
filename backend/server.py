@@ -64,8 +64,25 @@ class UserUpdate(BaseModel):
 class AdminUserUpdate(BaseModel):
     taxa_percentual: Optional[float] = None
     taxa_fixa: Optional[float] = None
+    taxa_saque: Optional[float] = None
+    taxa_transferencia: Optional[float] = None
     indicacoes_liberadas: Optional[int] = None
     status: Optional[str] = None
+
+class AdminCredentialsUpdate(BaseModel):
+    codigo: Optional[str] = None
+    senha_atual: str
+    senha_nova: Optional[str] = None
+
+class TwoFactorSetup(BaseModel):
+    enabled: bool
+
+class TwoFactorVerify(BaseModel):
+    code: str
+
+class TransferCreate(BaseModel):
+    valor: float
+    carteira_destino: str
 
 class TransactionCreate(BaseModel):
     valor: float
