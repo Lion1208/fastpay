@@ -58,6 +58,7 @@ export default function Transfers() {
       setTransfers(response.data.transfers || []);
       setCarteiraId(response.data.carteira_id || "");
       setTaxaTransferencia(response.data.taxa_transferencia || 0.5);
+      setValorMinimo(response.data.valor_minimo || 1);
     } catch (error) {
       toast.error("Erro ao carregar transferências");
     } finally {
