@@ -358,7 +358,7 @@ export default function Transactions() {
               {/* Status */}
               <div className="space-y-1">
                 <Label className="text-xs text-slate-400">Status</Label>
-                <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                <Select value={filters.status || "all"} onValueChange={(value) => setFilters({ ...filters, status: value === "all" ? "" : value })}>
                   <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
