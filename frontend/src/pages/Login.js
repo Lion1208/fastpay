@@ -22,17 +22,21 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await api.get(`/config/public`);
+        // Mantém valores padrão se não vierem no response
+        setConfig(prev => ({
+          ...prev,
+          ...response.data,
+          nome_sistema: response.data?.nome_sistema || prev.nome_sistema || "FastPay"
+        }));
+      } catch (error) {
+        // Ignora erros, mantém valor padrão
+      }
+    };
     fetchConfig();
   }, []);
-
-  const fetchConfig = async () => {
-    try {
-      const response = await api.get(`/config/public`);
-      setConfig(response.data);
-    } catch (error) {
-      console.error("Error fetching config:", error);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
