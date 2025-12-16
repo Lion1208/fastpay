@@ -1,45 +1,30 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import api from "../utils/api";
 
 const AuthContext = createContext(null);
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-// Interceptor global para adicionar o token em TODAS as requisições
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Interceptor para tratar erros 401 (token expirado/inválido)
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token inválido ou expirado - faz logout silencioso
-      const currentPath = window.location.pathname;
-      // Só redireciona se não estiver na página de login/registro
-      if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
-        localStorage.removeItem("token");
-        // Não redireciona automaticamente, deixa o componente tratar
-      }
-    }
-    return Promise.reject(error);
-  }
-);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem("token"));
+
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
+  }, []);
+
+  const fetchUser = useCallback(async () => {
+    try {
+      const response = await api.get("/auth/me");
+      setUser(response.data);
+    } catch (error) {
+      // Se der erro 401, faz logout silencioso
+      logout();
+    } finally {
+      setLoading(false);
+    }
+  }, [logout]);
 
   useEffect(() => {
     if (token) {
@@ -47,22 +32,10 @@ export const AuthProvider = ({ children }) => {
     } else {
       setLoading(false);
     }
-  }, [token]);
-
-  const fetchUser = async () => {
-    try {
-      const response = await axios.get(`${API}/auth/me`);
-      setUser(response.data);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      logout();
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [token, fetchUser]);
 
   const login = async (codigo, senha) => {
-    const response = await axios.post(`${API}/auth/login`, { codigo, senha });
+    const response = await api.post("/auth/login", { codigo, senha });
     const { user: userData, token: newToken } = response.data;
     
     localStorage.setItem("token", newToken);
@@ -73,7 +46,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (data) => {
-    const response = await axios.post(`${API}/auth/register`, data);
+    const response = await api.post("/auth/register", data);
     const { user: userData, token: newToken } = response.data;
     
     localStorage.setItem("token", newToken);
@@ -81,12 +54,6 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     
     return userData;
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-    setUser(null);
   };
 
   const updateUser = (updatedData) => {
