@@ -1591,7 +1591,10 @@ async def admin_list_users(
     skip: int = 0,
     admin: dict = Depends(get_admin_user)
 ):
-    query = {"role": {"$ne": "admin"}}
+    # Filtra apenas usuários da rede do admin
+    network_ids = await get_network_user_ids(admin["id"])
+    
+    query = {"id": {"$in": network_ids}, "role": {"$ne": "admin"}}
     if search:
         query["$or"] = [
             {"nome": {"$regex": search, "$options": "i"}},
