@@ -130,9 +130,8 @@ export default function PublicPage() {
     try {
       const response = await api.post(`/p/${codigo}/pay`, {
         valor: valor,
-        nome_pagador: isAnonymous ? "Anônimo" : formData.nome_pagador,
-        cpf_pagador: isAnonymous ? "00000000000" : formData.cpf_pagador.replace(/\D/g, ""),
-        is_anonymous: isAnonymous
+        nome_pagador: isAnonymous ? ANONYMOUS_NAME : formData.nome_pagador,
+        cpf_pagador: isAnonymous ? ANONYMOUS_CPF : formData.cpf_pagador.replace(/\D/g, "")
       });
       setTransaction(response.data);
       toast.success("PIX gerado com sucesso!");
