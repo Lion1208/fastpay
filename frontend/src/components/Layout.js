@@ -157,9 +157,9 @@ export const Layout = ({ children }) => {
             })}
           </nav>
 
-          {/* Referral Link - só mostra se for admin ou tiver indicações liberadas */}
-          {(isAdmin || user?.indicacoes_liberadas > 0) && (
-            <div className="p-4 border-t border-white/5">
+          {/* Referral Link */}
+          <div className="p-4 border-t border-white/5">
+            {(isAdmin || (user?.indicacoes_liberadas > 0 && user?.indicacoes_usadas < user?.indicacoes_liberadas)) ? (
               <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
                 <p className="text-xs text-slate-500 mb-2">Seu Link de Indicação</p>
                 <div className="flex items-center gap-2">
@@ -172,9 +172,18 @@ export const Layout = ({ children }) => {
                     <Copy size={14} />
                   </button>
                 </div>
+                {!isAdmin && (
+                  <p className="text-xs text-slate-500 mt-2">
+                    {user?.indicacoes_liberadas - user?.indicacoes_usadas} indicação(ões) disponível(eis)
+                  </p>
+                )}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="p-3 rounded-lg bg-slate-800/30 border border-slate-700/50">
+                <p className="text-xs text-slate-500">Sem indicações disponíveis</p>
+              </div>
+            )}
+          </div>
 
           {/* User Section */}
           <div className="p-4 border-t border-white/5">
