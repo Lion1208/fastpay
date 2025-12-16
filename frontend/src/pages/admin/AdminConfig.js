@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Settings, Key, Save, Eye, EyeOff, DollarSign } from "lucide-react";
+import { Settings, Key, Save, Eye, EyeOff, DollarSign, Palette, Image } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -37,7 +37,7 @@ export default function AdminConfig() {
     try {
       const response = await axios.put(`${API}/admin/config`, config);
       setConfig(response.data);
-      toast.success("Configurações salvas!");
+      toast.success("Configurações salvas! Recarregue a página para ver as alterações.");
     } catch (error) {
       toast.error("Erro ao salvar configurações");
     } finally {
@@ -69,6 +69,65 @@ export default function AdminConfig() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Branding */}
+          <Card className="card-dashboard">
+            <CardHeader>
+              <CardTitle className="text-lg text-white flex items-center gap-2">
+                <Palette className="w-5 h-5 text-purple-400" />
+                Identidade do Sistema
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-slate-300">Nome do Sistema</Label>
+                <Input
+                  type="text"
+                  value={config?.nome_sistema || ""}
+                  onChange={(e) => handleChange("nome_sistema", e.target.value)}
+                  className="input-default"
+                  placeholder="Ex: FastPay, PixPro, etc"
+                  data-testid="nome-sistema-input"
+                />
+                <p className="text-xs text-slate-500">
+                  Este nome aparecerá em todo o painel, login e páginas públicas
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-slate-300">URL do Logo</Label>
+                <Input
+                  type="url"
+                  value={config?.logo_url || ""}
+                  onChange={(e) => handleChange("logo_url", e.target.value)}
+                  className="input-default"
+                  placeholder="https://exemplo.com/logo.png"
+                  data-testid="logo-url-input"
+                />
+                <p className="text-xs text-slate-500">
+                  Deixe vazio para usar o ícone padrão
+                </p>
+              </div>
+
+              {/* Preview */}
+              <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                <p className="text-xs text-slate-500 mb-3">Pré-visualização</p>
+                <div className="flex items-center gap-3">
+                  {config?.logo_url ? (
+                    <img src={config.logo_url} alt="Logo" className="h-10" onError={(e) => e.target.style.display='none'} />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                      <span className="text-green-400 font-bold text-xl">$</span>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-bold text-white">{config?.nome_sistema || "FastPay"}</h3>
+                    <p className="text-xs text-slate-500">Sistema PIX</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* FastDePix API */}
           <Card className="card-dashboard">
             <CardHeader>
@@ -133,7 +192,7 @@ export default function AdminConfig() {
           <Card className="card-dashboard">
             <CardHeader>
               <CardTitle className="text-lg text-white flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-purple-400" />
+                <DollarSign className="w-5 h-5 text-cyan-400" />
                 Taxas Padrão
               </CardTitle>
             </CardHeader>
@@ -180,7 +239,7 @@ export default function AdminConfig() {
           <Card className="card-dashboard">
             <CardHeader>
               <CardTitle className="text-lg text-white flex items-center gap-2">
-                <Settings className="w-5 h-5 text-cyan-400" />
+                <Settings className="w-5 h-5 text-orange-400" />
                 Sistema de Indicações
               </CardTitle>
             </CardHeader>
@@ -215,13 +274,15 @@ export default function AdminConfig() {
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Info Card */}
-          <Card className="card-dashboard">
-            <CardHeader>
-              <CardTitle className="text-lg text-white">Informações do Sistema</CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Info Card */}
+        <Card className="card-dashboard">
+          <CardHeader>
+            <CardTitle className="text-lg text-white">Informações do Sistema</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-4">
                 <div className="flex justify-between py-3 border-b border-slate-800">
                   <span className="text-slate-400">Admin Padrão</span>
@@ -231,20 +292,24 @@ export default function AdminConfig() {
                   <span className="text-slate-400">Senha Admin</span>
                   <span className="text-white mono">admin123</span>
                 </div>
-                <div className="flex justify-between py-3">
-                  <span className="text-slate-400">Versão</span>
-                  <span className="text-white">1.0.0</span>
-                </div>
+              </div>
 
-                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 mt-4">
-                  <p className="text-sm text-yellow-400">
-                    Importante: Altere a senha do admin após o primeiro acesso!
+              <div className="md:col-span-2">
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                  <p className="text-sm text-yellow-400 font-medium mb-2">
+                    Importante
                   </p>
+                  <ul className="text-sm text-slate-400 space-y-1">
+                    <li>• Altere a senha do admin após o primeiro acesso</li>
+                    <li>• O nome do sistema aparece em todas as páginas</li>
+                    <li>• Configure a API FastDePix para gerar QR codes reais</li>
+                    <li>• Admin tem indicações ilimitadas</li>
+                  </ul>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Save Button */}
         <div className="flex justify-end">
