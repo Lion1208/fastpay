@@ -150,7 +150,15 @@ export const Layout = ({ children }) => {
               </div>
             )}
             
-            {menuItems.map((item) => {
+            {menuItems.map((item, index) => {
+              if (item.divider) {
+                return (
+                  <div key={`divider-${index}`} className="my-2 mx-3 border-t border-slate-700">
+                    <p className="text-xs text-slate-500 mt-2 px-1">Administração</p>
+                  </div>
+                );
+              }
+              
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               
