@@ -1121,6 +1121,49 @@ async def get_withdrawal(withdrawal_id: str, user: dict = Depends(get_current_us
 
 # ===================== TRANSFER ROUTES =====================
 
+@api_router.post("/user/generate-wallet")
+async def generate_user_wallet(user: dict = Depends(get_current_user)):
+    """Gera um ID de carteira para o usuário se ele não tiver"""
+    user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    
+    if user_data.get("carteira_id"):
+        raise HTTPException(status_code=400, detail="Você já possui um ID de carteira")
+    
+    new_wallet_id = generate_wallet_id()
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"carteira_id": new_wallet_id}}
+    )
+    
+    return {"carteira_id": new_wallet_id}
+
+@api_router.get("/transfers/frequent")
+async def get_frequent_transfers(user: dict = Depends(get_current_user)):
+    """Retorna os 3 destinatários mais frequentes para transferências"""
+    # Busca transferências enviadas pelo usuário
+    transfers = await db.transfers.find(
+        {"remetente_id": user["id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Conta frequência por destinatário
+    freq = {}
+    for t in transfers:
+        dest_id = t.get("destinatario_id")
+        if dest_id:
+            if dest_id not in freq:
+                freq[dest_id] = {
+                    "count": 0,
+                    "nome": t.get("destinatario_nome"),
+                    "carteira_id": t.get("destinatario_carteira")
+                }
+            freq[dest_id]["count"] += 1
+    
+    # Ordena por frequência e pega top 3
+    sorted_freq = sorted(freq.values(), key=lambda x: x["count"], reverse=True)[:3]
+    
+    return {"frequentes": sorted_freq}
+
 @api_router.get("/transfers/validate/{carteira_id}")
 async def validate_transfer_wallet(carteira_id: str, user: dict = Depends(get_current_user)):
     """Valida se uma carteira existe e retorna informações do destinatário"""
@@ -1140,7 +1183,9 @@ async def validate_transfer_wallet(carteira_id: str, user: dict = Depends(get_cu
 async def calculate_transfer(valor: float, user: dict = Depends(get_current_user)):
     """Calcula os valores da transferência"""
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    config = await get_config()
     taxa_transferencia = user_data.get("taxa_transferencia", 0.5)
+    valor_minimo = user_data.get("valor_minimo_transferencia", config.get("valor_minimo_transferencia", 1.0))
     
     valor_taxa = valor * (taxa_transferencia / 100)
     valor_recebido = valor - valor_taxa
@@ -1152,7 +1197,8 @@ async def calculate_transfer(valor: float, user: dict = Depends(get_current_user
         "valor_taxa": round(valor_taxa, 2),
         "valor_recebido": round(valor_recebido, 2),
         "saldo_disponivel": total_disponivel,
-        "pode_transferir": total_disponivel >= valor
+        "pode_transferir": total_disponivel >= valor and valor >= valor_minimo,
+        "valor_minimo": valor_minimo
     }
 
 @api_router.post("/transfers")
