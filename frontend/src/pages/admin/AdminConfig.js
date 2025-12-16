@@ -202,7 +202,7 @@ export default function AdminConfig() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Taxa Percentual (%)</Label>
+                  <Label className="text-slate-300">Taxa Transação (%)</Label>
                   <Input
                     type="number"
                     value={config?.taxa_percentual_padrao || ""}
@@ -225,14 +225,49 @@ export default function AdminConfig() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-slate-800/50">
-                <p className="text-slate-300">
-                  Taxa atual: <span className="text-green-400 font-semibold">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Taxa Saque (%)</Label>
+                  <Input
+                    type="number"
+                    value={config?.taxa_saque_padrao || ""}
+                    onChange={(e) => handleChange("taxa_saque_padrao", parseFloat(e.target.value))}
+                    className="input-default"
+                    step="0.1"
+                    placeholder="1.5"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Taxa Transferência (%)</Label>
+                  <Input
+                    type="number"
+                    value={config?.taxa_transferencia_padrao || ""}
+                    onChange={(e) => handleChange("taxa_transferencia_padrao", parseFloat(e.target.value))}
+                    className="input-default"
+                    step="0.1"
+                    placeholder="0.5"
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-slate-800/50 space-y-1">
+                <p className="text-slate-300 text-sm">
+                  Transação: <span className="text-green-400 font-semibold">
                     {config?.taxa_percentual_padrao || 2}% + R${(config?.taxa_fixa_padrao || 0.99).toFixed(2)}
                   </span>
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
-                  Esta taxa será aplicada a novos usuários
+                <p className="text-slate-300 text-sm">
+                  Saque: <span className="text-cyan-400 font-semibold">
+                    {config?.taxa_saque_padrao || 1.5}%
+                  </span>
+                </p>
+                <p className="text-slate-300 text-sm">
+                  Transferência: <span className="text-purple-400 font-semibold">
+                    {config?.taxa_transferencia_padrao || 0.5}%
+                  </span>
+                </p>
+                <p className="text-xs text-slate-500 mt-2">
+                  Taxas aplicadas a novos usuários
                 </p>
               </div>
             </CardContent>
