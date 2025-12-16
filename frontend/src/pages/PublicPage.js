@@ -6,7 +6,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card, CardContent } from "../components/ui/card";
 import { toast, Toaster } from "sonner";
-import { QrCode, Copy, ArrowRight, CheckCircle, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { QrCode, Copy, ArrowRight, CheckCircle, Clock, AlertCircle, Loader2, PartyPopper } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -22,43 +22,36 @@ export default function PublicPage() {
     nome_pagador: "",
     cpf_pagador: ""
   });
-  const [checking, setChecking] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const pollingRef = useRef(null);
 
   useEffect(() => {
     fetchPageData();
     
-    // Cleanup polling on unmount
     return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-      }
+      if (pollingRef.current) clearInterval(pollingRef.current);
     };
   }, [codigo]);
 
-  // Polling para verificar status do pagamento
+  // Polling para verificar status (apenas consulta o backend que já faz o trabalho)
   useEffect(() => {
-    if (transaction && transaction.status === "pending" && transaction.fastdepix_id) {
-      setChecking(true);
-      
+    if (transaction && transaction.status === "pending") {
       pollingRef.current = setInterval(async () => {
         try {
           const response = await axios.get(`${API}/transactions/${transaction.id}/status`);
           if (response.data.status === "paid") {
-            setTransaction(prev => ({ ...prev, status: "paid" }));
-            setChecking(false);
+            setTransaction(prev => ({ ...prev, status: "paid", paid_at: response.data.paid_at }));
             clearInterval(pollingRef.current);
+            setShowSuccess(true);
             toast.success("Pagamento confirmado!");
           }
         } catch (error) {
           console.error("Error checking payment status:", error);
         }
-      }, 5000); // Polling a cada 5 segundos
+      }, 3000); // Consulta a cada 3 segundos
       
       return () => {
-        if (pollingRef.current) {
-          clearInterval(pollingRef.current);
-        }
+        if (pollingRef.current) clearInterval(pollingRef.current);
       };
     }
   }, [transaction]);
@@ -66,7 +59,11 @@ export default function PublicPage() {
   const fetchPageData = async () => {
     try {
       const response = await axios.get(`${API}/p/${codigo}`);
-      setPageData(response.data);
+      if (response.data.pode_indicar === false) {
+        setPageData({ ...response.data, bloqueado: true });
+      } else {
+        setPageData(response.data);
+      }
     } catch (error) {
       setError("Página não encontrada");
     } finally {
@@ -136,6 +133,12 @@ export default function PublicPage() {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
   };
 
+  const resetForm = () => {
+    setTransaction(null);
+    setShowSuccess(false);
+    setFormData({ valor: "", nome_pagador: "", cpf_pagador: "" });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -164,6 +167,57 @@ export default function PublicPage() {
 
   const corPrimaria = pageData?.pagina_personalizada?.cor_primaria || "#22c55e";
   const nomeSistema = pageData?.nome_sistema || "FastPay";
+
+  // Animação de sucesso
+  if (showSuccess && transaction?.status === "paid") {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <Toaster position="top-right" />
+        <div className="text-center max-w-md animate-fade-in">
+          {/* Animação de confete/sucesso */}
+          <div className="relative">
+            <div 
+              className="w-32 h-32 rounded-full mx-auto mb-8 flex items-center justify-center animate-bounce"
+              style={{ backgroundColor: `${corPrimaria}20`, boxShadow: `0 0 60px ${corPrimaria}40` }}
+            >
+              <CheckCircle className="w-16 h-16" style={{ color: corPrimaria }} />
+            </div>
+            {/* Partículas decorativas */}
+            <div className="absolute inset-0 pointer-events-none">
+              <PartyPopper className="absolute top-0 left-1/4 w-8 h-8 text-yellow-400 animate-pulse" />
+              <PartyPopper className="absolute top-0 right-1/4 w-8 h-8 text-pink-400 animate-pulse" style={{ animationDelay: '0.2s' }} />
+            </div>
+          </div>
+          
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Pagamento Confirmado!
+          </h1>
+          
+          <p className="text-xl text-slate-300 mb-2">
+            {formatCurrency(transaction.valor)}
+          </p>
+          
+          <p className="text-slate-400 mb-8">
+            Obrigado pelo seu pagamento. A transação foi processada com sucesso.
+          </p>
+          
+          <div className="space-y-3">
+            <Button
+              onClick={resetForm}
+              className="w-full h-12"
+              style={{ backgroundColor: corPrimaria }}
+            >
+              Fazer Novo Pagamento
+            </Button>
+          </div>
+          
+          <p className="text-slate-500 text-sm mt-8">
+            {nomeSistema}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -326,30 +380,21 @@ export default function PublicPage() {
 
                   <div className="flex items-center justify-center gap-2 py-3">
                     {transaction.status === "paid" ? (
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/20 border border-green-500/30">
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/20 border border-green-500/30 w-full justify-center">
                         <CheckCircle className="w-5 h-5 text-green-400" />
                         <span className="text-green-400 font-medium">Pagamento Confirmado!</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-                        {checking ? (
-                          <Loader2 className="w-5 h-5 text-yellow-400 animate-spin" />
-                        ) : (
-                          <Clock className="w-5 h-5 text-yellow-400" />
-                        )}
-                        <span className="text-yellow-400">
-                          {checking ? "Verificando pagamento..." : "Aguardando pagamento..."}
-                        </span>
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 w-full justify-center">
+                        <Loader2 className="w-5 h-5 text-yellow-400 animate-spin" />
+                        <span className="text-yellow-400">Verificando pagamento...</span>
                       </div>
                     )}
                   </div>
 
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setTransaction(null);
-                      setFormData({ valor: "", nome_pagador: "", cpf_pagador: "" });
-                    }}
+                    onClick={resetForm}
                     className="w-full border-slate-700 text-slate-300"
                   >
                     Novo Pagamento
