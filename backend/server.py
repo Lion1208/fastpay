@@ -1524,7 +1524,10 @@ async def admin_list_withdrawals(
     status: Optional[str] = None,
     admin: dict = Depends(get_admin_user)
 ):
-    query = {}
+    # Obtém IDs dos usuários da rede do admin
+    network_ids = await get_network_user_ids(admin["id"])
+    
+    query = {"parceiro_id": {"$in": network_ids}}
     if status:
         query["status"] = status
     
