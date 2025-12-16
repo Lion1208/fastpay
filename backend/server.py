@@ -1425,12 +1425,51 @@ async def admin_approve_withdrawal(
     await db.withdrawals.update_one({"id": withdrawal_id}, {"$set": update_data})
     
     if data.status == "rejected":
+        # Devolve o valor total retido (valor + taxa)
+        valor_devolver = withdrawal.get("valor_total_retido", withdrawal.get("valor_solicitado", withdrawal.get("valor", 0)))
         await db.users.update_one(
             {"id": withdrawal["parceiro_id"]},
-            {"$inc": {"saldo_disponivel": withdrawal["valor"]}}
+            {"$inc": {"saldo_disponivel": valor_devolver}}
         )
     
     return {"message": f"Saque {data.status}"}
+
+@api_router.post("/admin/withdrawals/{withdrawal_id}/observation")
+async def admin_add_observation(
+    withdrawal_id: str,
+    data: WithdrawalObservation,
+    admin: dict = Depends(get_admin_user)
+):
+    """Adiciona uma observação ao saque"""
+    withdrawal = await db.withdrawals.find_one({"id": withdrawal_id})
+    if not withdrawal:
+        raise HTTPException(status_code=404, detail="Saque não encontrado")
+    
+    observation = {
+        "id": str(uuid.uuid4()),
+        "admin_id": admin["id"],
+        "admin_nome": admin.get("nome"),
+        "observacao": data.observacao,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.withdrawals.update_one(
+        {"id": withdrawal_id},
+        {"$push": {"observacoes": observation}}
+    )
+    
+    updated = await db.withdrawals.find_one({"id": withdrawal_id}, {"_id": 0})
+    return updated
+
+@api_router.get("/admin/withdrawals/{withdrawal_id}")
+async def admin_get_withdrawal(withdrawal_id: str, admin: dict = Depends(get_admin_user)):
+    """Obtém detalhes de um saque específico"""
+    withdrawal = await db.withdrawals.find_one({"id": withdrawal_id}, {"_id": 0})
+    if not withdrawal:
+        raise HTTPException(status_code=404, detail="Saque não encontrado")
+    
+    user = await db.users.find_one({"id": withdrawal["parceiro_id"]}, {"_id": 0, "senha": 0})
+    return {**withdrawal, "parceiro": user}
 
 @api_router.get("/admin/config")
 async def admin_get_config(admin: dict = Depends(get_admin_user)):
