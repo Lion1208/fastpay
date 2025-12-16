@@ -66,6 +66,8 @@ class AdminUserUpdate(BaseModel):
     taxa_fixa: Optional[float] = None
     taxa_saque: Optional[float] = None
     taxa_transferencia: Optional[float] = None
+    valor_minimo_saque: Optional[float] = None
+    valor_minimo_transferencia: Optional[float] = None
     indicacoes_liberadas: Optional[int] = None
     status: Optional[str] = None
 
