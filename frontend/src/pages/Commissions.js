@@ -121,48 +121,84 @@ export default function Commissions() {
           </CardHeader>
           <CardContent>
             {data?.commissions?.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-800">
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Transação</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Valor da Transação</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Percentual</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Comissão</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Status</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Data</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.commissions.map((com) => (
-                      <tr key={com.id} className="table-row">
-                        <td className="p-4">
-                          <span className="mono text-xs text-slate-400">{com.transacao_id?.substring(0, 8)}...</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-white">{formatCurrency(com.valor_transacao)}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-slate-400">{com.percentual}%</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-green-400 font-medium">{formatCurrency(com.valor_comissao)}</span>
-                        </td>
-                        <td className="p-4">
-                          <Badge className={com.status === "credited" ? "badge-success" : "badge-warning"}>
-                            {com.status === "credited" ? "Creditado" : "Pendente"}
-                          </Badge>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-slate-500 text-sm">
-                            {new Date(com.created_at).toLocaleDateString("pt-BR")}
-                          </span>
-                        </td>
+              <>
+                {/* Mobile Cards */}
+                <div className="md:hidden space-y-3">
+                  {data.commissions.map((com) => (
+                    <div key={com.id} className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="mono text-xs text-slate-500">{com.transacao_id?.substring(0, 8)}...</span>
+                          <p className="text-green-400 font-bold text-lg">{formatCurrency(com.valor_comissao)}</p>
+                        </div>
+                        <Badge className={com.status === "credited" ? "badge-success" : "badge-warning"}>
+                          {com.status === "credited" ? "Creditado" : "Pendente"}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700">
+                        <div>
+                          <p className="text-xs text-slate-500">Valor Transação</p>
+                          <p className="text-white font-medium">{formatCurrency(com.valor_transacao)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Percentual</p>
+                          <p className="text-slate-300">{com.percentual}%</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-end text-xs text-slate-500">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {new Date(com.created_at).toLocaleDateString("pt-BR")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-800">
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Transação</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Valor da Transação</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Percentual</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Comissão</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Status</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Data</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {data.commissions.map((com) => (
+                        <tr key={com.id} className="table-row">
+                          <td className="p-4">
+                            <span className="mono text-xs text-slate-400">{com.transacao_id?.substring(0, 8)}...</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-white">{formatCurrency(com.valor_transacao)}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-slate-400">{com.percentual}%</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-green-400 font-medium">{formatCurrency(com.valor_comissao)}</span>
+                          </td>
+                          <td className="p-4">
+                            <Badge className={com.status === "credited" ? "badge-success" : "badge-warning"}>
+                              {com.status === "credited" ? "Creditado" : "Pendente"}
+                            </Badge>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-slate-500 text-sm">
+                              {new Date(com.created_at).toLocaleDateString("pt-BR")}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="text-center py-12">
                 <DollarSign className="w-12 h-12 text-slate-600 mx-auto mb-3" />
