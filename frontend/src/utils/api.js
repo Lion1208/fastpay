@@ -46,37 +46,37 @@ const withRetry = async (fn, retries = 1) => {
   }
 };
 
-// API wrapper simples que sempre pega o token do localStorage
+// API wrapper com retry automático para erros de rede
 const api = {
   get: (url, config = {}) => {
-    return axios.get(buildUrl(url), {
+    return withRetry(() => axios.get(buildUrl(url), {
       ...config,
       headers: { ...getAuthHeaders(), ...config.headers }
-    });
+    }));
   },
   post: (url, data, config = {}) => {
-    return axios.post(buildUrl(url), data, {
+    return withRetry(() => axios.post(buildUrl(url), data, {
       ...config,
       headers: { ...getAuthHeaders(), ...config.headers }
-    });
+    }));
   },
   put: (url, data, config = {}) => {
-    return axios.put(buildUrl(url), data, {
+    return withRetry(() => axios.put(buildUrl(url), data, {
       ...config,
       headers: { ...getAuthHeaders(), ...config.headers }
-    });
+    }));
   },
   delete: (url, config = {}) => {
-    return axios.delete(buildUrl(url), {
+    return withRetry(() => axios.delete(buildUrl(url), {
       ...config,
       headers: { ...getAuthHeaders(), ...config.headers }
-    });
+    }));
   },
   patch: (url, data, config = {}) => {
-    return axios.patch(buildUrl(url), data, {
+    return withRetry(() => axios.patch(buildUrl(url), data, {
       ...config,
       headers: { ...getAuthHeaders(), ...config.headers }
-    });
+    }));
   }
 };
 
