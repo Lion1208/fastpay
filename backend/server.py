@@ -914,12 +914,27 @@ async def get_public_page(codigo: str):
     
     config = await get_config()
     
+    # Verificar se pode receber indicações (para mostrar na página de registro)
+    pode_indicar = True
+    motivo_bloqueio = None
+    
+    if user.get("role") != "admin":
+        valor_minimo = config.get("valor_minimo_indicacao", 1000)
+        if user.get("valor_movimentado", 0) < valor_minimo:
+            pode_indicar = False
+            motivo_bloqueio = f"Indicador precisa movimentar R${valor_minimo:.2f} para liberar indicações"
+        elif user.get("indicacoes_usadas", 0) >= user.get("indicacoes_liberadas", 0):
+            pode_indicar = False
+            motivo_bloqueio = "Indicador não tem mais indicações disponíveis"
+    
     return {
         "nome": user.get("nome"),
         "pagina_personalizada": user.get("pagina_personalizada", {}),
         "codigo": user.get("codigo"),
         "nome_sistema": config.get("nome_sistema", "FastPay"),
-        "logo_url": config.get("logo_url", "")
+        "logo_url": config.get("logo_url", ""),
+        "pode_indicar": pode_indicar,
+        "motivo_bloqueio": motivo_bloqueio
     }
 
 @api_router.post("/p/{codigo}/pay")
