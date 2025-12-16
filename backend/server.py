@@ -1908,8 +1908,11 @@ async def admin_get_stats(admin: dict = Depends(get_admin_user)):
     pending_withdrawals = await db.withdrawals.count_documents({"parceiro_id": {"$in": network_ids}, "status": "pending"})
     open_tickets = await db.tickets.count_documents({"user_id": {"$in": network_ids}, "status": {"$in": ["open", "in_progress"]}})
     
-    # Calcula total sacável da rede (soma de saldo_disponivel + saldo_comissoes de todos os usuários)
-    network_users = await db.users.find({"id": {"$in": network_ids}}, {"_id": 0, "saldo_disponivel": 1, "saldo_comissoes": 1}).to_list(10000)
+    # Calcula total sacável da rede (soma de saldo_disponivel + saldo_comissoes de todos os usuários, excluindo admins)
+    network_users = await db.users.find(
+        {"id": {"$in": network_ids}, "role": {"$ne": "admin"}}, 
+        {"_id": 0, "saldo_disponivel": 1, "saldo_comissoes": 1}
+    ).to_list(10000)
     total_sacavel = sum(u.get("saldo_disponivel", 0) + u.get("saldo_comissoes", 0) for u in network_users)
     
     today = datetime.now(timezone.utc).date()
