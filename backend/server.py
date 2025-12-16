@@ -1333,6 +1333,16 @@ async def create_transfer(data: TransferCreate, user: dict = Depends(get_current
     
     await db.transfers.insert_one(transfer)
     
+    # Envia push notification para o destinatário
+    config = await get_config()
+    nome_sistema = config.get("nome_sistema", "FastPay")
+    asyncio.create_task(send_push_notification(
+        user_id=destinatario["id"],
+        title=f"💰 {nome_sistema}",
+        body=f"Você recebeu R$ {valor_recebido:.2f} de {user_data.get('nome')}",
+        data={"type": "transfer_received", "transfer_id": transfer_id, "valor": valor_recebido}
+    ))
+    
     return {
         "success": True,
         "transfer_id": transfer_id,
