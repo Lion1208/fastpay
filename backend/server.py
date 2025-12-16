@@ -115,6 +115,8 @@ class AdminConfig(BaseModel):
     taxa_saque_padrao: Optional[float] = None
     taxa_transferencia_padrao: Optional[float] = None
     valor_minimo_indicacao: Optional[float] = None
+    valor_minimo_saque: Optional[float] = None
+    valor_minimo_transferencia: Optional[float] = None
     comissao_indicacao: Optional[float] = None
     nome_sistema: Optional[str] = None
     logo_url: Optional[str] = None
