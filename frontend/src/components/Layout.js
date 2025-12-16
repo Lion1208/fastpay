@@ -157,22 +157,24 @@ export const Layout = ({ children }) => {
             })}
           </nav>
 
-          {/* Referral Link */}
-          <div className="p-4 border-t border-white/5">
-            <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-              <p className="text-xs text-slate-500 mb-2">Seu Link de Indicação</p>
-              <div className="flex items-center gap-2">
-                <code className="text-xs text-green-400 truncate flex-1">{user?.codigo}</code>
-                <button
-                  onClick={() => copyToClipboard(referralLink)}
-                  className="p-1.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-white transition-colors"
-                  data-testid="copy-referral-btn"
-                >
-                  <Copy size={14} />
-                </button>
+          {/* Referral Link - só mostra se for admin ou tiver indicações liberadas */}
+          {(isAdmin || user?.indicacoes_liberadas > 0) && (
+            <div className="p-4 border-t border-white/5">
+              <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+                <p className="text-xs text-slate-500 mb-2">Seu Link de Indicação</p>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs text-green-400 truncate flex-1">{user?.codigo}</code>
+                  <button
+                    onClick={() => copyToClipboard(referralLink)}
+                    className="p-1.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-white transition-colors"
+                    data-testid="copy-referral-btn"
+                  >
+                    <Copy size={14} />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* User Section */}
           <div className="p-4 border-t border-white/5">
