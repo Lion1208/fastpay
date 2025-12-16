@@ -101,13 +101,22 @@ export default function PublicPage() {
       return;
     }
 
-    if (!formData.nome_pagador.trim()) {
-      toast.error("Informe seu nome");
-      return;
+    // Validação para pagamento anônimo
+    if (isAnonymous) {
+      if (valor > ANONYMOUS_LIMIT) {
+        toast.error(`Pagamento anônimo tem limite de ${formatCurrency(ANONYMOUS_LIMIT)}`);
+        return;
+      }
+    } else {
+      // Se não for anônimo, exige CPF/CNPJ
+      if (!formData.cpf_pagador || formData.cpf_pagador.replace(/\D/g, "").length < 11) {
+        toast.error("Informe um CPF/CNPJ válido");
+        return;
+      }
     }
 
-    if (!formData.cpf_pagador || formData.cpf_pagador.replace(/\D/g, "").length < 11) {
-      toast.error("Informe um CPF/CNPJ válido");
+    if (!formData.nome_pagador.trim()) {
+      toast.error("Informe seu nome");
       return;
     }
 
@@ -115,8 +124,9 @@ export default function PublicPage() {
     try {
       const response = await api.post(`/p/${codigo}/pay`, {
         valor: valor,
-        nome_pagador: formData.nome_pagador,
-        cpf_pagador: formData.cpf_pagador.replace(/\D/g, "")
+        nome_pagador: isAnonymous ? "Anônimo" : formData.nome_pagador,
+        cpf_pagador: isAnonymous ? "00000000000" : formData.cpf_pagador.replace(/\D/g, ""),
+        is_anonymous: isAnonymous
       });
       setTransaction(response.data);
       toast.success("PIX gerado com sucesso!");
