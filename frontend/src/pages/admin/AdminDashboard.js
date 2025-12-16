@@ -150,9 +150,10 @@ export default function AdminDashboard() {
               <CardTitle className="text-lg text-white">Volume (7 dias)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={stats?.chart_data || []}>
+              <div style={{ width: '100%', height: 256 }}>
+                {stats?.chart_data && stats.chart_data.length > 0 ? (
+                <ResponsiveContainer width="100%" height={256}>
+                  <AreaChart data={stats.chart_data}>
                     <defs>
                       <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
@@ -168,6 +169,9 @@ export default function AdminDashboard() {
                     <Area type="monotone" dataKey="volume" stroke="#22c55e" strokeWidth={2} fill="url(#colorVolume)" />
                   </AreaChart>
                 </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-slate-500">Sem dados</div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -177,9 +181,10 @@ export default function AdminDashboard() {
               <CardTitle className="text-lg text-white">Transações (7 dias)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats?.chart_data || []}>
+              <div style={{ width: '100%', height: 256 }}>
+                {stats?.chart_data && stats.chart_data.length > 0 ? (
+                <ResponsiveContainer width="100%" height={256}>
+                  <BarChart data={stats.chart_data}>
                     <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                     <Tooltip 
@@ -188,6 +193,9 @@ export default function AdminDashboard() {
                     <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-slate-500">Sem dados</div>
+                )}
               </div>
             </CardContent>
           </Card>
