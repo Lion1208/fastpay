@@ -26,6 +26,13 @@ export default function PublicPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   
   const ANONYMOUS_LIMIT = 500; // Limite para pagamento anônimo
+  const ANONYMOUS_NAME = "Cliente Anônimo";
+  const ANONYMOUS_CPF = "12345678909"; // CPF válido fictício
+  
+  // Verifica se o valor está dentro do limite anônimo
+  const valorAtual = parseFloat(formData.valor) || 0;
+  const isAnonymousValueValid = valorAtual >= 10 && valorAtual <= ANONYMOUS_LIMIT;
+  const isAnonymousOverLimit = isAnonymous && valorAtual > ANONYMOUS_LIMIT;
   const pollingRef = useRef(null);
 
   useEffect(() => {
