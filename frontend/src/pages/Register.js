@@ -46,7 +46,12 @@ export default function Register() {
   const verificarIndicador = async (codigoIndicador) => {
     try {
       const response = await axios.get(`${API}/p/${codigoIndicador}`);
-      setIndicadorValido(response.data);
+      // Verificar se o indicador pode fazer indicações
+      if (response.data.pode_indicar === false) {
+        setIndicadorValido({ ...response.data, bloqueado: true });
+      } else {
+        setIndicadorValido(response.data);
+      }
     } catch (error) {
       setIndicadorValido(false);
     }
