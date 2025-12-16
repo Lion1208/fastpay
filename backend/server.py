@@ -759,15 +759,16 @@ async def list_referrals(user: dict = Depends(get_current_user)):
                 "total_comissoes": total_comissoes
             })
     
-    can_refer = user_data.get("valor_movimentado", 0) >= config.get("valor_minimo_indicacao", 1000)
-    indicacoes_disponiveis = user_data.get("indicacoes_liberadas", 0) - user_data.get("indicacoes_usadas", 0)
+    indicacoes_liberadas = user_data.get("indicacoes_liberadas", 0)
+    indicacoes_usadas = user_data.get("indicacoes_usadas", 0)
+    indicacoes_disponiveis = indicacoes_liberadas - indicacoes_usadas
+    can_refer = indicacoes_disponiveis > 0
     
     return {
         "referrals": enriched,
         "can_refer": can_refer,
         "indicacoes_disponiveis": indicacoes_disponiveis,
-        "valor_minimo_indicacao": config.get("valor_minimo_indicacao", 1000),
-        "valor_atual": user_data.get("valor_movimentado", 0),
+        "indicacoes_liberadas": indicacoes_liberadas,
         "codigo_indicacao": user_data.get("codigo")
     }
 
