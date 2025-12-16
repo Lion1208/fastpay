@@ -18,6 +18,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [requires2FA, setRequires2FA] = useState(false);
   const [config, setConfig] = useState({ nome_sistema: "FastPay", logo_url: "" });
+  const [blocked, setBlocked] = useState(null); // { blocked: true, reason: "motivo" }
   const { login } = useAuth();
   const navigate = useNavigate();
 
