@@ -11,7 +11,6 @@ import { Badge } from "../components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
 import { Code, Plus, Copy, Trash2, Key, ExternalLink, Terminal, FileJson } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function ApiIntegration() {
   const { user } = useAuth();

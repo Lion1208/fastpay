@@ -8,7 +8,6 @@ import { Card, CardContent } from "../components/ui/card";
 import { toast, Toaster } from "sonner";
 import { QrCode, Copy, ArrowRight, CheckCircle, Clock, AlertCircle, Loader2, PartyPopper } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function PublicPage() {
   const { codigo } = useParams();

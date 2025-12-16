@@ -8,7 +8,6 @@ import { Label } from "../components/ui/label";
 import { Eye, EyeOff, UserPlus, ArrowLeft, AlertCircle } from "lucide-react";
 import api from "../utils/api";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Register() {
   const { codigo } = useParams();

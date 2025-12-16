@@ -30,7 +30,6 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const userMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },

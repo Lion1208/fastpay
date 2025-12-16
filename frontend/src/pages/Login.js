@@ -8,7 +8,6 @@ import { Label } from "../components/ui/label";
 import { Eye, EyeOff, LogIn, Shield, Loader2, Ban } from "lucide-react";
 import api from "../utils/api";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Login() {
   const [codigo, setCodigo] = useState("");

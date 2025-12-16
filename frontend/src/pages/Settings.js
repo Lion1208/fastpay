@@ -23,7 +23,6 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { isPushSupported, isSubscribedToPush, subscribeToPush, unsubscribeFromPush, getNotificationPermission } from "../utils/push";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Settings() {
   const { user } = useAuth();

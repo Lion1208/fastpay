@@ -9,7 +9,6 @@ import { Progress } from "../components/ui/progress";
 import { Badge } from "../components/ui/badge";
 import { Users, Copy, Link, Share2, TrendingUp, Lock, Unlock } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Referrals() {
   const { user } = useAuth();

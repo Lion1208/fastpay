@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Badge } from "../components/ui/badge";
 import { DollarSign, TrendingUp, Wallet, Clock } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Commissions() {
   const [data, setData] = useState(null);

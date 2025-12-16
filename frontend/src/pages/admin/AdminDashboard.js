@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Users, CreditCard, Wallet, MessageSquare, TrendingUp, DollarSign } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);

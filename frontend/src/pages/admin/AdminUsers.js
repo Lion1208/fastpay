@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Search, Edit, Users, Ban, Trash2, Unlock, Loader2, AlertTriangle } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);

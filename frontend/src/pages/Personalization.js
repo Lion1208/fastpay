@@ -9,7 +9,6 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Palette, Save, ExternalLink, Eye } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Personalization() {
   const { user, updateUser } = useAuth();

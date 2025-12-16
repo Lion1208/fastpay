@@ -8,7 +8,6 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Settings, Key, Save, Eye, EyeOff, DollarSign, Palette, Image } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function AdminConfig() {
   const [config, setConfig] = useState(null);

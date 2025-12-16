@@ -23,7 +23,6 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, Area
 import { useNavigate } from "react-router-dom";
 import { isPushSupported, isSubscribedToPush } from "../utils/push";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Dashboard() {
   const { user } = useAuth();

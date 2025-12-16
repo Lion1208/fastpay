@@ -27,7 +27,6 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { jsPDF } from "jspdf";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Transfers() {
   const { user } = useAuth();
