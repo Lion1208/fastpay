@@ -197,6 +197,116 @@ export default function Transfers() {
     toast.success("Copiado!");
   };
 
+  // Verifica se a transferência está dentro de 48h
+  const isWithin48Hours = (dateString) => {
+    const transferDate = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - transferDate;
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return diffHours <= 48;
+  };
+
+  // Gera o PDF do comprovante
+  const generatePDF = (transfer, isOutgoing = true) => {
+    const doc = new jsPDF();
+    
+    // Cores
+    const primaryColor = [34, 197, 94]; // green-500
+    const textDark = [30, 41, 59]; // slate-800
+    const textLight = [100, 116, 139]; // slate-500
+    
+    // Header com fundo verde
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, 210, 45, 'F');
+    
+    // Título
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text("Comprovante de Transferência", 105, 25, { align: "center" });
+    
+    // Subtítulo
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Transferência realizada com sucesso", 105, 35, { align: "center" });
+    
+    // Ícone de sucesso (círculo verde)
+    doc.setFillColor(255, 255, 255);
+    doc.circle(105, 55, 12, 'F');
+    doc.setTextColor(...primaryColor);
+    doc.setFontSize(18);
+    doc.text("✓", 105, 60, { align: "center" });
+    
+    // Corpo do comprovante
+    let y = 80;
+    
+    // Valor principal
+    doc.setTextColor(...textDark);
+    doc.setFontSize(28);
+    doc.setFont("helvetica", "bold");
+    const valorDisplay = isOutgoing ? transfer.valor_enviado : transfer.valor_recebido;
+    doc.text(formatCurrency(valorDisplay), 105, y, { align: "center" });
+    y += 15;
+    
+    // Linha divisória
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(30, y, 180, y);
+    y += 15;
+    
+    // Informações da transferência
+    const addField = (label, value) => {
+      doc.setTextColor(...textLight);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(label, 30, y);
+      
+      doc.setTextColor(...textDark);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text(value || "-", 180, y, { align: "right" });
+      y += 12;
+    };
+    
+    addField("Tipo:", isOutgoing ? "Envio" : "Recebimento");
+    addField("Data:", new Date(transfer.created_at).toLocaleString("pt-BR"));
+    addField("ID da Transferência:", transfer.id.slice(0, 8).toUpperCase());
+    
+    y += 5;
+    doc.line(30, y, 180, y);
+    y += 15;
+    
+    if (isOutgoing) {
+      addField("Destinatário:", transfer.destinatario_nome);
+      addField("Carteira Destino:", transfer.destinatario_carteira);
+      addField("Valor Enviado:", formatCurrency(transfer.valor_enviado));
+      addField("Taxa (" + transfer.taxa_percentual + "%):", formatCurrency(transfer.valor_taxa));
+      addField("Valor Recebido pelo Destino:", formatCurrency(transfer.valor_recebido));
+    } else {
+      addField("Remetente:", transfer.remetente_nome);
+      addField("Carteira Origem:", transfer.remetente_carteira);
+      addField("Valor Recebido:", formatCurrency(transfer.valor_recebido));
+    }
+    
+    y += 5;
+    doc.line(30, y, 180, y);
+    y += 15;
+    
+    addField("Status:", "Concluída");
+    
+    // Rodapé
+    doc.setTextColor(...textLight);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("Este comprovante foi gerado automaticamente.", 105, 270, { align: "center" });
+    doc.text("Guarde-o para sua segurança.", 105, 277, { align: "center" });
+    
+    // Salva o PDF
+    const fileName = `comprovante_${transfer.id.slice(0, 8)}_${new Date().toISOString().slice(0, 10)}.pdf`;
+    doc.save(fileName);
+    toast.success("Comprovante baixado!");
+  };
+
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
