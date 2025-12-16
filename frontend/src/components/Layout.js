@@ -242,15 +242,23 @@ export const Layout = ({ children }) => {
                     <p className="text-xs text-slate-500">{user?.email}</p>
                   </div>
                   <DropdownMenuSeparator className="bg-slate-800" />
+                  <DropdownMenuItem 
+                    className="text-slate-300 focus:text-white focus:bg-slate-800"
+                    onClick={() => navigate("/settings")}
+                  >
+                    <Shield className="mr-2 h-4 w-4" />
+                    Segurança (2FA)
+                  </DropdownMenuItem>
                   {!isAdmin && (
                     <DropdownMenuItem 
                       className="text-slate-300 focus:text-white focus:bg-slate-800"
                       onClick={() => navigate("/personalization")}
                     >
-                      <Settings className="mr-2 h-4 w-4" />
-                      Configurações
+                      <Palette className="mr-2 h-4 w-4" />
+                      Personalização
                     </DropdownMenuItem>
                   )}
+                  <DropdownMenuSeparator className="bg-slate-800" />
                   <DropdownMenuItem 
                     className="text-red-400 focus:text-red-300 focus:bg-red-500/10"
                     onClick={handleLogout}
