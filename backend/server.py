@@ -1640,16 +1640,23 @@ async def admin_update_config(data: AdminConfig, admin: dict = Depends(get_admin
 
 @api_router.get("/admin/stats")
 async def admin_get_stats(admin: dict = Depends(get_admin_user)):
-    total_users = await db.users.count_documents({"role": "user"})
-    active_users = await db.users.count_documents({"role": "user", "status": "active"})
+    # Obtém IDs dos usuários da rede do admin
+    network_ids = await get_network_user_ids(admin["id"])
     
-    transactions = await db.transactions.find({}, {"_id": 0}).to_list(10000)
+    total_users = await db.users.count_documents({"id": {"$in": network_ids}, "role": "user"})
+    active_users = await db.users.count_documents({"id": {"$in": network_ids}, "role": "user", "status": "active"})
+    
+    transactions = await db.transactions.find({"parceiro_id": {"$in": network_ids}}, {"_id": 0}).to_list(10000)
     total_transactions = len(transactions)
     total_volume = sum(t.get("valor", 0) for t in transactions if t.get("status") == "paid")
     total_taxas = sum(t.get("taxa_total", 0) for t in transactions if t.get("status") == "paid")
     
-    pending_withdrawals = await db.withdrawals.count_documents({"status": "pending"})
-    open_tickets = await db.tickets.count_documents({"status": {"$in": ["open", "in_progress"]}})
+    pending_withdrawals = await db.withdrawals.count_documents({"parceiro_id": {"$in": network_ids}, "status": "pending"})
+    open_tickets = await db.tickets.count_documents({"user_id": {"$in": network_ids}, "status": {"$in": ["open", "in_progress"]}})
+    
+    # Calcula total sacável da rede (soma de saldo_disponivel + saldo_comissoes de todos os usuários)
+    network_users = await db.users.find({"id": {"$in": network_ids}}, {"_id": 0, "saldo_disponivel": 1, "saldo_comissoes": 1}).to_list(10000)
+    total_sacavel = sum(u.get("saldo_disponivel", 0) + u.get("saldo_comissoes", 0) for u in network_users)
     
     today = datetime.now(timezone.utc).date()
     chart_data = []
@@ -1668,6 +1675,7 @@ async def admin_get_stats(admin: dict = Depends(get_admin_user)):
         "total_transactions": total_transactions,
         "total_volume": total_volume,
         "total_taxas": total_taxas,
+        "total_sacavel_rede": total_sacavel,
         "pending_withdrawals": pending_withdrawals,
         "open_tickets": open_tickets,
         "chart_data": chart_data
