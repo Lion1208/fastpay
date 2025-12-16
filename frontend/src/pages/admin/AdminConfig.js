@@ -290,6 +290,31 @@ export default function AdminConfig() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Valor Mín. Saque (R$)</Label>
+                  <Input
+                    type="number"
+                    value={config?.valor_minimo_saque || ""}
+                    onChange={(e) => handleChange("valor_minimo_saque", parseFloat(e.target.value))}
+                    className="input-default"
+                    step="1"
+                    placeholder="10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Valor Mín. Transferência (R$)</Label>
+                  <Input
+                    type="number"
+                    value={config?.valor_minimo_transferencia || ""}
+                    onChange={(e) => handleChange("valor_minimo_transferencia", parseFloat(e.target.value))}
+                    className="input-default"
+                    step="0.01"
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+
               <div className="p-4 rounded-lg bg-slate-800/50 space-y-1">
                 <p className="text-slate-300 text-sm">
                   Transação: <span className="text-green-400 font-semibold">
