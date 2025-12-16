@@ -31,6 +31,12 @@ export default function AdminUsers() {
     indicacoes_liberadas: "",
     status: ""
   });
+  
+  // Block/Delete dialogs
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [blockReason, setBlockReason] = useState("");
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     fetchUsers();
