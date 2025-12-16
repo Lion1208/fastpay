@@ -73,11 +73,19 @@ export default function Login() {
       // Atualiza o contexto de auth manualmente
       window.location.href = user.role === "admin" ? "/admin" : "/dashboard";
     } catch (error) {
-      if (error.response?.data?.detail === "Código 2FA inválido") {
+      const detail = error.response?.data?.detail || "";
+      
+      if (detail === "Código 2FA inválido") {
         toast.error("Código 2FA inválido");
         setTwoFactorCode("");
+      } else if (detail.startsWith("BLOCKED:")) {
+        // Conta bloqueada com motivo
+        const reason = detail.replace("BLOCKED:", "");
+        setBlocked({ blocked: true, reason });
+      } else if (detail === "Conta bloqueada") {
+        setBlocked({ blocked: true, reason: "" });
       } else {
-        toast.error(error.response?.data?.detail || "Erro ao fazer login");
+        toast.error(detail || "Erro ao fazer login");
         setRequires2FA(false);
         setTwoFactorCode("");
       }
