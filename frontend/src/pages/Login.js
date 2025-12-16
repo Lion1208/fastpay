@@ -220,11 +220,27 @@ export default function Login() {
             </div>
           </div>
           <h2 className="text-4xl font-bold text-white mb-4">
-            Sistema de Pagamentos
+            {config.nome_sistema || "Sistema de Pagamentos PIX"}
           </h2>
-          <p className="text-slate-400 text-lg">
-            Gerencie seus pagamentos PIX, indicações e comissões de forma simples e segura.
+          <p className="text-slate-400 text-lg mb-8">
+            Receba pagamentos, gerencie indicações e acompanhe suas comissões em tempo real.
           </p>
+          
+          {/* Taxas Dinâmicas */}
+          <div className="flex justify-center gap-8">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-green-400">
+                {config.taxa_percentual_padrao || 2}%
+              </p>
+              <p className="text-slate-500 text-sm">Taxa por transação</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-cyan-400">
+                {config.comissao_indicacao || 1}%
+              </p>
+              <p className="text-slate-500 text-sm">Comissão indicação</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
