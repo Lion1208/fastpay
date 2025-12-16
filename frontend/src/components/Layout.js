@@ -79,11 +79,15 @@ export const Layout = ({ children }) => {
 
   // Polling global para notificações de transferências recebidas
   useEffect(() => {
-    if (!user?.id) return;
+    const token = localStorage.getItem("token");
+    if (!user?.id || !token) return;
     
     const formatMoney = (value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
     
     const checkNewTransfers = async () => {
+      // Verifica se ainda tem token antes de fazer a chamada
+      if (!localStorage.getItem("token")) return;
+      
       try {
         const response = await axios.get(`${API}/transfers`);
         const transfers = response.data.transfers || [];
@@ -103,17 +107,23 @@ export const Layout = ({ children }) => {
           setLastTransferCheck(latestTime);
         }
       } catch (error) {
-        console.error("Error checking transfers:", error);
+        // Ignora erros 401 silenciosamente (token expirado)
+        if (error.response?.status !== 401) {
+          console.error("Error checking transfers:", error);
+        }
       }
     };
     
-    // Primeira verificação para definir o baseline
-    checkNewTransfers();
+    // Primeira verificação para definir o baseline (com delay para garantir token)
+    const timeout = setTimeout(checkNewTransfers, 1000);
     
-    // Verifica a cada 5 segundos
-    const interval = setInterval(checkNewTransfers, 5000);
+    // Verifica a cada 10 segundos (reduzido para menos requisições)
+    const interval = setInterval(checkNewTransfers, 10000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, [user?.id, lastTransferCheck]);
 
   const fetchConfig = async () => {
