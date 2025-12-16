@@ -6,7 +6,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card, CardContent } from "../components/ui/card";
 import { toast, Toaster } from "sonner";
-import { QrCode, Copy, ArrowRight, CheckCircle, Clock } from "lucide-react";
+import { QrCode, Copy, ArrowRight, CheckCircle, Clock, AlertCircle } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -19,8 +19,8 @@ export default function PublicPage() {
   const [transaction, setTransaction] = useState(null);
   const [formData, setFormData] = useState({
     valor: "",
-    cpf_cnpj: "",
-    descricao: ""
+    nome_pagador: "",
+    cpf_pagador: ""
   });
 
   useEffect(() => {
@@ -38,26 +38,54 @@ export default function PublicPage() {
     }
   };
 
+  const formatCpf = (value) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 11) {
+      return numbers
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+        .replace(/(-\d{2})\d+?$/, "$1");
+    }
+    return numbers
+      .replace(/(\d{2})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1/$2")
+      .replace(/(\d{4})(\d{1,2})/, "$1-$2")
+      .replace(/(-\d{2})\d+?$/, "$1");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.valor || parseFloat(formData.valor) <= 0) {
-      toast.error("Informe um valor válido");
+    const valor = parseFloat(formData.valor);
+    
+    if (!valor || valor < 10) {
+      toast.error("Valor mínimo é R$10,00");
+      return;
+    }
+
+    if (!formData.nome_pagador.trim()) {
+      toast.error("Informe seu nome");
+      return;
+    }
+
+    if (!formData.cpf_pagador || formData.cpf_pagador.replace(/\D/g, "").length < 11) {
+      toast.error("Informe um CPF/CNPJ válido");
       return;
     }
 
     setCreating(true);
     try {
-      // Note: This would need authentication in a real scenario
-      // For demo, we show a mock response
-      toast.info("Demo: Em produção, esta transação seria criada via API");
-      setTransaction({
-        valor: parseFloat(formData.valor),
-        status: "pending",
-        pix_copia_cola: "00020126580014br.gov.bcb.pix0136demo-key-here520400005303986540510.005802BR5913Demo6008Sao Paulo62070503***6304DEMO"
+      const response = await axios.post(`${API}/p/${codigo}/pay`, {
+        valor: valor,
+        nome_pagador: formData.nome_pagador,
+        cpf_pagador: formData.cpf_pagador.replace(/\D/g, "")
       });
+      setTransaction(response.data);
+      toast.success("PIX gerado com sucesso!");
     } catch (error) {
-      toast.error("Erro ao criar pagamento");
+      toast.error(error.response?.data?.detail || "Erro ao criar pagamento");
     } finally {
       setCreating(false);
     }
@@ -82,11 +110,15 @@ export default function PublicPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <Toaster position="top-right" />
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-8 h-8 text-red-400" />
+          </div>
           <h1 className="text-3xl font-bold text-white mb-4">404</h1>
           <p className="text-slate-400 mb-6">{error}</p>
-          <Link to="/">
+          <Link to="/login">
             <Button className="btn-primary">Voltar ao Início</Button>
           </Link>
         </div>
@@ -95,13 +127,14 @@ export default function PublicPage() {
   }
 
   const corPrimaria = pageData?.pagina_personalizada?.cor_primaria || "#22c55e";
+  const nomeSistema = pageData?.nome_sistema || "FastPay";
 
   return (
     <div className="min-h-screen bg-slate-950">
       <Toaster position="top-right" />
       
       {/* Hero Section */}
-      <div className="relative py-20 px-4 overflow-hidden">
+      <div className="relative py-16 px-4 overflow-hidden">
         <div className="absolute inset-0 opacity-30">
           <div 
             className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl"
@@ -114,17 +147,21 @@ export default function PublicPage() {
         </div>
 
         <div className="relative max-w-lg mx-auto text-center">
-          <div 
-            className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center"
-            style={{ backgroundColor: `${corPrimaria}20` }}
-          >
-            <span 
-              className="text-4xl font-bold"
-              style={{ color: corPrimaria }}
+          {pageData?.logo_url ? (
+            <img src={pageData.logo_url} alt={nomeSistema} className="h-16 mx-auto mb-6" />
+          ) : (
+            <div 
+              className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center"
+              style={{ backgroundColor: `${corPrimaria}20` }}
             >
-              $
-            </span>
-          </div>
+              <span 
+                className="text-4xl font-bold"
+                style={{ color: corPrimaria }}
+              >
+                $
+              </span>
+            </div>
+          )}
           
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
             {pageData?.pagina_personalizada?.titulo || pageData?.nome}
@@ -144,40 +181,41 @@ export default function PublicPage() {
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-slate-300">Valor (R$)</Label>
+                    <Label className="text-slate-300">Valor (R$) <span className="text-red-400">*</span></Label>
                     <Input
                       type="number"
-                      placeholder="0,00"
+                      placeholder="Mínimo R$10,00"
                       value={formData.valor}
                       onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
                       className="input-default h-14 text-lg"
                       step="0.01"
-                      min="0"
+                      min="10"
                       data-testid="public-valor"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-300">CPF/CNPJ (opcional)</Label>
+                    <Label className="text-slate-300">Seu Nome <span className="text-red-400">*</span></Label>
                     <Input
                       type="text"
-                      placeholder="000.000.000-00"
-                      value={formData.cpf_cnpj}
-                      onChange={(e) => setFormData({ ...formData, cpf_cnpj: e.target.value })}
+                      placeholder="Nome completo"
+                      value={formData.nome_pagador}
+                      onChange={(e) => setFormData({ ...formData, nome_pagador: e.target.value })}
                       className="input-default"
-                      data-testid="public-cpf"
+                      data-testid="public-nome"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-300">Descrição (opcional)</Label>
+                    <Label className="text-slate-300">CPF/CNPJ <span className="text-red-400">*</span></Label>
                     <Input
                       type="text"
-                      placeholder="Ex: Pagamento de serviço"
-                      value={formData.descricao}
-                      onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                      placeholder="000.000.000-00"
+                      value={formData.cpf_pagador}
+                      onChange={(e) => setFormData({ ...formData, cpf_pagador: formatCpf(e.target.value) })}
                       className="input-default"
-                      data-testid="public-descricao"
+                      maxLength={18}
+                      data-testid="public-cpf"
                     />
                   </div>
 
@@ -208,7 +246,15 @@ export default function PublicPage() {
               <CardContent className="p-6 text-center">
                 <div className="mb-6">
                   <div className="inline-block p-4 bg-white rounded-xl mb-4">
-                    <QrCode className="w-40 h-40 text-slate-800" />
+                    {transaction.qr_code_base64 ? (
+                      <img 
+                        src={`data:image/png;base64,${transaction.qr_code_base64}`} 
+                        alt="QR Code PIX" 
+                        className="w-48 h-48"
+                      />
+                    ) : (
+                      <QrCode className="w-48 h-48 text-slate-800" />
+                    )}
                   </div>
                   <p className="text-3xl font-bold text-white">
                     {formatCurrency(transaction.valor)}
@@ -216,32 +262,52 @@ export default function PublicPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <div>
-                    <Label className="text-slate-400 text-sm">PIX Copia e Cola</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Input
-                        value={transaction.pix_copia_cola}
-                        readOnly
-                        className="input-default mono text-xs"
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() => copyToClipboard(transaction.pix_copia_cola)}
-                        className="border-slate-700"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
+                  {transaction.pix_copia_cola ? (
+                    <div>
+                      <Label className="text-slate-400 text-sm">PIX Copia e Cola</Label>
+                      <div className="flex gap-2 mt-2">
+                        <Input
+                          value={transaction.pix_copia_cola}
+                          readOnly
+                          className="input-default mono text-xs"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() => copyToClipboard(transaction.pix_copia_cola)}
+                          className="border-slate-700"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                      <p className="text-sm text-yellow-400">
+                        QR Code será gerado quando a API FastDePix estiver configurada
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-center gap-2 py-3">
-                    <Clock className="w-5 h-5 text-yellow-400" />
-                    <span className="text-yellow-400">Aguardando pagamento...</span>
+                    {transaction.status === "paid" ? (
+                      <>
+                        <CheckCircle className="w-5 h-5 text-green-400" />
+                        <span className="text-green-400">Pagamento Confirmado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="w-5 h-5 text-yellow-400" />
+                        <span className="text-yellow-400">Aguardando pagamento...</span>
+                      </>
+                    )}
                   </div>
 
                   <Button
                     variant="outline"
-                    onClick={() => setTransaction(null)}
+                    onClick={() => {
+                      setTransaction(null);
+                      setFormData({ valor: "", nome_pagador: "", cpf_pagador: "" });
+                    }}
                     className="w-full border-slate-700 text-slate-300"
                   >
                     Novo Pagamento
@@ -254,15 +320,8 @@ export default function PublicPage() {
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-slate-500 text-sm">
-              Pagamento seguro via PIX
+              Pagamento seguro via PIX • {nomeSistema}
             </p>
-            <Link 
-              to="/login"
-              className="text-sm hover:underline mt-2 inline-block"
-              style={{ color: corPrimaria }}
-            >
-              Crie sua própria página de pagamentos
-            </Link>
           </div>
         </div>
       </div>
