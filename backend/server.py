@@ -247,16 +247,19 @@ def validate_cpf_cnpj(value: str) -> bool:
 # ===================== INITIALIZATION =====================
 
 async def init_admin():
-    admin = await db.users.find_one({"role": "admin"})
+    admin = await db.users.find_one({"codigo": "ADMIN001"})
     if not admin:
+        admin_id = str(uuid.uuid4())
         admin_user = {
-            "id": str(uuid.uuid4()),
+            "id": admin_id,
             "codigo": "ADMIN001",
             "carteira_id": generate_wallet_id(),
             "nome": "Administrador",
             "email": "admin@sistema.com",
             "senha": hash_password("admin123"),
             "role": "admin",
+            "is_root_admin": True,  # Admin raiz não pode ser removido
+            "promoted_by": None,  # Ninguém promoveu, é o original
             "status": "active",
             "saldo_disponivel": 0.0,
             "saldo_comissoes": 0.0,
@@ -287,8 +290,12 @@ async def init_admin():
             update_fields["two_factor_enabled"] = False
         if "two_factor_secret" not in admin:
             update_fields["two_factor_secret"] = None
+        if "is_root_admin" not in admin:
+            update_fields["is_root_admin"] = True
+        if "promoted_by" not in admin:
+            update_fields["promoted_by"] = None
         if update_fields:
-            await db.users.update_one({"role": "admin"}, {"$set": update_fields})
+            await db.users.update_one({"codigo": "ADMIN001"}, {"$set": update_fields})
     
     await get_config()
 
