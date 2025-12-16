@@ -290,6 +290,7 @@ export default function Withdrawals() {
               <div className="space-y-2">
                 <p className="text-yellow-400 font-medium">Informações Importantes sobre Saques</p>
                 <ul className="text-sm text-slate-300 space-y-1">
+                  <li>• <strong>Valor mínimo:</strong> {formatCurrency(valorMinimo)}</li>
                   <li>• <strong>Taxa de saque:</strong> {taxaSaque}% sobre o valor solicitado</li>
                   <li>• <strong>Processamento:</strong> Saques são analisados manualmente</li>
                   <li>• <strong>Horário:</strong> Análises começam às 8h da manhã</li>
