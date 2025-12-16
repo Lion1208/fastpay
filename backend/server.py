@@ -1333,11 +1333,16 @@ async def list_transfers(user: dict = Depends(get_current_user)):
     }, {"_id": 0}).sort("created_at", -1).to_list(1000)
     
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    config = await get_config()
+    
+    taxa_transferencia = user_data.get("taxa_transferencia") if user_data.get("taxa_transferencia") is not None else config.get("taxa_transferencia_padrao", 0.5)
+    valor_minimo = user_data.get("valor_minimo_transferencia") if user_data.get("valor_minimo_transferencia") is not None else config.get("valor_minimo_transferencia", 1.0)
     
     return {
         "transfers": transfers,
         "carteira_id": user_data.get("carteira_id"),
-        "taxa_transferencia": user_data.get("taxa_transferencia", 0.5)
+        "taxa_transferencia": taxa_transferencia,
+        "valor_minimo": valor_minimo
     }
 
 # ===================== TICKET ROUTES =====================
