@@ -472,7 +472,7 @@ export default function Transfers() {
             <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-slate-800/30 border border-slate-700/50">
               <FileText className="w-4 h-4 text-slate-400" />
               <p className="text-xs text-slate-400">
-                Comprovantes ficam disponíveis por 48h. Após esse período, clique em "Gerar" para criar um novo.
+                Comprovantes ficam disponíveis por 48h. Após esse período, clique em Gerar para criar um novo.
               </p>
             </div>
             
