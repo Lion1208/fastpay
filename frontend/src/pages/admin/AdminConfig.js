@@ -145,7 +145,7 @@ export default function AdminConfig() {
                     value={config?.fastdepix_api_key || ""}
                     onChange={(e) => handleChange("fastdepix_api_key", e.target.value)}
                     className="input-default pr-12"
-                    placeholder="Cole sua API Key aqui"
+                    placeholder="fdpx_xxxxxxxxxxxxxxxx"
                     data-testid="api-key-input"
                   />
                   <button
@@ -156,6 +156,9 @@ export default function AdminConfig() {
                     {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                <p className="text-xs text-slate-500">
+                  Sua chave da FastDePix para gerar QR codes PIX reais
+                </p>
               </div>
 
               <div className="space-y-2">
