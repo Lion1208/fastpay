@@ -46,10 +46,18 @@ const userMenuItems = [
 
 const adminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
-  { icon: Users, label: "Usuários", path: "/admin/users" },
-  { icon: Wallet, label: "Saques", path: "/admin/withdrawals" },
+  { icon: CreditCard, label: "Transações", path: "/transactions" },
+  { icon: Users, label: "Indicações", path: "/referrals" },
+  { icon: DollarSign, label: "Comissões", path: "/commissions" },
+  { icon: Wallet, label: "Saques", path: "/withdrawals" },
   { icon: ArrowLeftRight, label: "Transferências", path: "/transfers" },
-  { icon: MessageSquare, label: "Tickets", path: "/admin/tickets" },
+  { icon: Palette, label: "Personalização", path: "/personalization" },
+  { icon: Code, label: "API", path: "/api-integration" },
+  { icon: MessageSquare, label: "Suporte", path: "/tickets" },
+  { divider: true },
+  { icon: Users, label: "Gerenciar Usuários", path: "/admin/users" },
+  { icon: Wallet, label: "Gerenciar Saques", path: "/admin/withdrawals" },
+  { icon: MessageSquare, label: "Gerenciar Tickets", path: "/admin/tickets" },
   { icon: Shield, label: "Equipe Admin", path: "/admin/team" },
   { icon: Settings, label: "Configurações", path: "/admin/config" },
 ];
