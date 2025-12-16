@@ -20,23 +20,4 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor para tratar erros de autenticação
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Silencia erros 401/403 no console para não poluir
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      // Se não estiver em página pública, limpa o token inválido
-      const publicPaths = ['/login', '/register', '/p/'];
-      const isPublicPath = publicPaths.some(path => window.location.pathname.includes(path));
-      
-      if (!isPublicPath && error.response?.status === 401) {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-      }
-    }
-    return Promise.reject(error);
-  }
-);
-
 export default api;
