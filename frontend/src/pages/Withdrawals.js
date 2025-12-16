@@ -34,6 +34,7 @@ export default function Withdrawals() {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
   const [stats, setStats] = useState(null);
   const [taxaSaque, setTaxaSaque] = useState(1.5);
+  const [valorMinimo, setValorMinimo] = useState(10);
   const [calculoSaque, setCalculoSaque] = useState(null);
   const [newWithdrawal, setNewWithdrawal] = useState({
     valor: "",
@@ -53,6 +54,7 @@ export default function Withdrawals() {
       ]);
       setWithdrawals(withdrawalsRes.data.withdrawals);
       setTaxaSaque(withdrawalsRes.data.taxa_saque || 1.5);
+      setValorMinimo(withdrawalsRes.data.valor_minimo || 10);
       setStats(statsRes.data);
     } catch (error) {
       toast.error("Erro ao carregar dados");
@@ -63,7 +65,7 @@ export default function Withdrawals() {
 
   const handleCalculate = async () => {
     const valor = parseFloat(newWithdrawal.valor);
-    if (!valor || valor < 10) {
+    if (!valor || valor < valorMinimo) {
       setCalculoSaque(null);
       return;
     }
