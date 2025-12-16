@@ -66,7 +66,6 @@ export const AuthProvider = ({ children }) => {
     const { user: userData, token: newToken } = response.data;
     
     localStorage.setItem("token", newToken);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
     setToken(newToken);
     setUser(userData);
     
@@ -78,7 +77,6 @@ export const AuthProvider = ({ children }) => {
     const { user: userData, token: newToken } = response.data;
     
     localStorage.setItem("token", newToken);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
     setToken(newToken);
     setUser(userData);
     
@@ -87,7 +85,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("token");
-    delete axios.defaults.headers.common["Authorization"];
     setToken(null);
     setUser(null);
   };
