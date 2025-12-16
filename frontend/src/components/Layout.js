@@ -77,9 +77,14 @@ export const Layout = ({ children }) => {
     const fetchConfig = async () => {
       try {
         const response = await api.get(`/config/public`);
-        setConfig(response.data);
+        // Mantém valores padrão se não vierem no response
+        setConfig(prev => ({
+          ...prev,
+          ...response.data,
+          nome_sistema: response.data?.nome_sistema || prev.nome_sistema || "FastPay"
+        }));
       } catch (error) {
-        console.error("Error fetching config:", error);
+        // Ignora erros silenciosamente, mantém o valor padrão
       }
     };
     fetchConfig();
