@@ -18,6 +18,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
 import AdminConfig from "./pages/admin/AdminConfig";
 import AdminTickets from "./pages/admin/AdminTickets";
+import AdminTeam from "./pages/admin/AdminTeam";
 import PublicPage from "./pages/PublicPage";
 import "@/App.css";
 
