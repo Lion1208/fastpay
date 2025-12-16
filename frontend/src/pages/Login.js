@@ -119,7 +119,39 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Form */}
+          {/* Blocked Message */}
+          {blocked ? (
+            <div className="space-y-6">
+              <div className="p-6 rounded-xl bg-red-500/10 border border-red-500/30 text-center">
+                <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+                  <Ban className="w-8 h-8 text-red-400" />
+                </div>
+                <h2 className="text-xl font-bold text-red-400 mb-2">Conta Bloqueada</h2>
+                <p className="text-slate-400 text-sm mb-4">
+                  Sua conta foi bloqueada pelo administrador.
+                </p>
+                {blocked.reason && (
+                  <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                    <p className="text-xs text-slate-500 mb-1">Motivo:</p>
+                    <p className="text-white">{blocked.reason}</p>
+                  </div>
+                )}
+              </div>
+              <Button
+                type="button"
+                onClick={() => {
+                  setBlocked(null);
+                  setCodigo("");
+                  setSenha("");
+                }}
+                variant="outline"
+                className="w-full border-slate-700"
+              >
+                Tentar outra conta
+              </Button>
+            </div>
+          ) : (
+          /* Form */
           <form onSubmit={handleSubmit} className="space-y-6">
             {!requires2FA ? (
               <>
