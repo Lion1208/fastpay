@@ -202,17 +202,19 @@ async def startup():
 
 @api_router.post("/auth/register")
 async def register(data: UserCreate):
+    # Código de indicador é OBRIGATÓRIO
+    if not data.codigo_indicador:
+        raise HTTPException(status_code=400, detail="Código de indicador é obrigatório")
+    
     existing = await db.users.find_one({"email": data.email})
     if existing:
         raise HTTPException(status_code=400, detail="Email já cadastrado")
     
-    indicador = None
-    if data.codigo_indicador:
-        indicador = await db.users.find_one({"codigo": data.codigo_indicador}, {"_id": 0})
-        if not indicador:
-            raise HTTPException(status_code=400, detail="Código de indicador inválido")
-        if indicador.get("indicacoes_usadas", 0) >= indicador.get("indicacoes_liberadas", 0):
-            raise HTTPException(status_code=400, detail="Indicador não tem mais indicações disponíveis")
+    indicador = await db.users.find_one({"codigo": data.codigo_indicador}, {"_id": 0})
+    if not indicador:
+        raise HTTPException(status_code=400, detail="Código de indicador inválido")
+    if indicador.get("role") != "admin" and indicador.get("indicacoes_usadas", 0) >= indicador.get("indicacoes_liberadas", 0):
+        raise HTTPException(status_code=400, detail="Indicador não tem mais indicações disponíveis")
     
     config = await get_config()
     
