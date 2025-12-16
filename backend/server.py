@@ -464,6 +464,141 @@ async def change_password(current_password: str, new_password: str, user: dict =
     )
     return {"message": "Senha alterada com sucesso"}
 
+# ===================== ADMIN CREDENTIALS =====================
+
+@api_router.put("/admin/credentials")
+async def update_admin_credentials(data: AdminCredentialsUpdate, admin: dict = Depends(get_admin_user)):
+    full_admin = await db.users.find_one({"id": admin["id"]})
+    if not verify_password(data.senha_atual, full_admin["senha"]):
+        raise HTTPException(status_code=400, detail="Senha atual incorreta")
+    
+    update_fields = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    if data.codigo:
+        existing = await db.users.find_one({"codigo": data.codigo, "id": {"$ne": admin["id"]}})
+        if existing:
+            raise HTTPException(status_code=400, detail="Código já está em uso")
+        update_fields["codigo"] = data.codigo
+    
+    if data.senha_nova:
+        update_fields["senha"] = hash_password(data.senha_nova)
+    
+    await db.users.update_one({"id": admin["id"]}, {"$set": update_fields})
+    
+    updated = await db.users.find_one({"id": admin["id"]}, {"_id": 0, "senha": 0})
+    return updated
+
+# ===================== 2FA ROUTES =====================
+
+@api_router.post("/auth/2fa/setup")
+async def setup_2fa(user: dict = Depends(get_current_user)):
+    import pyotp
+    import base64
+    
+    secret = pyotp.random_base32()
+    totp = pyotp.TOTP(secret)
+    
+    config = await get_config()
+    nome_sistema = config.get("nome_sistema", "FastPay")
+    
+    provisioning_uri = totp.provisioning_uri(
+        name=user.get("email", user.get("codigo")),
+        issuer_name=nome_sistema
+    )
+    
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"two_factor_secret": secret}}
+    )
+    
+    return {
+        "secret": secret,
+        "qr_code_uri": provisioning_uri
+    }
+
+@api_router.post("/auth/2fa/verify")
+async def verify_2fa(data: TwoFactorVerify, user: dict = Depends(get_current_user)):
+    import pyotp
+    
+    full_user = await db.users.find_one({"id": user["id"]})
+    secret = full_user.get("two_factor_secret")
+    
+    if not secret:
+        raise HTTPException(status_code=400, detail="2FA não configurado")
+    
+    totp = pyotp.TOTP(secret)
+    if not totp.verify(data.code):
+        raise HTTPException(status_code=400, detail="Código inválido")
+    
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"two_factor_enabled": True}}
+    )
+    
+    return {"message": "2FA ativado com sucesso"}
+
+@api_router.post("/auth/2fa/disable")
+async def disable_2fa(data: TwoFactorVerify, user: dict = Depends(get_current_user)):
+    import pyotp
+    
+    full_user = await db.users.find_one({"id": user["id"]})
+    secret = full_user.get("two_factor_secret")
+    
+    if not secret or not full_user.get("two_factor_enabled"):
+        raise HTTPException(status_code=400, detail="2FA não está ativado")
+    
+    totp = pyotp.TOTP(secret)
+    if not totp.verify(data.code):
+        raise HTTPException(status_code=400, detail="Código inválido")
+    
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"two_factor_enabled": False, "two_factor_secret": None}}
+    )
+    
+    return {"message": "2FA desativado com sucesso"}
+
+@api_router.get("/auth/2fa/status")
+async def get_2fa_status(user: dict = Depends(get_current_user)):
+    full_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    return {
+        "enabled": full_user.get("two_factor_enabled", False)
+    }
+
+# Verificação 2FA no login (modificar login existente para suportar)
+class UserLoginWith2FA(BaseModel):
+    codigo: str
+    senha: str
+    two_factor_code: Optional[str] = None
+
+@api_router.post("/auth/login-2fa")
+async def login_with_2fa(data: UserLoginWith2FA):
+    import pyotp
+    
+    user = await db.users.find_one({"codigo": data.codigo}, {"_id": 0})
+    if not user or not verify_password(data.senha, user["senha"]):
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+    
+    if user.get("status") != "active":
+        raise HTTPException(status_code=403, detail="Conta desativada")
+    
+    # Verifica se 2FA está habilitado
+    if user.get("two_factor_enabled"):
+        if not data.two_factor_code:
+            return {"requires_2fa": True, "message": "Código 2FA necessário"}
+        
+        secret = user.get("two_factor_secret")
+        totp = pyotp.TOTP(secret)
+        if not totp.verify(data.two_factor_code):
+            raise HTTPException(status_code=401, detail="Código 2FA inválido")
+    
+    token = create_access_token({"sub": user["id"]})
+    del user["senha"]
+    if "two_factor_secret" in user:
+        del user["two_factor_secret"]
+    
+    return {"user": user, "token": token}
+
 # ===================== DASHBOARD ROUTES =====================
 
 @api_router.get("/dashboard/stats")
