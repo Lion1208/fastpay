@@ -228,42 +228,73 @@ export default function Referrals() {
           </CardHeader>
           <CardContent>
             {data?.referrals?.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-800">
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Nome</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Email</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Movimentado</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Suas Comissões</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Data</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.referrals.map((ref) => (
-                      <tr key={ref.id} className="table-row">
-                        <td className="p-4">
-                          <span className="text-white font-medium">{ref.indicado_nome}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-slate-400">{ref.indicado_email}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-white">{formatCurrency(ref.total_movimentado)}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-green-400 font-medium">{formatCurrency(ref.total_comissoes)}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-slate-500 text-sm">
-                            {new Date(ref.created_at).toLocaleDateString("pt-BR")}
-                          </span>
-                        </td>
+              <>
+                {/* Mobile Cards */}
+                <div className="md:hidden space-y-3">
+                  {data.referrals.map((ref) => (
+                    <div key={ref.id} className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium text-white">{ref.indicado_nome}</p>
+                          <p className="text-sm text-slate-500">{ref.indicado_email}</p>
+                        </div>
+                        <span className="text-xs text-slate-500">
+                          {new Date(ref.created_at).toLocaleDateString("pt-BR")}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700">
+                        <div>
+                          <p className="text-xs text-slate-500">Movimentado</p>
+                          <p className="text-white font-medium">{formatCurrency(ref.total_movimentado)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Suas Comissões</p>
+                          <p className="text-green-400 font-medium">{formatCurrency(ref.total_comissoes)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-800">
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Nome</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Email</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Movimentado</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Suas Comissões</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Data</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {data.referrals.map((ref) => (
+                        <tr key={ref.id} className="table-row">
+                          <td className="p-4">
+                            <span className="text-white font-medium">{ref.indicado_nome}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-slate-400">{ref.indicado_email}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-white">{formatCurrency(ref.total_movimentado)}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-green-400 font-medium">{formatCurrency(ref.total_comissoes)}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-slate-500 text-sm">
+                              {new Date(ref.created_at).toLocaleDateString("pt-BR")}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
