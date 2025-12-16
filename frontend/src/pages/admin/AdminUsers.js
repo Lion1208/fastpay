@@ -184,7 +184,7 @@ export default function AdminUsers() {
           />
         </div>
 
-        {/* Users Table */}
+        {/* Users - Mobile Cards / Desktop Table */}
         <Card className="card-dashboard">
           <CardContent className="p-0">
             {loading ? (
@@ -192,103 +192,131 @@ export default function AdminUsers() {
                 <div className="spinner w-8 h-8"></div>
               </div>
             ) : filteredUsers.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-800">
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Usuário</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Código</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Movimentado</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Taxa</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Indicações</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Status</th>
-                      <th className="text-right text-xs text-slate-500 font-medium p-4">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((user) => (
-                      <tr key={user.id} className="table-row">
-                        <td className="p-4">
-                          <div>
-                            <p className="font-medium text-white">{user.nome}</p>
-                            <p className="text-sm text-slate-500">{user.email}</p>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <span className="mono text-green-400">{user.codigo}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-white">{formatCurrency(user.valor_movimentado)}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-slate-400">
-                            {user.taxa_percentual}% + R${user.taxa_fixa?.toFixed(2)}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-white">
-                            {user.indicacoes_usadas || 0}/{user.indicacoes_liberadas || 0}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <Badge className={
-                            user.status === "active" ? "badge-success" : 
-                            user.status === "blocked" ? "bg-red-500/20 text-red-400 border-red-500/30" : 
-                            "badge-error"
-                          }>
-                            {user.status === "active" ? "Ativo" : user.status === "blocked" ? "Bloqueado" : "Inativo"}
-                          </Badge>
-                        </td>
-                        <td className="p-4 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEdit(user)}
-                              className="text-slate-400 hover:text-white"
-                              title="Editar"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            
-                            {user.status === "blocked" ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleUnblockUser(user)}
-                                className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
-                                title="Desbloquear"
-                              >
-                                <Unlock className="w-4 h-4" />
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openBlockDialog(user)}
-                                className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
-                                title="Bloquear"
-                              >
-                                <Ban className="w-4 h-4" />
-                              </Button>
-                            )}
-                            
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openDeleteDialog(user)}
-                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                              title="Excluir"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </td>
+              <>
+                {/* Mobile Cards */}
+                <div className="md:hidden p-4 space-y-3">
+                  {filteredUsers.map((user) => (
+                    <div key={user.id} className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium text-white">{user.nome}</p>
+                          <p className="text-sm text-slate-500">{user.email}</p>
+                          <span className="mono text-green-400 text-sm">{user.codigo}</span>
+                        </div>
+                        <Badge className={
+                          user.status === "active" ? "badge-success" : 
+                          user.status === "blocked" ? "bg-red-500/20 text-red-400 border-red-500/30" : 
+                          "badge-error"
+                        }>
+                          {user.status === "active" ? "Ativo" : user.status === "blocked" ? "Bloqueado" : "Inativo"}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <p className="text-slate-500 text-xs">Movimentado</p>
+                          <p className="text-white font-medium">{formatCurrency(user.valor_movimentado)}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 text-xs">Taxa</p>
+                          <p className="text-slate-300">{user.taxa_percentual}% + R${user.taxa_fixa?.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 text-xs">Indicações</p>
+                          <p className="text-white">{user.indicacoes_usadas || 0}/{user.indicacoes_liberadas || 0}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 pt-2 border-t border-slate-700">
+                        <Button size="sm" variant="outline" onClick={() => handleEdit(user)} className="flex-1 border-slate-600">
+                          <Edit className="w-4 h-4 mr-1" /> Editar
+                        </Button>
+                        {user.status === "blocked" ? (
+                          <Button size="sm" onClick={() => handleUnblockUser(user)} className="bg-green-600 hover:bg-green-700">
+                            <Unlock className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <Button size="sm" variant="outline" onClick={() => openBlockDialog(user)} className="border-yellow-500/50 text-yellow-400">
+                            <Ban className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button size="sm" variant="outline" onClick={() => openDeleteDialog(user)} className="border-red-500/50 text-red-400">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-800">
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Usuário</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Código</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Movimentado</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Taxa</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Indicações</th>
+                        <th className="text-left text-xs text-slate-500 font-medium p-4">Status</th>
+                        <th className="text-right text-xs text-slate-500 font-medium p-4">Ações</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map((user) => (
+                        <tr key={user.id} className="table-row">
+                          <td className="p-4">
+                            <div>
+                              <p className="font-medium text-white">{user.nome}</p>
+                              <p className="text-sm text-slate-500">{user.email}</p>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className="mono text-green-400">{user.codigo}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-white">{formatCurrency(user.valor_movimentado)}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-slate-400">{user.taxa_percentual}% + R${user.taxa_fixa?.toFixed(2)}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-white">{user.indicacoes_usadas || 0}/{user.indicacoes_liberadas || 0}</span>
+                          </td>
+                          <td className="p-4">
+                            <Badge className={
+                              user.status === "active" ? "badge-success" : 
+                              user.status === "blocked" ? "bg-red-500/20 text-red-400 border-red-500/30" : 
+                              "badge-error"
+                            }>
+                              {user.status === "active" ? "Ativo" : user.status === "blocked" ? "Bloqueado" : "Inativo"}
+                            </Badge>
+                          </td>
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(user)} className="text-slate-400 hover:text-white" title="Editar">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              {user.status === "blocked" ? (
+                                <Button variant="ghost" size="sm" onClick={() => handleUnblockUser(user)} className="text-green-400 hover:text-green-300 hover:bg-green-500/10" title="Desbloquear">
+                                  <Unlock className="w-4 h-4" />
+                                </Button>
+                              ) : (
+                                <Button variant="ghost" size="sm" onClick={() => openBlockDialog(user)} className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10" title="Bloquear">
+                                  <Ban className="w-4 h-4" />
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="sm" onClick={() => openDeleteDialog(user)} className="text-red-400 hover:text-red-300 hover:bg-red-500/10" title="Excluir">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
