@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, Shield, Loader2 } from "lucide-react";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -13,8 +13,10 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 export default function Login() {
   const [codigo, setCodigo] = useState("");
   const [senha, setSenha] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
   const [config, setConfig] = useState({ nome_sistema: "FastPay", logo_url: "" });
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -40,16 +42,52 @@ export default function Login() {
       return;
     }
 
+    if (requires2FA && !twoFactorCode) {
+      toast.error("Digite o código 2FA");
+      return;
+    }
+
     setLoading(true);
     try {
-      const user = await login(codigo, senha);
-      toast.success(`Bem-vindo, ${user.nome}!`);
-      navigate(user.role === "admin" ? "/admin" : "/dashboard");
+      // Tenta login com 2FA
+      const response = await axios.post(`${API}/auth/login-2fa`, {
+        codigo,
+        senha,
+        two_factor_code: twoFactorCode || null
+      });
+      
+      // Se requer 2FA, mostra campo
+      if (response.data.requires_2fa) {
+        setRequires2FA(true);
+        toast.info("Digite o código do seu autenticador");
+        setLoading(false);
+        return;
+      }
+      
+      // Login bem sucedido
+      const { user, token } = response.data;
+      localStorage.setItem("token", token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      
+      // Atualiza o contexto de auth manualmente
+      window.location.href = user.role === "admin" ? "/admin" : "/dashboard";
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Erro ao fazer login");
+      if (error.response?.data?.detail === "Código 2FA inválido") {
+        toast.error("Código 2FA inválido");
+        setTwoFactorCode("");
+      } else {
+        toast.error(error.response?.data?.detail || "Erro ao fazer login");
+        setRequires2FA(false);
+        setTwoFactorCode("");
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBack = () => {
+    setRequires2FA(false);
+    setTwoFactorCode("");
   };
 
   return (
@@ -67,58 +105,98 @@ export default function Login() {
               </div>
             )}
             <h1 className="text-3xl font-bold text-white">{config.nome_sistema}</h1>
-            <p className="mt-2 text-slate-400">Entre na sua conta</p>
+            <p className="mt-2 text-slate-400">
+              {requires2FA ? "Verificação em duas etapas" : "Entre na sua conta"}
+            </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="codigo" className="text-slate-300">Código de Acesso</Label>
-              <Input
-                id="codigo"
-                type="text"
-                placeholder="Ex: ADMIN001 ou ABC12345"
-                value={codigo}
-                onChange={(e) => setCodigo(e.target.value.toUpperCase())}
-                className="input-default h-12 uppercase"
-                data-testid="login-codigo"
-              />
-            </div>
+            {!requires2FA ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="codigo" className="text-slate-300">Código de Acesso</Label>
+                  <Input
+                    id="codigo"
+                    type="text"
+                    placeholder="Ex: ABC12345"
+                    value={codigo}
+                    onChange={(e) => setCodigo(e.target.value.toUpperCase())}
+                    className="bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 h-12"
+                    disabled={loading}
+                    data-testid="login-codigo"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="senha" className="text-slate-300">Senha</Label>
-              <div className="relative">
-                <Input
-                  id="senha"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Digite sua senha"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  className="input-default h-12 pr-12"
-                  data-testid="login-senha"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="senha" className="text-slate-300">Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="senha"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={senha}
+                      onChange={(e) => setSenha(e.target.value)}
+                      className="bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 h-12 pr-12"
+                      disabled={loading}
+                      data-testid="login-senha"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 text-center">
+                  <Shield className="w-12 h-12 text-green-400 mx-auto mb-2" />
+                  <p className="text-slate-300 text-sm">
+                    Digite o código de 6 dígitos do seu aplicativo autenticador
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="2fa" className="text-slate-300">Código 2FA</Label>
+                  <Input
+                    id="2fa"
+                    type="text"
+                    placeholder="000000"
+                    value={twoFactorCode}
+                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    className="bg-slate-900/50 border-slate-800 text-white text-center text-2xl tracking-widest font-mono h-14"
+                    maxLength={6}
+                    disabled={loading}
+                    autoFocus
+                  />
+                </div>
+                
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                  onClick={handleBack}
+                  className="text-slate-400 text-sm hover:text-white transition-colors"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  ← Voltar
                 </button>
               </div>
-            </div>
+            )}
 
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 btn-primary"
+              className="w-full h-12 bg-green-600 hover:bg-green-500 text-white font-semibold transition-all duration-200 shadow-lg shadow-green-500/20"
               data-testid="login-submit"
             >
               {loading ? (
-                <div className="spinner w-5 h-5" />
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
                   <LogIn className="mr-2 h-5 w-5" />
-                  Entrar
+                  {requires2FA ? "Verificar" : "Entrar"}
                 </>
               )}
             </Button>
@@ -133,33 +211,20 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right Side - Image/Gradient */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 items-center justify-center relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl" />
-        </div>
-        
-        {/* Content */}
-        <div className="relative z-10 max-w-lg text-center px-8">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Sistema de Pagamentos PIX
-          </h2>
-          <p className="text-xl text-slate-300 mb-8">
-            Receba pagamentos, gerencie indicações e acompanhe suas comissões em tempo real.
-          </p>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-white/5 backdrop-blur border border-white/10">
-              <div className="text-3xl font-bold text-green-400">2%</div>
-              <div className="text-sm text-slate-400">Taxa por transação</div>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 backdrop-blur border border-white/10">
-              <div className="text-3xl font-bold text-green-400">1%</div>
-              <div className="text-sm text-slate-400">Comissão indicação</div>
+      {/* Right Side - Branding */}
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-green-900/20 via-slate-900 to-slate-950 items-center justify-center p-12">
+        <div className="text-center max-w-lg">
+          <div className="w-32 h-32 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-8 animate-pulse">
+            <div className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center">
+              <span className="text-green-400 font-bold text-5xl">$</span>
             </div>
           </div>
+          <h2 className="text-4xl font-bold text-white mb-4">
+            Sistema de Pagamentos
+          </h2>
+          <p className="text-slate-400 text-lg">
+            Gerencie seus pagamentos PIX, indicações e comissões de forma simples e segura.
+          </p>
         </div>
       </div>
     </div>
