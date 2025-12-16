@@ -96,6 +96,66 @@ export default function AdminUsers() {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
   };
 
+  const handleBlockUser = async () => {
+    if (!blockReason.trim()) {
+      toast.error("Digite o motivo do bloqueio");
+      return;
+    }
+    
+    setProcessing(true);
+    try {
+      await axios.post(`${API}/admin/users/${selectedUser.id}/block`, {
+        motivo: blockReason.trim()
+      });
+      
+      setUsers(users.map(u => u.id === selectedUser.id ? { ...u, status: "blocked", block_reason: blockReason } : u));
+      setShowBlockDialog(false);
+      setBlockReason("");
+      setSelectedUser(null);
+      toast.success("Usuário bloqueado!");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erro ao bloquear usuário");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleUnblockUser = async (user) => {
+    try {
+      await axios.post(`${API}/admin/users/${user.id}/unblock`);
+      setUsers(users.map(u => u.id === user.id ? { ...u, status: "active", block_reason: null } : u));
+      toast.success("Usuário desbloqueado!");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erro ao desbloquear usuário");
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    setProcessing(true);
+    try {
+      await axios.delete(`${API}/admin/users/${selectedUser.id}`);
+      setUsers(users.filter(u => u.id !== selectedUser.id));
+      setShowDeleteDialog(false);
+      setSelectedUser(null);
+      toast.success("Usuário excluído!");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erro ao excluir usuário");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const openBlockDialog = (user) => {
+    setSelectedUser(user);
+    setBlockReason("");
+    setShowBlockDialog(true);
+  };
+
+  const openDeleteDialog = (user) => {
+    setSelectedUser(user);
+    setShowDeleteDialog(true);
+  };
+
   const filteredUsers = users.filter(u => 
     u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
