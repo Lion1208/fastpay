@@ -610,11 +610,10 @@ async def list_transactions(
     all_filtered = await db.transactions.find(query, {"_id": 0}).to_list(10000)
     
     total_transacoes = len(all_filtered)
-    volume_total = sum(t.get("valor", 0) for t in all_filtered)
-    valor_liquido_total = sum(t.get("valor_liquido", 0) for t in all_filtered)
     transacoes_pagas = sum(1 for t in all_filtered if t.get("status") == "paid")
-    volume_pago = sum(t.get("valor", 0) for t in all_filtered if t.get("status") == "paid")
-    valor_liquido_pago = sum(t.get("valor_liquido", 0) for t in all_filtered if t.get("status") == "paid")
+    # Volume total e líquido são apenas de transações PAGAS
+    volume_total = sum(t.get("valor", 0) for t in all_filtered if t.get("status") == "paid")
+    valor_liquido_total = sum(t.get("valor_liquido", 0) for t in all_filtered if t.get("status") == "paid")
     
     # Enriquece com dados do usuário (para quando admin visualizar)
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0, "senha": 0})
