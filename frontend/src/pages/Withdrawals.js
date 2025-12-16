@@ -9,8 +9,18 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
-import { Wallet, ArrowUpRight, Clock, CheckCircle, XCircle, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "../components/ui/dialog";
+import { 
+  Wallet, 
+  ArrowUpRight, 
+  Clock, 
+  CheckCircle, 
+  XCircle, 
+  Plus,
+  AlertCircle,
+  Loader2,
+  MessageSquare
+} from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -20,7 +30,11 @@ export default function Withdrawals() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
   const [stats, setStats] = useState(null);
+  const [taxaSaque, setTaxaSaque] = useState(1.5);
+  const [calculoSaque, setCalculoSaque] = useState(null);
   const [newWithdrawal, setNewWithdrawal] = useState({
     valor: "",
     chave_pix: "",
@@ -38,6 +52,7 @@ export default function Withdrawals() {
         axios.get(`${API}/dashboard/stats`)
       ]);
       setWithdrawals(withdrawalsRes.data.withdrawals);
+      setTaxaSaque(withdrawalsRes.data.taxa_saque || 1.5);
       setStats(statsRes.data);
     } catch (error) {
       toast.error("Erro ao carregar dados");
@@ -45,6 +60,30 @@ export default function Withdrawals() {
       setLoading(false);
     }
   };
+
+  const handleCalculate = async () => {
+    const valor = parseFloat(newWithdrawal.valor);
+    if (!valor || valor < 10) {
+      setCalculoSaque(null);
+      return;
+    }
+    
+    try {
+      const response = await axios.get(`${API}/withdrawals/calculate?valor=${valor}`);
+      setCalculoSaque(response.data);
+    } catch (error) {
+      console.error("Error calculating:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (newWithdrawal.valor) {
+      const timer = setTimeout(handleCalculate, 300);
+      return () => clearTimeout(timer);
+    } else {
+      setCalculoSaque(null);
+    }
+  }, [newWithdrawal.valor]);
 
   const handleCreate = async () => {
     const valor = parseFloat(newWithdrawal.valor);
@@ -59,17 +98,21 @@ export default function Withdrawals() {
       return;
     }
 
-    const totalDisponivel = (stats?.saldo_disponivel || 0) + (stats?.saldo_comissoes || 0);
-    if (valor > totalDisponivel) {
-      toast.error("Saldo insuficiente");
+    if (calculoSaque && !calculoSaque.pode_sacar) {
+      toast.error(`Saldo insuficiente. Você precisa de ${formatCurrency(calculoSaque.valor_necessario)}`);
       return;
     }
 
     setCreating(true);
     try {
-      const response = await axios.post(`${API}/withdrawals`, newWithdrawal);
+      const response = await axios.post(`${API}/withdrawals`, {
+        valor: valor,
+        chave_pix: newWithdrawal.chave_pix,
+        tipo_chave: newWithdrawal.tipo_chave
+      });
       setWithdrawals([response.data, ...withdrawals]);
       setNewWithdrawal({ valor: "", chave_pix: "", tipo_chave: "cpf" });
+      setCalculoSaque(null);
       setShowDialog(false);
       toast.success("Solicitação de saque enviada!");
       fetchData();
@@ -80,6 +123,17 @@ export default function Withdrawals() {
     }
   };
 
+  const handleViewDetails = async (withdrawal) => {
+    try {
+      const response = await axios.get(`${API}/withdrawals/${withdrawal.id}`);
+      setSelectedWithdrawal(response.data);
+      setShowDetailDialog(true);
+    } catch (error) {
+      setSelectedWithdrawal(withdrawal);
+      setShowDetailDialog(true);
+    }
+  };
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
   };
@@ -87,43 +141,33 @@ export default function Withdrawals() {
   const getStatusBadge = (status) => {
     switch (status) {
       case "approved":
-        return <Badge className="badge-success flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Aprovado</Badge>;
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Aprovado</Badge>;
       case "pending":
-        return <Badge className="badge-warning flex items-center gap-1"><Clock className="w-3 h-3" /> Pendente</Badge>;
+        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 flex items-center gap-1"><Clock className="w-3 h-3" /> Pendente</Badge>;
       case "rejected":
-        return <Badge className="badge-error flex items-center gap-1"><XCircle className="w-3 h-3" /> Rejeitado</Badge>;
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30 flex items-center gap-1"><XCircle className="w-3 h-3" /> Rejeitado</Badge>;
       default:
-        return <Badge>{status}</Badge>;
+        return <Badge className="bg-slate-500/20 text-slate-400">{status}</Badge>;
     }
   };
 
   const totalDisponivel = (stats?.saldo_disponivel || 0) + (stats?.saldo_comissoes || 0);
 
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="spinner w-10 h-10"></div>
-        </div>
-      </Layout>
-    );
-  }
-
   return (
     <Layout>
-      <div className="space-y-6 animate-fade-in" data-testid="withdrawals-page">
+      <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Saques</h1>
-            <p className="text-slate-400">Solicite a transferência do seu saldo</p>
+            <p className="text-slate-400">Solicite saques do seu saldo disponível</p>
           </div>
           
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
-              <Button className="btn-primary" data-testid="new-withdrawal-btn">
+              <Button className="bg-green-600 hover:bg-green-700">
                 <Plus className="mr-2 h-4 w-4" />
-                Solicitar Saque
+                Novo Saque
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-slate-900 border-slate-800">
@@ -131,23 +175,53 @@ export default function Withdrawals() {
                 <DialogTitle className="text-white">Solicitar Saque</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
+                {/* Saldo Disponível */}
                 <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
                   <p className="text-sm text-slate-400">Saldo Disponível</p>
                   <p className="text-2xl font-bold text-green-400">{formatCurrency(totalDisponivel)}</p>
+                  <p className="text-xs text-slate-500 mt-1">Taxa de saque: {taxaSaque}%</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Valor do Saque</Label>
+                  <Label className="text-slate-300">Valor do Saque (R$)</Label>
                   <Input
                     type="number"
-                    placeholder="0,00"
+                    placeholder="Mínimo R$10,00"
                     value={newWithdrawal.valor}
                     onChange={(e) => setNewWithdrawal({ ...newWithdrawal, valor: e.target.value })}
-                    className="input-default"
-                    data-testid="withdrawal-valor"
+                    className="bg-slate-800 border-slate-700 text-white"
+                    min="10"
+                    step="0.01"
                   />
-                  <p className="text-xs text-slate-500">Mínimo: R$10,00</p>
                 </div>
+
+                {/* Cálculo da Taxa */}
+                {calculoSaque && (
+                  <div className={`p-4 rounded-lg border ${calculoSaque.pode_sacar ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Valor solicitado:</span>
+                        <span className="text-white">{formatCurrency(calculoSaque.valor_solicitado)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Taxa ({calculoSaque.taxa_percentual}%):</span>
+                        <span className="text-red-400">+{formatCurrency(calculoSaque.valor_taxa)}</span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t border-slate-700">
+                        <span className="text-slate-300 font-medium">Você precisa ter:</span>
+                        <span className={`font-bold ${calculoSaque.pode_sacar ? 'text-green-400' : 'text-red-400'}`}>
+                          {formatCurrency(calculoSaque.valor_necessario)}
+                        </span>
+                      </div>
+                    </div>
+                    {!calculoSaque.pode_sacar && (
+                      <p className="text-red-400 text-xs mt-2 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        Saldo insuficiente
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label className="text-slate-300">Tipo de Chave PIX</Label>
@@ -155,10 +229,10 @@ export default function Withdrawals() {
                     value={newWithdrawal.tipo_chave}
                     onValueChange={(value) => setNewWithdrawal({ ...newWithdrawal, tipo_chave: value })}
                   >
-                    <SelectTrigger className="input-default">
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-800">
+                    <SelectContent className="bg-slate-800 border-slate-700">
                       <SelectItem value="cpf">CPF</SelectItem>
                       <SelectItem value="cnpj">CNPJ</SelectItem>
                       <SelectItem value="email">E-mail</SelectItem>
@@ -175,121 +249,161 @@ export default function Withdrawals() {
                     placeholder="Digite sua chave PIX"
                     value={newWithdrawal.chave_pix}
                     onChange={(e) => setNewWithdrawal({ ...newWithdrawal, chave_pix: e.target.value })}
-                    className="input-default"
-                    data-testid="withdrawal-chave"
+                    className="bg-slate-800 border-slate-700 text-white"
                   />
                 </div>
 
-                <Button
-                  onClick={handleCreate}
-                  disabled={creating}
-                  className="w-full btn-primary"
-                  data-testid="create-withdrawal-btn"
+                <Button 
+                  onClick={handleCreate} 
+                  disabled={creating || (calculoSaque && !calculoSaque.pode_sacar)}
+                  className="w-full bg-green-600 hover:bg-green-700"
                 >
-                  {creating ? <div className="spinner w-5 h-5" /> : "Solicitar Saque"}
+                  {creating ? <Loader2 className="w-5 h-5 animate-spin" /> : "Solicitar Saque"}
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Balance Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="card-stat">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center">
-                  <Wallet className="w-6 h-6 text-green-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400">Saldo Disponível</p>
-                  <p className="text-2xl font-bold text-white">{formatCurrency(stats?.saldo_disponivel)}</p>
-                </div>
+        {/* Stats Card */}
+        <Card className="bg-slate-900/50 border-slate-800">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-500/20">
+                <Wallet className="w-5 h-5 text-green-400" />
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="card-stat">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                  <ArrowUpRight className="w-6 h-6 text-purple-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400">Comissões</p>
-                  <p className="text-2xl font-bold text-white">{formatCurrency(stats?.saldo_comissoes)}</p>
-                </div>
+              <div>
+                <p className="text-xs text-slate-400">Saldo Disponível para Saque</p>
+                <p className="text-xl font-bold text-white">{formatCurrency(totalDisponivel)}</p>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="card-stat">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                  <Wallet className="w-6 h-6 text-cyan-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400">Total para Saque</p>
-                  <p className="text-2xl font-bold text-green-400">{formatCurrency(totalDisponivel)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Withdrawals List */}
-        <Card className="card-dashboard">
+        <Card className="bg-slate-900/50 border-slate-800">
           <CardHeader>
-            <CardTitle className="text-lg text-white">Histórico de Saques</CardTitle>
+            <CardTitle className="text-white">Histórico de Saques</CardTitle>
           </CardHeader>
           <CardContent>
-            {withdrawals.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-800">
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">ID</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Valor</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Chave PIX</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Status</th>
-                      <th className="text-left text-xs text-slate-500 font-medium p-4">Data</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {withdrawals.map((w) => (
-                      <tr key={w.id} className="table-row">
-                        <td className="p-4">
-                          <span className="mono text-xs text-slate-400">{w.id.substring(0, 8)}...</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-white font-medium">{formatCurrency(w.valor)}</span>
-                        </td>
-                        <td className="p-4">
-                          <div>
-                            <span className="text-slate-400 text-sm">{w.tipo_chave.toUpperCase()}</span>
-                            <p className="text-white text-sm truncate max-w-[150px]">{w.chave_pix}</p>
-                          </div>
-                        </td>
-                        <td className="p-4">{getStatusBadge(w.status)}</td>
-                        <td className="p-4">
-                          <span className="text-slate-500 text-sm">
-                            {new Date(w.created_at).toLocaleDateString("pt-BR")}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+              </div>
+            ) : withdrawals.length > 0 ? (
+              <div className="space-y-3">
+                {withdrawals.map((withdrawal) => (
+                  <div
+                    key={withdrawal.id}
+                    className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 cursor-pointer hover:bg-slate-800/70 transition-colors"
+                    onClick={() => handleViewDetails(withdrawal)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-slate-700">
+                          <ArrowUpRight className="w-5 h-5 text-green-400" />
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">
+                            {formatCurrency(withdrawal.valor_solicitado || withdrawal.valor)}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {new Date(withdrawal.created_at).toLocaleString("pt-BR")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right flex items-center gap-2">
+                        {getStatusBadge(withdrawal.status)}
+                        {withdrawal.observacoes?.length > 0 && (
+                          <MessageSquare className="w-4 h-4 text-blue-400" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
-              <div className="text-center py-12">
+              <div className="text-center py-8">
                 <Wallet className="w-12 h-12 text-slate-600 mx-auto mb-3" />
                 <p className="text-slate-500">Nenhum saque solicitado</p>
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Detail Dialog */}
+        <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+          <DialogContent className="bg-slate-900 border-slate-800 max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-white">Detalhes do Saque</DialogTitle>
+            </DialogHeader>
+            {selectedWithdrawal && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Valor Solicitado:</span>
+                    <span className="text-white font-bold">
+                      {formatCurrency(selectedWithdrawal.valor_solicitado || selectedWithdrawal.valor)}
+                    </span>
+                  </div>
+                  {selectedWithdrawal.valor_taxa && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Taxa ({selectedWithdrawal.taxa_percentual}%):</span>
+                      <span className="text-red-400">{formatCurrency(selectedWithdrawal.valor_taxa)}</span>
+                    </div>
+                  )}
+                  {selectedWithdrawal.valor_total_retido && (
+                    <div className="flex justify-between pt-2 border-t border-slate-700">
+                      <span className="text-slate-400">Total Retido:</span>
+                      <span className="text-white">{formatCurrency(selectedWithdrawal.valor_total_retido)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-2 border-t border-slate-700">
+                    <span className="text-slate-400">Chave PIX:</span>
+                    <span className="text-white text-sm">{selectedWithdrawal.chave_pix}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Status:</span>
+                    {getStatusBadge(selectedWithdrawal.status)}
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Data:</span>
+                    <span className="text-white text-sm">
+                      {new Date(selectedWithdrawal.created_at).toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Observações */}
+                {selectedWithdrawal.observacoes?.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-slate-300 font-medium flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      Observações do Admin
+                    </p>
+                    <div className="space-y-2">
+                      {selectedWithdrawal.observacoes.map((obs, idx) => (
+                        <div key={idx} className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                          <p className="text-white text-sm">{obs.observacao}</p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {obs.admin_nome} - {new Date(obs.created_at).toLocaleString("pt-BR")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedWithdrawal.motivo && (
+                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                    <p className="text-red-400 text-sm font-medium">Motivo da rejeição:</p>
+                    <p className="text-white text-sm mt-1">{selectedWithdrawal.motivo}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
