@@ -325,7 +325,7 @@ export default function Transfers() {
                 <Label className="text-slate-300">Valor (R$)</Label>
                 <Input
                   type="number"
-                  placeholder="Mínimo R$1,00"
+                  placeholder={`Mínimo ${formatCurrency(valorMinimo)}`}
                   value={valor}
                   onChange={(e) => setValor(e.target.value)}
                   className="bg-slate-800 border-slate-700 text-white"
