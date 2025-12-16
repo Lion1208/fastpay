@@ -226,19 +226,19 @@ export default function Login() {
             Receba pagamentos, gerencie indicações e acompanhe suas comissões em tempo real.
           </p>
           
-          {/* Taxas Dinâmicas */}
+          {/* Destaques */}
           <div className="flex justify-center gap-8">
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-400">
-                {config.taxa_percentual_padrao || 2}%
-              </p>
-              <p className="text-slate-500 text-sm">Taxa por transação</p>
+              <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-2">
+                <Shield className="w-6 h-6 text-green-400" />
+              </div>
+              <p className="text-slate-400 text-sm">Seguro</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-cyan-400">
-                {config.comissao_indicacao || 1}%
-              </p>
-              <p className="text-slate-500 text-sm">Comissão indicação</p>
+              <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center mx-auto mb-2">
+                <LogIn className="w-6 h-6 text-cyan-400" />
+              </div>
+              <p className="text-slate-400 text-sm">Rápido</p>
             </div>
           </div>
         </div>
