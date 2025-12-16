@@ -417,24 +417,35 @@ async def create_transaction(data: TransactionCreate, user: dict = Depends(get_c
     api_key = config.get("fastdepix_api_key")
     if api_key:
         try:
+            # Determinar tipo de usuário baseado no CPF/CNPJ
+            cpf_cnpj_clean = (data.cpf_cnpj or "").replace(".", "").replace("-", "").replace("/", "")
+            user_type = "company" if len(cpf_cnpj_clean) == 14 else "individual"
+            
             async with httpx.AsyncClient() as client_http:
                 response = await client_http.post(
-                    "https://api.fastdepix.com/api/v1/transactions",
-                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                    "https://fastdepix.space/api/v1/transactions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    },
                     json={
                         "amount": data.valor,
-                        "description": transaction["descricao"],
-                        "payer_cpf_cnpj": data.cpf_cnpj,
-                        "custom_id": transaction["id"]
+                        "user": {
+                            "name": user_data.get("nome", "Cliente"),
+                            "cpf_cnpj": cpf_cnpj_clean,
+                            "user_type": user_type
+                        }
                     },
                     timeout=30.0
                 )
-                if response.status_code == 200 or response.status_code == 201:
+                logger.info(f"FastDePix response: {response.status_code} - {response.text}")
+                if response.status_code in [200, 201]:
                     result = response.json()
-                    transaction["fastdepix_id"] = result.get("id")
-                    transaction["qr_code"] = result.get("qr_code")
-                    transaction["qr_code_base64"] = result.get("qr_code_base64")
-                    transaction["pix_copia_cola"] = result.get("pix_copy_paste")
+                    if result.get("success"):
+                        tx_data = result.get("data", {})
+                        transaction["fastdepix_id"] = tx_data.get("id")
+                        transaction["qr_code"] = tx_data.get("qr_code")
+                        transaction["pix_copia_cola"] = tx_data.get("qr_code_text")
         except Exception as e:
             logger.error(f"FastDePix API error: {e}")
     
