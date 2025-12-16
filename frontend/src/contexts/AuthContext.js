@@ -14,20 +14,26 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
-  const fetchUser = useCallback(async () => {
+  const fetchUser = useCallback(async (retryCount = 0) => {
     try {
       const response = await api.get("/auth/me");
       setUser(response.data);
     } catch (error) {
-      console.error("Erro ao buscar usuário:", error.response?.status, error.message);
-      // Só faz logout se for erro 401 explícito
+      // Só faz logout se for erro 401 explícito (token inválido)
       if (error.response?.status === 401) {
         localStorage.removeItem("token");
         setToken(null);
         setUser(null);
+      } else if (retryCount < 2) {
+        // Para outros erros (rede, timeout), tenta novamente
+        setTimeout(() => fetchUser(retryCount + 1), 1000);
+        return; // Não seta loading false ainda
       }
+      // Após 2 tentativas, desiste mas NÃO faz logout (pode ser erro de rede temporário)
     } finally {
-      setLoading(false);
+      if (retryCount >= 2 || !error || error.response?.status === 401) {
+        setLoading(false);
+      }
     }
   }, []);
 
