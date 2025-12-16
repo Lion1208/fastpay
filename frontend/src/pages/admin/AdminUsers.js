@@ -23,6 +23,8 @@ export default function AdminUsers() {
   const [editData, setEditData] = useState({
     taxa_percentual: "",
     taxa_fixa: "",
+    taxa_saque: "",
+    taxa_transferencia: "",
     indicacoes_liberadas: "",
     status: ""
   });
