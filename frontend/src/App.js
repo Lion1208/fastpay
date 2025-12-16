@@ -63,8 +63,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/register/:codigo" element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path="/register" element={<Navigate to="/login" replace />} />
       <Route path="/p/:codigo" element={<PublicPage />} />
       
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
