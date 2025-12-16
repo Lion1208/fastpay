@@ -117,38 +117,6 @@ export default function Transfers() {
     return () => clearTimeout(timer);
   }, [carteiraDestino]);
 
-  // Polling para notificações de transferências recebidas
-  const [lastTransferCount, setLastTransferCount] = useState(0);
-  
-  useEffect(() => {
-    const formatMoney = (value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
-    
-    const checkNewTransfers = async () => {
-      try {
-        const response = await axios.get(`${API}/transfers`);
-        const currentTransfers = response.data.transfers || [];
-        const receivedTransfers = currentTransfers.filter(t => t.destinatario_id === user?.id);
-        
-        if (lastTransferCount > 0 && receivedTransfers.length > lastTransferCount) {
-          const newTransfer = receivedTransfers[0];
-          toast.success(
-            `Você recebeu ${formatMoney(newTransfer.valor_recebido)} de ${newTransfer.remetente_nome}!`,
-            { duration: 5000 }
-          );
-          setTransfers(currentTransfers);
-        }
-        setLastTransferCount(receivedTransfers.length);
-      } catch (error) {
-        console.error("Error checking transfers:", error);
-      }
-    };
-    
-    // Verifica a cada 10 segundos
-    const interval = setInterval(checkNewTransfers, 10000);
-    
-    return () => clearInterval(interval);
-  }, [lastTransferCount, user?.id]);
-
   const handleCalculate = async () => {
     if (!valor || parseFloat(valor) < 1) {
       toast.error("Valor mínimo é R$1,00");
