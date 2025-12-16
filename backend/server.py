@@ -1057,7 +1057,9 @@ async def calculate_withdrawal(valor: float, user: dict = Depends(get_current_us
 @api_router.post("/withdrawals")
 async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_current_user)):
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    config = await get_config()
     taxa_saque = user_data.get("taxa_saque", 1.5)
+    valor_minimo = user_data.get("valor_minimo_saque", config.get("valor_minimo_saque", 10.0))
     
     valor_taxa = data.valor * (taxa_saque / 100)
     valor_necessario = data.valor + valor_taxa
@@ -1066,8 +1068,8 @@ async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_cur
     if valor_necessario > total_disponivel:
         raise HTTPException(status_code=400, detail=f"Saldo insuficiente. Você precisa de R${valor_necessario:.2f} para sacar R${data.valor:.2f}")
     
-    if data.valor < 10:
-        raise HTTPException(status_code=400, detail="Valor mínimo de saque é R$10,00")
+    if data.valor < valor_minimo:
+        raise HTTPException(status_code=400, detail=f"Valor mínimo de saque é R${valor_minimo:.2f}")
     
     withdrawal = {
         "id": str(uuid.uuid4()),
