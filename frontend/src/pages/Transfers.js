@@ -293,28 +293,27 @@ export default function Transfers() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-slate-300">ID da Carteira de Destino</Label>
-                <div className="flex gap-2">
+                <div className="relative">
                   <Input
                     placeholder="Ex: W1A2B3C4D5E6"
                     value={carteiraDestino}
-                    onChange={(e) => {
-                      setCarteiraDestino(e.target.value.toUpperCase());
-                      setDestinatario(null);
-                    }}
-                    className="bg-slate-800 border-slate-700 text-white font-mono"
+                    onChange={(e) => setCarteiraDestino(e.target.value.toUpperCase())}
+                    className="bg-slate-800 border-slate-700 text-white font-mono pr-10"
                   />
-                  <Button
-                    onClick={handleValidateWallet}
-                    variant="outline"
-                    className="border-slate-700"
-                  >
-                    <Search className="w-4 h-4" />
-                  </Button>
+                  {searchingWallet && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-slate-400" />
+                  )}
                 </div>
                 {destinatario && (
                   <p className="text-sm text-green-400 flex items-center gap-1">
                     <CheckCircle className="w-4 h-4" />
                     {destinatario.nome}
+                  </p>
+                )}
+                {carteiraDestino && carteiraDestino.length >= 5 && !destinatario && !searchingWallet && (
+                  <p className="text-sm text-red-400 flex items-center gap-1">
+                    <XCircle className="w-4 h-4" />
+                    Carteira não encontrada
                   </p>
                 )}
               </div>
