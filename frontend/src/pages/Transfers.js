@@ -185,24 +185,63 @@ export default function Transfers() {
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">Sua Carteira</p>
-                  <p className="text-lg font-bold text-white font-mono">{carteiraId || "Carregando..."}</p>
+                  {carteiraId ? (
+                    <p className="text-lg font-bold text-white font-mono">{carteiraId}</p>
+                  ) : (
+                    <p className="text-sm text-yellow-400">Carteira não gerada</p>
+                  )}
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyToClipboard(carteiraId)}
-                className="border-slate-700"
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copiar
-              </Button>
+              {carteiraId ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(carteiraId)}
+                  className="border-slate-700"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleGenerateWallet}
+                  disabled={generatingWallet}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {generatingWallet ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4 mr-2" /> Gerar Carteira</>}
+                </Button>
+              )}
             </div>
             <p className="text-xs text-slate-500 mt-2">
               Taxa de transferência: {taxaTransferencia}%
             </p>
           </CardContent>
         </Card>
+
+        {/* Envios Frequentes */}
+        {frequentes.length > 0 && (
+          <Card className="bg-slate-900/50 border-slate-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Star className="w-4 h-4 text-yellow-400" />
+                <p className="text-sm text-slate-300">Envios Frequentes</p>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {frequentes.map((freq, idx) => (
+                  <Button
+                    key={idx}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSelectFrequent(freq)}
+                    className="border-slate-700 hover:bg-slate-800"
+                  >
+                    <span className="truncate max-w-[100px]">{freq.nome}</span>
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Formulário de Transferência */}
         <Card className="bg-slate-900/50 border-slate-800">
