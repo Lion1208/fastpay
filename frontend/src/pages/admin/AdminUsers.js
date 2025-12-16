@@ -231,20 +231,58 @@ export default function AdminUsers() {
                           </span>
                         </td>
                         <td className="p-4">
-                          <Badge className={user.status === "active" ? "badge-success" : "badge-error"}>
-                            {user.status === "active" ? "Ativo" : "Inativo"}
+                          <Badge className={
+                            user.status === "active" ? "badge-success" : 
+                            user.status === "blocked" ? "bg-red-500/20 text-red-400 border-red-500/30" : 
+                            "badge-error"
+                          }>
+                            {user.status === "active" ? "Ativo" : user.status === "blocked" ? "Bloqueado" : "Inativo"}
                           </Badge>
                         </td>
                         <td className="p-4 text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(user)}
-                            className="text-slate-400 hover:text-white"
-                            data-testid={`edit-user-${user.id}`}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(user)}
+                              className="text-slate-400 hover:text-white"
+                              title="Editar"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            
+                            {user.status === "blocked" ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleUnblockUser(user)}
+                                className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                                title="Desbloquear"
+                              >
+                                <Unlock className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openBlockDialog(user)}
+                                className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
+                                title="Bloquear"
+                              >
+                                <Ban className="w-4 h-4" />
+                              </Button>
+                            )}
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openDeleteDialog(user)}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              title="Excluir"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
