@@ -16,6 +16,12 @@ export default function AdminConfig() {
   const [saving, setSaving] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
+  const [adminCredentials, setAdminCredentials] = useState({
+    codigo: "",
+    senha_atual: "",
+    senha_nova: ""
+  });
+  const [savingCredentials, setSavingCredentials] = useState(false);
 
   useEffect(() => {
     fetchConfig();
@@ -47,6 +53,40 @@ export default function AdminConfig() {
 
   const handleChange = (key, value) => {
     setConfig(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleUpdateAdminCredentials = async () => {
+    if (!adminCredentials.senha_atual) {
+      toast.error("Digite sua senha atual");
+      return;
+    }
+    
+    if (!adminCredentials.codigo && !adminCredentials.senha_nova) {
+      toast.error("Preencha o novo código ou a nova senha");
+      return;
+    }
+    
+    setSavingCredentials(true);
+    try {
+      await axios.put(`${API}/admin/credentials`, {
+        codigo: adminCredentials.codigo || null,
+        senha_atual: adminCredentials.senha_atual,
+        senha_nova: adminCredentials.senha_nova || null
+      });
+      
+      toast.success("Credenciais atualizadas! Faça login novamente.");
+      setAdminCredentials({ codigo: "", senha_atual: "", senha_nova: "" });
+      
+      // Logout após alteração
+      setTimeout(() => {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }, 2000);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erro ao atualizar credenciais");
+    } finally {
+      setSavingCredentials(false);
+    }
   };
 
   if (loading) {
