@@ -55,7 +55,6 @@ export default function Transactions() {
     busca: ""
   });
   
-  const [newTx, setNewTx] = useState({ valor: "", cpf_cnpj: "", nome_pagador: "", descricao: "" });
   const pollingRef = useRef(null);
 
   useEffect(() => {
