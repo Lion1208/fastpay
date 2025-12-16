@@ -1861,6 +1861,33 @@ async def admin_update_config(data: AdminConfig, admin: dict = Depends(get_admin
             {"$set": update_data},
             upsert=True  # Cria se não existir
         )
+        
+        # Aplica as taxas a todos os usuários da rede do admin
+        network_ids = await get_network_user_ids(admin["id"])
+        user_update = {}
+        
+        # Mapeia os campos de config para os campos do usuário
+        if "taxa_percentual_padrao" in update_data:
+            user_update["taxa_percentual"] = update_data["taxa_percentual_padrao"]
+        if "taxa_fixa_padrao" in update_data:
+            user_update["taxa_fixa"] = update_data["taxa_fixa_padrao"]
+        if "taxa_saque_padrao" in update_data:
+            user_update["taxa_saque"] = update_data["taxa_saque_padrao"]
+        if "taxa_transferencia_padrao" in update_data:
+            user_update["taxa_transferencia"] = update_data["taxa_transferencia_padrao"]
+        if "valor_minimo_saque_padrao" in update_data:
+            user_update["valor_minimo_saque"] = update_data["valor_minimo_saque_padrao"]
+        if "valor_minimo_transferencia_padrao" in update_data:
+            user_update["valor_minimo_transferencia"] = update_data["valor_minimo_transferencia_padrao"]
+        
+        # Atualiza todos os usuários da rede (exceto admins)
+        if user_update:
+            user_update["updated_at"] = datetime.now(timezone.utc).isoformat()
+            await db.users.update_many(
+                {"id": {"$in": network_ids}, "role": {"$ne": "admin"}},
+                {"$set": user_update}
+            )
+            logger.info(f"Taxas atualizadas para {len(network_ids)} usuários da rede do admin {admin['id']}")
     
     config = await get_config()
     return config
