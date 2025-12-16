@@ -5,7 +5,10 @@ import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Eye, EyeOff, UserPlus, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, UserPlus, ArrowLeft, AlertCircle } from "lucide-react";
+import axios from "axios";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Register() {
   const { codigo } = useParams();
@@ -13,58 +16,57 @@ export default function Register() {
     codigo_indicador: codigo || "",
     nome: "",
     email: "",
-    cpf_cnpj: "",
-    whatsapp: "",
     senha: "",
     confirmarSenha: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [config, setConfig] = useState({ nome_sistema: "FastPay", logo_url: "" });
+  const [indicadorValido, setIndicadorValido] = useState(null);
   const { register } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    fetchConfig();
     if (codigo) {
       setFormData(prev => ({ ...prev, codigo_indicador: codigo }));
+      verificarIndicador(codigo);
     }
   }, [codigo]);
+
+  const fetchConfig = async () => {
+    try {
+      const response = await axios.get(`${API}/config/public`);
+      setConfig(response.data);
+    } catch (error) {
+      console.error("Error fetching config:", error);
+    }
+  };
+
+  const verificarIndicador = async (codigoIndicador) => {
+    try {
+      const response = await axios.get(`${API}/p/${codigoIndicador}`);
+      setIndicadorValido(response.data);
+    } catch (error) {
+      setIndicadorValido(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const formatCpfCnpj = (value) => {
-    const numbers = value.replace(/\D/g, "");
-    if (numbers.length <= 11) {
-      return numbers
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d{1,2})/, "$1-$2")
-        .replace(/(-\d{2})\d+?$/, "$1");
-    } else {
-      return numbers
-        .replace(/(\d{2})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1/$2")
-        .replace(/(\d{4})(\d{1,2})/, "$1-$2")
-        .replace(/(-\d{2})\d+?$/, "$1");
-    }
-  };
-
-  const formatWhatsapp = (value) => {
-    const numbers = value.replace(/\D/g, "");
-    return numbers
-      .replace(/(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{5})(\d)/, "$1-$2")
-      .replace(/(-\d{4})\d+?$/, "$1");
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!formData.codigo_indicador) {
+      toast.error("Código de indicador é obrigatório");
+      return;
+    }
+
     if (!formData.nome || !formData.email || !formData.senha) {
-      toast.error("Preencha os campos obrigatórios");
+      toast.error("Preencha todos os campos obrigatórios");
       return;
     }
 
@@ -91,6 +93,54 @@ export default function Register() {
     }
   };
 
+  // Se não tem código de indicador na URL, mostrar erro
+  if (!codigo) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-8 h-8 text-red-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-4">Link Inválido</h1>
+          <p className="text-slate-400 mb-6">
+            Para se cadastrar, você precisa de um link de indicação válido. 
+            Solicite ao seu indicador.
+          </p>
+          <Link to="/login">
+            <Button className="btn-primary">
+              <ArrowLeft className="mr-2 w-4 h-4" />
+              Voltar ao Login
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Se indicador não é válido
+  if (indicadorValido === false) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-8 h-8 text-red-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-4">Indicador Inválido</h1>
+          <p className="text-slate-400 mb-6">
+            O código de indicação <span className="mono text-red-400">{codigo}</span> não é válido 
+            ou o indicador não tem mais vagas disponíveis.
+          </p>
+          <Link to="/login">
+            <Button className="btn-primary">
+              <ArrowLeft className="mr-2 w-4 h-4" />
+              Voltar ao Login
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Form */}
@@ -107,25 +157,39 @@ export default function Register() {
 
           {/* Header */}
           <div>
+            {config.logo_url ? (
+              <img src={config.logo_url} alt={config.nome_sistema} className="h-12 mb-4" />
+            ) : (
+              <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mb-4">
+                <span className="text-green-400 font-bold text-2xl">$</span>
+              </div>
+            )}
             <h1 className="text-3xl font-bold text-white">Criar Conta</h1>
             <p className="mt-2 text-slate-400">Preencha os dados para se cadastrar</p>
           </div>
 
+          {/* Indicador Info */}
+          {indicadorValido && (
+            <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+              <p className="text-sm text-slate-400">Você foi convidado por:</p>
+              <p className="text-lg font-semibold text-green-400">{indicadorValido.nome}</p>
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Código do Indicador */}
+            {/* Código do Indicador - Readonly */}
             <div className="space-y-2">
               <Label htmlFor="codigo_indicador" className="text-slate-300">
-                Código do Indicador <span className="text-slate-500">(opcional)</span>
+                Código do Indicador
               </Label>
               <Input
                 id="codigo_indicador"
                 name="codigo_indicador"
                 type="text"
-                placeholder="Ex: ABC12345"
                 value={formData.codigo_indicador}
-                onChange={(e) => handleChange({ target: { name: "codigo_indicador", value: e.target.value.toUpperCase() } })}
-                className="input-default h-11 uppercase"
+                readOnly
+                className="input-default h-11 uppercase bg-slate-800/50"
                 data-testid="register-indicador"
               />
             </div>
@@ -161,42 +225,6 @@ export default function Register() {
                 onChange={handleChange}
                 className="input-default h-11"
                 data-testid="register-email"
-              />
-            </div>
-
-            {/* CPF/CNPJ */}
-            <div className="space-y-2">
-              <Label htmlFor="cpf_cnpj" className="text-slate-300">
-                CPF ou CNPJ <span className="text-slate-500">(opcional)</span>
-              </Label>
-              <Input
-                id="cpf_cnpj"
-                name="cpf_cnpj"
-                type="text"
-                placeholder="000.000.000-00"
-                value={formData.cpf_cnpj}
-                onChange={(e) => handleChange({ target: { name: "cpf_cnpj", value: formatCpfCnpj(e.target.value) } })}
-                className="input-default h-11"
-                maxLength={18}
-                data-testid="register-cpf"
-              />
-            </div>
-
-            {/* WhatsApp */}
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp" className="text-slate-300">
-                WhatsApp <span className="text-slate-500">(opcional)</span>
-              </Label>
-              <Input
-                id="whatsapp"
-                name="whatsapp"
-                type="text"
-                placeholder="(00) 00000-0000"
-                value={formData.whatsapp}
-                onChange={(e) => handleChange({ target: { name: "whatsapp", value: formatWhatsapp(e.target.value) } })}
-                className="input-default h-11"
-                maxLength={15}
-                data-testid="register-whatsapp"
               />
             </div>
 
@@ -259,16 +287,6 @@ export default function Register() {
               )}
             </Button>
           </form>
-
-          {/* Login Link */}
-          <div className="text-center">
-            <p className="text-slate-400">
-              Já tem uma conta?{" "}
-              <Link to="/login" className="text-green-400 hover:text-green-300 font-medium">
-                Fazer Login
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
 
@@ -284,7 +302,7 @@ export default function Register() {
             Comece a Receber Pagamentos
           </h2>
           <p className="text-xl text-slate-300 mb-8">
-            Cadastre-se gratuitamente e receba seu código de acesso para começar a usar o sistema.
+            Cadastre-se e receba seu código de acesso para começar a usar o sistema.
           </p>
           
           <div className="space-y-4">

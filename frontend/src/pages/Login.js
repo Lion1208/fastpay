@@ -1,19 +1,36 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
+import { Eye, EyeOff, LogIn } from "lucide-react";
+import axios from "axios";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Login() {
   const [codigo, setCodigo] = useState("");
   const [senha, setSenha] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [config, setConfig] = useState({ nome_sistema: "FastPay", logo_url: "" });
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchConfig();
+  }, []);
+
+  const fetchConfig = async () => {
+    try {
+      const response = await axios.get(`${API}/config/public`);
+      setConfig(response.data);
+    } catch (error) {
+      console.error("Error fetching config:", error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,10 +59,14 @@ export default function Login() {
         <div className="w-full max-w-md space-y-8 animate-fade-in">
           {/* Logo */}
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-500/20 mb-6">
-              <span className="text-green-400 font-bold text-3xl">$</span>
-            </div>
-            <h1 className="text-3xl font-bold text-white">FastPay</h1>
+            {config.logo_url ? (
+              <img src={config.logo_url} alt={config.nome_sistema} className="h-16 mx-auto mb-6" />
+            ) : (
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-500/20 mb-6">
+                <span className="text-green-400 font-bold text-3xl">$</span>
+              </div>
+            )}
+            <h1 className="text-3xl font-bold text-white">{config.nome_sistema}</h1>
             <p className="mt-2 text-slate-400">Entre na sua conta</p>
           </div>
 
@@ -103,13 +124,10 @@ export default function Login() {
             </Button>
           </form>
 
-          {/* Register Link */}
+          {/* Info */}
           <div className="text-center">
-            <p className="text-slate-400">
-              Não tem uma conta?{" "}
-              <Link to="/register" className="text-green-400 hover:text-green-300 font-medium">
-                Cadastre-se
-              </Link>
+            <p className="text-slate-500 text-sm">
+              Não tem uma conta? Solicite um link de cadastro ao seu indicador.
             </p>
           </div>
 
