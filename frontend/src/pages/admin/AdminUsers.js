@@ -203,7 +203,7 @@ export default function AdminUsers() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-slate-300">Taxa Percentual (%)</Label>
+                    <Label className="text-slate-300">Taxa Transação (%)</Label>
                     <Input
                       type="number"
                       value={editData.taxa_percentual}
@@ -222,6 +222,29 @@ export default function AdminUsers() {
                       className="input-default"
                       step="0.01"
                       data-testid="edit-taxa-fixa"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-slate-300">Taxa Saque (%)</Label>
+                    <Input
+                      type="number"
+                      value={editData.taxa_saque}
+                      onChange={(e) => setEditData({ ...editData, taxa_saque: e.target.value })}
+                      className="input-default"
+                      step="0.1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-300">Taxa Transferência (%)</Label>
+                    <Input
+                      type="number"
+                      value={editData.taxa_transferencia}
+                      onChange={(e) => setEditData({ ...editData, taxa_transferencia: e.target.value })}
+                      className="input-default"
+                      step="0.1"
                     />
                   </div>
                 </div>
