@@ -108,16 +108,15 @@ export default function PublicPage() {
         return;
       }
     } else {
-      // Se não for anônimo, exige CPF/CNPJ
+      // Se não for anônimo, exige nome e CPF/CNPJ
+      if (!formData.nome_pagador.trim()) {
+        toast.error("Informe seu nome");
+        return;
+      }
       if (!formData.cpf_pagador || formData.cpf_pagador.replace(/\D/g, "").length < 11) {
         toast.error("Informe um CPF/CNPJ válido");
         return;
       }
-    }
-
-    if (!formData.nome_pagador.trim()) {
-      toast.error("Informe seu nome");
-      return;
     }
 
     setCreating(true);
