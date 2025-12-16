@@ -16,9 +16,12 @@ import {
   ArrowDownRight,
   Clock,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Bell
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { useNavigate } from "react-router-dom";
+import { isPushSupported, isSubscribedToPush } from "../utils/push";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
