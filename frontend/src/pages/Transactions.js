@@ -143,86 +143,14 @@ export default function Transactions() {
             <p className="text-slate-400">Gerencie seus pagamentos PIX</p>
           </div>
           
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => fetchTransactions()}
-              className="border-slate-700 hover:bg-slate-800"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-            
-            <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
-              <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700 text-white" data-testid="new-transaction-btn">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nova Transação
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-slate-900 border-slate-800">
-                <DialogHeader>
-                  <DialogTitle className="text-white">Criar Nova Transação</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">Valor (R$) <span className="text-red-400">*</span></Label>
-                    <Input
-                      type="number"
-                      placeholder="Mínimo R$10,00"
-                      value={newTx.valor}
-                      onChange={(e) => setNewTx({ ...newTx, valor: e.target.value })}
-                      className="bg-slate-800 border-slate-700 text-white"
-                      min="10"
-                      step="0.01"
-                      data-testid="tx-valor"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">Nome do Pagador <span className="text-red-400">*</span></Label>
-                    <Input
-                      type="text"
-                      placeholder="Nome completo"
-                      value={newTx.nome_pagador}
-                      onChange={(e) => setNewTx({ ...newTx, nome_pagador: e.target.value })}
-                      className="bg-slate-800 border-slate-700 text-white"
-                      data-testid="tx-nome"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">CPF/CNPJ do Pagador <span className="text-red-400">*</span></Label>
-                    <Input
-                      type="text"
-                      placeholder="000.000.000-00"
-                      value={newTx.cpf_cnpj}
-                      onChange={(e) => setNewTx({ ...newTx, cpf_cnpj: formatCpf(e.target.value) })}
-                      className="bg-slate-800 border-slate-700 text-white"
-                      maxLength={18}
-                      data-testid="tx-cpf"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">Descrição (opcional)</Label>
-                    <Input
-                      type="text"
-                      placeholder="Ex: Pagamento de serviço"
-                      value={newTx.descricao}
-                      onChange={(e) => setNewTx({ ...newTx, descricao: e.target.value })}
-                      className="bg-slate-800 border-slate-700 text-white"
-                      data-testid="tx-descricao"
-                    />
-                  </div>
-                  <Button 
-                    onClick={handleCreate} 
-                    disabled={creating}
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    data-testid="create-tx-btn"
-                  >
-                    {creating ? <Loader2 className="w-5 h-5 animate-spin" /> : "Gerar QR Code PIX"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => fetchTransactions()}
+            className="border-slate-700 hover:bg-slate-800"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Atualizar
+          </Button>
         </div>
 
         {/* Cards de Estatísticas */}
