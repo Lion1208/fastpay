@@ -27,12 +27,22 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [pushEnabled, setPushEnabled] = useState(true);
 
   useEffect(() => {
     fetchStats();
+    checkPushStatus();
   }, []);
+
+  const checkPushStatus = async () => {
+    if (isPushSupported()) {
+      const subscribed = await isSubscribedToPush();
+      setPushEnabled(subscribed);
+    }
+  };
 
   const fetchStats = async () => {
     try {
