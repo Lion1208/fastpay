@@ -280,6 +280,25 @@ export default function Withdrawals() {
           </CardContent>
         </Card>
 
+        {/* Informações Importantes */}
+        <Card className="bg-yellow-500/10 border-yellow-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+              <div className="space-y-2">
+                <p className="text-yellow-400 font-medium">Informações Importantes sobre Saques</p>
+                <ul className="text-sm text-slate-300 space-y-1">
+                  <li>• <strong>Taxa de saque:</strong> {taxaSaque}% sobre o valor solicitado</li>
+                  <li>• <strong>Processamento:</strong> Saques são analisados manualmente</li>
+                  <li>• <strong>Horário:</strong> Análises começam às 8h da manhã</li>
+                  <li>• <strong>Prazo:</strong> Pode levar até 8 horas úteis para aprovação</li>
+                  <li>• <strong>Importante:</strong> Você precisa ter saldo suficiente para cobrir o valor + taxa</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Withdrawals List */}
         <Card className="bg-slate-900/50 border-slate-800">
           <CardHeader>
