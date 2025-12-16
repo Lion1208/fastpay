@@ -73,7 +73,16 @@ export const Layout = ({ children }) => {
   const isAdmin = user?.role === "admin";
   const menuItems = isAdmin ? adminMenuItems : userMenuItems;
 
+  // Busca configuração pública do sistema
   useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await axios.get(`${API}/config/public`);
+        setConfig(response.data);
+      } catch (error) {
+        console.error("Error fetching config:", error);
+      }
+    };
     fetchConfig();
   }, []);
 
@@ -125,15 +134,6 @@ export const Layout = ({ children }) => {
       clearInterval(interval);
     };
   }, [user?.id, lastTransferCheck]);
-
-  const fetchConfig = async () => {
-    try {
-      const response = await axios.get(`${API}/config/public`);
-      setConfig(response.data);
-    } catch (error) {
-      console.error("Error fetching config:", error);
-    }
-  };
 
   const handleLogout = () => {
     logout();
