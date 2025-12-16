@@ -19,12 +19,17 @@ export const AuthProvider = ({ children }) => {
       const response = await api.get("/auth/me");
       setUser(response.data);
     } catch (error) {
-      // Se der erro 401, faz logout silencioso
-      logout();
+      console.error("Erro ao buscar usuário:", error.response?.status, error.message);
+      // Só faz logout se for erro 401 explícito
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        setToken(null);
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
-  }, [logout]);
+  }, []);
 
   useEffect(() => {
     if (token) {
