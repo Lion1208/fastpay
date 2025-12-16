@@ -254,7 +254,7 @@ export default function Transfers() {
               )}
             </div>
             <p className="text-xs text-slate-500 mt-2">
-              Taxa de transferência: {taxaTransferencia}%
+              Taxa: {taxaTransferencia}% | Mínimo: {formatCurrency(valorMinimo)}
             </p>
           </CardContent>
         </Card>
