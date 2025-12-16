@@ -10,7 +10,6 @@ import { Badge } from "../components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { 
   ArrowLeftRight, 
-  Search, 
   Wallet,
   ArrowUpRight,
   ArrowDownLeft,
