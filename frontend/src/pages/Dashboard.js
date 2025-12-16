@@ -356,6 +356,21 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Push Notification Hint */}
+        {!pushEnabled && isPushSupported() && (
+          <div 
+            onClick={() => navigate('/settings')}
+            className="flex items-center gap-3 p-4 rounded-lg bg-purple-500/10 border border-purple-500/20 cursor-pointer hover:bg-purple-500/20 transition-colors"
+          >
+            <Bell className="w-5 h-5 text-purple-400" />
+            <div className="flex-1">
+              <p className="text-purple-300 text-sm font-medium">Ative as notificações push</p>
+              <p className="text-slate-500 text-xs">Receba alertas de transferências mesmo com o navegador fechado</p>
+            </div>
+            <span className="text-purple-400 text-sm">Ativar →</span>
+          </div>
+        )}
       </div>
     </Layout>
   );
