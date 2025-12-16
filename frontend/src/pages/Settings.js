@@ -16,9 +16,12 @@ import {
   CheckCircle,
   AlertCircle,
   Copy,
-  QrCode
+  QrCode,
+  Bell,
+  BellOff
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { isPushSupported, isSubscribedToPush, subscribeToPush, unsubscribeFromPush, getNotificationPermission } from "../utils/push";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
