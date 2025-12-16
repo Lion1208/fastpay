@@ -402,7 +402,7 @@ export default function Transactions() {
                             <span className="text-white font-medium">{formatCurrency(tx.valor)}</span>
                           </td>
                           <td className="p-4">
-                            <span className="text-green-400 font-medium">{formatCurrency(tx.valor_liquido)}</span>
+                            <span className={`font-medium ${tx.valor_liquido < 0 ? 'text-red-400' : 'text-green-400'}`}>{formatCurrency(tx.valor_liquido)}</span>
                           </td>
                           <td className="p-4">{getStatusBadge(tx.status)}</td>
                           <td className="p-4">
