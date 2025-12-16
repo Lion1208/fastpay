@@ -283,8 +283,40 @@ export default function PublicPage() {
             <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Toggle Anônimo */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                    <div className="flex items-center gap-3">
+                      {isAnonymous ? (
+                        <UserX className="w-5 h-5 text-purple-400" />
+                      ) : (
+                        <User className="w-5 h-5 text-green-400" />
+                      )}
+                      <div>
+                        <p className="text-white font-medium">
+                          {isAnonymous ? "Pagamento Anônimo" : "Pagamento Identificado"}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {isAnonymous 
+                            ? `Sem CPF, limite de ${formatCurrency(ANONYMOUS_LIMIT)}` 
+                            : "Sem limite de valor"}
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={isAnonymous}
+                      onCheckedChange={setIsAnonymous}
+                    />
+                  </div>
+
                   <div className="space-y-2">
-                    <Label className="text-slate-300">Valor (R$) <span className="text-red-400">*</span></Label>
+                    <Label className="text-slate-300">
+                      Valor (R$) <span className="text-red-400">*</span>
+                      {isAnonymous && (
+                        <span className="text-purple-400 text-xs ml-2">
+                          (máx. {formatCurrency(ANONYMOUS_LIMIT)})
+                        </span>
+                      )}
+                    </Label>
                     <Input
                       type="number"
                       placeholder="Mínimo R$10,00"
@@ -293,42 +325,55 @@ export default function PublicPage() {
                       className="input-default h-14 text-lg"
                       step="0.01"
                       min="10"
+                      max={isAnonymous ? ANONYMOUS_LIMIT : undefined}
                       data-testid="public-valor"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">Seu Nome <span className="text-red-400">*</span></Label>
-                    <Input
-                      type="text"
-                      placeholder="Nome completo"
-                      value={formData.nome_pagador}
-                      onChange={(e) => setFormData({ ...formData, nome_pagador: e.target.value })}
-                      className="input-default"
-                      data-testid="public-nome"
-                    />
-                  </div>
+                  {!isAnonymous && (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">Seu Nome <span className="text-red-400">*</span></Label>
+                        <Input
+                          type="text"
+                          placeholder="Nome completo"
+                          value={formData.nome_pagador}
+                          onChange={(e) => setFormData({ ...formData, nome_pagador: e.target.value })}
+                          className="input-default"
+                          data-testid="public-nome"
+                        />
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">CPF/CNPJ <span className="text-red-400">*</span></Label>
-                    <Input
-                      type="text"
-                      placeholder="000.000.000-00"
-                      value={formData.cpf_pagador}
-                      onChange={(e) => setFormData({ ...formData, cpf_pagador: formatCpf(e.target.value) })}
-                      className="input-default"
-                      maxLength={18}
-                      data-testid="public-cpf"
-                    />
-                  </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">CPF/CNPJ <span className="text-red-400">*</span></Label>
+                        <Input
+                          type="text"
+                          placeholder="000.000.000-00"
+                          value={formData.cpf_pagador}
+                          onChange={(e) => setFormData({ ...formData, cpf_pagador: formatCpf(e.target.value) })}
+                          className="input-default"
+                          maxLength={18}
+                          data-testid="public-cpf"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {isAnonymous && (
+                    <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/30">
+                      <p className="text-purple-300 text-sm">
+                        💜 Pagamento anônimo: seu CPF não será solicitado, mas o limite é de {formatCurrency(ANONYMOUS_LIMIT)}.
+                      </p>
+                    </div>
+                  )}
 
                   <Button
                     type="submit"
                     disabled={creating}
                     className="w-full h-14 text-lg font-semibold transition-all"
                     style={{ 
-                      backgroundColor: corPrimaria,
-                      boxShadow: `0 0 30px ${corPrimaria}40`
+                      backgroundColor: isAnonymous ? "#a855f7" : corPrimaria,
+                      boxShadow: `0 0 30px ${isAnonymous ? "#a855f740" : corPrimaria + "40"}`
                     }}
                     data-testid="public-submit"
                   >
@@ -336,7 +381,7 @@ export default function PublicPage() {
                       <div className="spinner w-6 h-6" />
                     ) : (
                       <>
-                        Gerar PIX
+                        {isAnonymous ? "Pagar Anônimo" : "Gerar PIX"}
                         <ArrowRight className="ml-2 w-5 h-5" />
                       </>
                     )}
