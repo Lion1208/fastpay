@@ -27,7 +27,7 @@ export default function Login() {
 
   const fetchConfig = async () => {
     try {
-      const response = await api.get(`${API}/config/public`);
+      const response = await api.get(`/config/public`);
       setConfig(response.data);
     } catch (error) {
       console.error("Error fetching config:", error);
@@ -50,7 +50,7 @@ export default function Login() {
     setLoading(true);
     try {
       // Tenta login com 2FA
-      const response = await api.post(`${API}/auth/login-2fa`, {
+      const response = await api.post(`/auth/login-2fa`, {
         codigo,
         senha,
         two_factor_code: twoFactorCode || null

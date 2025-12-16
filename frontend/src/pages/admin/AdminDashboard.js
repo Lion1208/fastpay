@@ -17,7 +17,7 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get(`${API}/admin/stats`);
+      const response = await api.get(`/admin/stats`);
       setStats(response.data);
     } catch (error) {
       toast.error("Erro ao carregar estatísticas");

@@ -23,7 +23,7 @@ export default function AdminTickets() {
 
   const fetchTickets = async () => {
     try {
-      const response = await api.get(`${API}/tickets`);
+      const response = await api.get(`/tickets`);
       setTickets(response.data.tickets);
     } catch (error) {
       toast.error("Erro ao carregar tickets");
@@ -37,7 +37,7 @@ export default function AdminTickets() {
 
     setSending(true);
     try {
-      const response = await api.post(`${API}/tickets/${selectedTicket.id}/reply`, {
+      const response = await api.post(`/tickets/${selectedTicket.id}/reply`, {
         mensagem: replyMessage
       });
       setSelectedTicket(response.data);
@@ -53,7 +53,7 @@ export default function AdminTickets() {
 
   const handleStatusChange = async (ticketId, newStatus) => {
     try {
-      await api.put(`${API}/tickets/${ticketId}/status?status=${newStatus}`);
+      await api.put(`/tickets/${ticketId}/status?status=${newStatus}`);
       setTickets(tickets.map(t => t.id === ticketId ? { ...t, status: newStatus } : t));
       if (selectedTicket?.id === ticketId) {
         setSelectedTicket(prev => ({ ...prev, status: newStatus }));

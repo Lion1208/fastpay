@@ -36,8 +36,8 @@ export default function AdminTeam() {
   const fetchData = async () => {
     try {
       const [teamRes, usersRes] = await Promise.all([
-        api.get(`${API}/admin/team`),
-        api.get(`${API}/admin/users`)
+        api.get(`/admin/team`),
+        api.get(`/admin/users`)
       ]);
       setAdmins(teamRes.data.admins || []);
       setUsers(usersRes.data.users?.filter(u => u.role !== "admin") || []);
@@ -53,7 +53,7 @@ export default function AdminTeam() {
     
     setProcessing(true);
     try {
-      await api.post(`${API}/admin/team/promote/${selectedUser.id}`);
+      await api.post(`/admin/team/promote/${selectedUser.id}`);
       toast.success(`${selectedUser.nome} foi promovido a administrador!`);
       setShowAddDialog(false);
       setSelectedUser(null);
@@ -70,7 +70,7 @@ export default function AdminTeam() {
     
     setProcessing(true);
     try {
-      await api.delete(`${API}/admin/team/demote/${selectedUser.id}`);
+      await api.delete(`/admin/team/demote/${selectedUser.id}`);
       toast.success(`${selectedUser.nome} foi removido da administração`);
       setShowRemoveDialog(false);
       setSelectedUser(null);

@@ -35,7 +35,7 @@ export default function Register() {
 
   const fetchConfig = async () => {
     try {
-      const response = await api.get(`${API}/config/public`);
+      const response = await api.get(`/config/public`);
       setConfig(response.data);
     } catch (error) {
       console.error("Error fetching config:", error);
@@ -44,7 +44,7 @@ export default function Register() {
 
   const verificarIndicador = async (codigoIndicador) => {
     try {
-      const response = await api.get(`${API}/p/${codigoIndicador}`);
+      const response = await api.get(`/p/${codigoIndicador}`);
       // Verificar se o indicador pode fazer indicações
       if (response.data.pode_indicar === false) {
         setIndicadorValido({ ...response.data, bloqueado: true });

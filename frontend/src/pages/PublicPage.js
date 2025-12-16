@@ -37,7 +37,7 @@ export default function PublicPage() {
     if (transaction && transaction.status === "pending") {
       pollingRef.current = setInterval(async () => {
         try {
-          const response = await api.get(`${API}/transactions/${transaction.id}/status`);
+          const response = await api.get(`/transactions/${transaction.id}/status`);
           if (response.data.status === "paid") {
             setTransaction(prev => ({ ...prev, status: "paid", paid_at: response.data.paid_at }));
             clearInterval(pollingRef.current);
@@ -57,7 +57,7 @@ export default function PublicPage() {
 
   const fetchPageData = async () => {
     try {
-      const response = await api.get(`${API}/p/${codigo}`);
+      const response = await api.get(`/p/${codigo}`);
       if (response.data.pode_indicar === false) {
         setPageData({ ...response.data, bloqueado: true });
       } else {
@@ -109,7 +109,7 @@ export default function PublicPage() {
 
     setCreating(true);
     try {
-      const response = await api.post(`${API}/p/${codigo}/pay`, {
+      const response = await api.post(`/p/${codigo}/pay`, {
         valor: valor,
         nome_pagador: formData.nome_pagador,
         cpf_pagador: formData.cpf_pagador.replace(/\D/g, "")

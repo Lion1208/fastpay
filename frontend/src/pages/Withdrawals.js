@@ -48,8 +48,8 @@ export default function Withdrawals() {
   const fetchData = async () => {
     try {
       const [withdrawalsRes, statsRes] = await Promise.all([
-        api.get(`${API}/withdrawals`),
-        api.get(`${API}/dashboard/stats`)
+        api.get(`/withdrawals`),
+        api.get(`/dashboard/stats`)
       ]);
       setWithdrawals(withdrawalsRes.data.withdrawals);
       setTaxaSaque(withdrawalsRes.data.taxa_saque || 1.5);
@@ -70,7 +70,7 @@ export default function Withdrawals() {
     }
     
     try {
-      const response = await api.get(`${API}/withdrawals/calculate?valor=${valor}`);
+      const response = await api.get(`/withdrawals/calculate?valor=${valor}`);
       setCalculoSaque(response.data);
     } catch (error) {
       console.error("Error calculating:", error);
@@ -106,7 +106,7 @@ export default function Withdrawals() {
 
     setCreating(true);
     try {
-      const response = await api.post(`${API}/withdrawals`, {
+      const response = await api.post(`/withdrawals`, {
         valor: valor,
         chave_pix: newWithdrawal.chave_pix,
         tipo_chave: newWithdrawal.tipo_chave
@@ -126,7 +126,7 @@ export default function Withdrawals() {
 
   const handleViewDetails = async (withdrawal) => {
     try {
-      const response = await api.get(`${API}/withdrawals/${withdrawal.id}`);
+      const response = await api.get(`/withdrawals/${withdrawal.id}`);
       setSelectedWithdrawal(response.data);
       setShowDetailDialog(true);
     } catch (error) {

@@ -27,7 +27,7 @@ export default function ApiIntegration() {
 
   const fetchKeys = async () => {
     try {
-      const response = await api.get(`${API}/api-keys`);
+      const response = await api.get(`/api-keys`);
       setKeys(response.data.keys);
     } catch (error) {
       toast.error("Erro ao carregar chaves");
@@ -44,7 +44,7 @@ export default function ApiIntegration() {
 
     setCreating(true);
     try {
-      const response = await api.post(`${API}/api-keys?name=${encodeURIComponent(newKeyName)}`);
+      const response = await api.post(`/api-keys?name=${encodeURIComponent(newKeyName)}`);
       setKeys([response.data, ...keys]);
       setNewKeyName("");
       setShowDialog(false);
@@ -60,7 +60,7 @@ export default function ApiIntegration() {
     if (!window.confirm("Tem certeza que deseja excluir esta chave?")) return;
 
     try {
-      await api.delete(`${API}/api-keys/${keyId}`);
+      await api.delete(`/api-keys/${keyId}`);
       setKeys(keys.filter(k => k.id !== keyId));
       toast.success("Chave removida");
     } catch (error) {

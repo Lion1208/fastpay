@@ -43,7 +43,7 @@ export default function AdminUsers() {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get(`${API}/admin/users`);
+      const response = await api.get(`/admin/users`);
       setUsers(response.data.users);
     } catch (error) {
       toast.error("Erro ao carregar usuários");
@@ -70,7 +70,7 @@ export default function AdminUsers() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await api.put(`${API}/admin/users/${selectedUser.id}`, {
+      const response = await api.put(`/admin/users/${selectedUser.id}`, {
         taxa_percentual: parseFloat(editData.taxa_percentual),
         taxa_fixa: parseFloat(editData.taxa_fixa),
         taxa_saque: parseFloat(editData.taxa_saque),
@@ -103,7 +103,7 @@ export default function AdminUsers() {
     
     setProcessing(true);
     try {
-      await api.post(`${API}/admin/users/${selectedUser.id}/block`, {
+      await api.post(`/admin/users/${selectedUser.id}/block`, {
         motivo: blockReason.trim()
       });
       
@@ -121,7 +121,7 @@ export default function AdminUsers() {
 
   const handleUnblockUser = async (user) => {
     try {
-      await api.post(`${API}/admin/users/${user.id}/unblock`);
+      await api.post(`/admin/users/${user.id}/unblock`);
       setUsers(users.map(u => u.id === user.id ? { ...u, status: "active", block_reason: null } : u));
       toast.success("Usuário desbloqueado!");
     } catch (error) {
@@ -132,7 +132,7 @@ export default function AdminUsers() {
   const handleDeleteUser = async () => {
     setProcessing(true);
     try {
-      await api.delete(`${API}/admin/users/${selectedUser.id}`);
+      await api.delete(`/admin/users/${selectedUser.id}`);
       setUsers(users.filter(u => u.id !== selectedUser.id));
       setShowDeleteDialog(false);
       setSelectedUser(null);

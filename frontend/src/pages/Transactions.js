@@ -76,7 +76,7 @@ export default function Transactions() {
       if (activeFilters.busca) params.append("busca", activeFilters.busca);
       params.append("limit", "500");
       
-      const response = await api.get(`${API}/transactions?${params.toString()}`);
+      const response = await api.get(`/transactions?${params.toString()}`);
       setTransactions(response.data.transactions);
       setStats(response.data.stats || {
         total_transacoes: 0,

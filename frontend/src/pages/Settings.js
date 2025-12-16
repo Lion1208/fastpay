@@ -67,7 +67,7 @@ export default function Settings() {
 
   const fetch2FAStatus = async () => {
     try {
-      const response = await api.get(`${API}/auth/2fa/status`);
+      const response = await api.get(`/auth/2fa/status`);
       setTwoFactorEnabled(response.data.enabled);
     } catch (error) {
       console.error("Error fetching 2FA status:", error);
@@ -78,7 +78,7 @@ export default function Settings() {
 
   const handleSetup2FA = async () => {
     try {
-      const response = await api.post(`${API}/auth/2fa/setup`);
+      const response = await api.post(`/auth/2fa/setup`);
       setSetupData(response.data);
       setShowSetupDialog(true);
     } catch (error) {
@@ -94,7 +94,7 @@ export default function Settings() {
     
     setVerifying(true);
     try {
-      await api.post(`${API}/auth/2fa/verify`, { code: verifyCode });
+      await api.post(`/auth/2fa/verify`, { code: verifyCode });
       setTwoFactorEnabled(true);
       setShowSetupDialog(false);
       setSetupData(null);
@@ -115,7 +115,7 @@ export default function Settings() {
     
     setDisabling(true);
     try {
-      await api.post(`${API}/auth/2fa/disable`, { code: disableCode });
+      await api.post(`/auth/2fa/disable`, { code: disableCode });
       setTwoFactorEnabled(false);
       setShowDisableDialog(false);
       setDisableCode("");
@@ -145,7 +145,7 @@ export default function Settings() {
     
     setChangingPassword(true);
     try {
-      await api.put(`${API}/auth/password?current_password=${encodeURIComponent(passwords.current)}&new_password=${encodeURIComponent(passwords.new)}`);
+      await api.put(`/auth/password?current_password=${encodeURIComponent(passwords.current)}&new_password=${encodeURIComponent(passwords.new)}`);
       setShowPasswordDialog(false);
       setPasswords({ current: "", new: "", confirm: "" });
       toast.success("Senha alterada com sucesso!");

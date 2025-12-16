@@ -21,7 +21,7 @@ export default function Referrals() {
 
   const fetchReferrals = async () => {
     try {
-      const response = await api.get(`${API}/referrals`);
+      const response = await api.get(`/referrals`);
       setData(response.data);
     } catch (error) {
       toast.error("Erro ao carregar indicações");

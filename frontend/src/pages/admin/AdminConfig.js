@@ -28,7 +28,7 @@ export default function AdminConfig() {
 
   const fetchConfig = async () => {
     try {
-      const response = await api.get(`${API}/admin/config`);
+      const response = await api.get(`/admin/config`);
       setConfig(response.data);
     } catch (error) {
       toast.error("Erro ao carregar configurações");
@@ -40,7 +40,7 @@ export default function AdminConfig() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await api.put(`${API}/admin/config`, config);
+      const response = await api.put(`/admin/config`, config);
       setConfig(response.data);
       toast.success("Configurações salvas! Recarregue a página para ver as alterações.");
     } catch (error) {
@@ -67,7 +67,7 @@ export default function AdminConfig() {
     
     setSavingCredentials(true);
     try {
-      await api.put(`${API}/admin/credentials`, {
+      await api.put(`/admin/credentials`, {
         codigo: adminCredentials.codigo || null,
         senha_atual: adminCredentials.senha_atual,
         senha_nova: adminCredentials.senha_nova || null

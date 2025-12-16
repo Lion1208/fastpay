@@ -37,7 +37,7 @@ export default function AdminWithdrawals() {
 
   const fetchWithdrawals = async () => {
     try {
-      const response = await api.get(`${API}/admin/withdrawals`);
+      const response = await api.get(`/admin/withdrawals`);
       setWithdrawals(response.data.withdrawals);
     } catch (error) {
       toast.error("Erro ao carregar saques");
@@ -48,7 +48,7 @@ export default function AdminWithdrawals() {
 
   const handleViewDetails = async (withdrawal) => {
     try {
-      const response = await api.get(`${API}/admin/withdrawals/${withdrawal.id}`);
+      const response = await api.get(`/admin/withdrawals/${withdrawal.id}`);
       setSelectedWithdrawal(response.data);
     } catch (error) {
       setSelectedWithdrawal(withdrawal);
@@ -59,7 +59,7 @@ export default function AdminWithdrawals() {
   const handleAction = async (action) => {
     setProcessing(true);
     try {
-      await api.put(`${API}/admin/withdrawals/${selectedWithdrawal.id}`, {
+      await api.put(`/admin/withdrawals/${selectedWithdrawal.id}`, {
         status: action,
         motivo: action === "rejected" ? rejectReason : null
       });
@@ -86,7 +86,7 @@ export default function AdminWithdrawals() {
     
     setSendingObservation(true);
     try {
-      const response = await api.post(`${API}/admin/withdrawals/${selectedWithdrawal.id}/observation`, {
+      const response = await api.post(`/admin/withdrawals/${selectedWithdrawal.id}/observation`, {
         observacao: newObservation.trim()
       });
       setSelectedWithdrawal(response.data);

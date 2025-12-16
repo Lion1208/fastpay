@@ -17,7 +17,7 @@ export default function Commissions() {
 
   const fetchCommissions = async () => {
     try {
-      const response = await api.get(`${API}/commissions`);
+      const response = await api.get(`/commissions`);
       setData(response.data);
     } catch (error) {
       toast.error("Erro ao carregar comissões");

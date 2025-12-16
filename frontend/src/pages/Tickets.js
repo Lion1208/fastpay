@@ -35,7 +35,7 @@ export default function Tickets() {
 
   const fetchTickets = async () => {
     try {
-      const response = await api.get(`${API}/tickets`);
+      const response = await api.get(`/tickets`);
       setTickets(response.data.tickets);
     } catch (error) {
       toast.error("Erro ao carregar tickets");
@@ -52,7 +52,7 @@ export default function Tickets() {
 
     setCreating(true);
     try {
-      const response = await api.post(`${API}/tickets`, newTicket);
+      const response = await api.post(`/tickets`, newTicket);
       setTickets([response.data, ...tickets]);
       setNewTicket({ assunto: "", mensagem: "", prioridade: "normal" });
       setShowNewDialog(false);
@@ -69,7 +69,7 @@ export default function Tickets() {
 
     setSending(true);
     try {
-      const response = await api.post(`${API}/tickets/${selectedTicket.id}/reply`, {
+      const response = await api.post(`/tickets/${selectedTicket.id}/reply`, {
         mensagem: replyMessage
       });
       setSelectedTicket(response.data);

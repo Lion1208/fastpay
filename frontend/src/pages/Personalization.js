@@ -42,7 +42,7 @@ export default function Personalization() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const response = await api.put(`${API}/auth/me`, formData);
+      const response = await api.put(`/auth/me`, formData);
       updateUser(response.data);
       toast.success("Configurações salvas!");
     } catch (error) {

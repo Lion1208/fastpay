@@ -45,7 +45,7 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get(`${API}/dashboard/stats`);
+      const response = await api.get(`/dashboard/stats`);
       setStats(response.data);
     } catch (error) {
       toast.error("Erro ao carregar estatísticas");
