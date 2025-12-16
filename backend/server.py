@@ -380,6 +380,7 @@ async def register(data: UserCreate):
     new_user = {
         "id": str(uuid.uuid4()),
         "codigo": generate_code(),
+        "carteira_id": generate_wallet_id(),
         "nome": data.nome,
         "email": data.email,
         "senha": hash_password(data.senha),
@@ -392,8 +393,12 @@ async def register(data: UserCreate):
         "indicacoes_usadas": 0,
         "taxa_percentual": config.get("taxa_percentual_padrao", 2.0),
         "taxa_fixa": config.get("taxa_fixa_padrao", 0.99),
+        "taxa_saque": config.get("taxa_saque_padrao", 1.5),
+        "taxa_transferencia": config.get("taxa_transferencia_padrao", 0.5),
         "indicador_id": indicador["id"],
         "pagina_personalizada": {"titulo": data.nome, "cor_primaria": "#22c55e"},
+        "two_factor_enabled": False,
+        "two_factor_secret": None,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
