@@ -585,99 +585,15 @@ async def get_transaction(transaction_id: str, user: dict = Depends(get_current_
 
 @api_router.get("/transactions/{transaction_id}/status")
 async def check_transaction_status(transaction_id: str):
-    """Verificar status da transação (polling) - consulta FastDePix"""
+    """Verificar status da transação - o backend já faz polling automático"""
     transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
     if not transaction:
         raise HTTPException(status_code=404, detail="Transação não encontrada")
     
-    # Se já está pago, retorna direto
-    if transaction.get("status") == "paid":
-        return {"status": "paid", "paid_at": transaction.get("paid_at")}
-    
-    # Se tem ID do FastDePix, consulta o status lá
-    fastdepix_id = transaction.get("fastdepix_id")
-    if fastdepix_id:
-        config = await get_config()
-        api_key = config.get("fastdepix_api_key")
-        
-        if api_key:
-            try:
-                async with httpx.AsyncClient() as client_http:
-                    response = await client_http.get(
-                        f"https://fastdepix.space/api/v1/transactions/{fastdepix_id}",
-                        headers={
-                            "Authorization": f"Bearer {api_key}",
-                            "Content-Type": "application/json"
-                        },
-                        timeout=10.0
-                    )
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        if result.get("success"):
-                            tx_data = result.get("data", {})
-                            fdpx_status = tx_data.get("status")
-                            
-                            # Se pagou no FastDePix, atualiza local
-                            if fdpx_status == "paid" and transaction.get("status") != "paid":
-                                paid_at = tx_data.get("paid_at") or datetime.now(timezone.utc).isoformat()
-                                await db.transactions.update_one(
-                                    {"id": transaction_id},
-                                    {"$set": {"status": "paid", "paid_at": paid_at}}
-                                )
-                                
-                                # Atualiza saldo do parceiro
-                                user = await db.users.find_one({"id": transaction["parceiro_id"]})
-                                if user:
-                                    valor_liquido = transaction.get("valor_liquido", transaction["valor"])
-                                    await db.users.update_one(
-                                        {"id": user["id"]},
-                                        {
-                                            "$inc": {
-                                                "saldo_disponivel": valor_liquido,
-                                                "valor_movimentado": transaction["valor"]
-                                            }
-                                        }
-                                    )
-                                    
-                                    # Comissão para indicador
-                                    indicador_id = user.get("indicador_id")
-                                    if indicador_id:
-                                        comissao = transaction["valor"] * config.get("comissao_indicacao", 1.0) / 100
-                                        await db.users.update_one(
-                                            {"id": indicador_id},
-                                            {"$inc": {"saldo_comissoes": comissao}}
-                                        )
-                                        
-                                        await db.commissions.insert_one({
-                                            "id": str(uuid.uuid4()),
-                                            "indicador_id": indicador_id,
-                                            "indicado_id": user["id"],
-                                            "transacao_id": transaction_id,
-                                            "valor_transacao": transaction["valor"],
-                                            "percentual": config.get("comissao_indicacao", 1.0),
-                                            "valor_comissao": comissao,
-                                            "status": "credited",
-                                            "created_at": datetime.now(timezone.utc).isoformat()
-                                        })
-                                    
-                                    # Libera indicação se atingiu meta
-                                    updated_user = await db.users.find_one({"id": user["id"]})
-                                    if updated_user.get("valor_movimentado", 0) >= config.get("valor_minimo_indicacao", 1000):
-                                        current_liberadas = updated_user.get("indicacoes_liberadas", 0)
-                                        if current_liberadas == 0:
-                                            await db.users.update_one(
-                                                {"id": user["id"]},
-                                                {"$set": {"indicacoes_liberadas": 1}}
-                                            )
-                                
-                                return {"status": "paid", "paid_at": paid_at}
-                            
-                            return {"status": fdpx_status}
-            except Exception as e:
-                logger.error(f"Error checking FastDePix status: {e}")
-    
-    return {"status": transaction.get("status", "pending")}
+    return {
+        "status": transaction.get("status", "pending"),
+        "paid_at": transaction.get("paid_at")
+    }
 
 # ===================== WEBHOOK ROUTE =====================
 
