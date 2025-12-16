@@ -95,6 +95,20 @@ class AdminConfig(BaseModel):
     taxa_fixa_padrao: Optional[float] = None
     valor_minimo_indicacao: Optional[float] = None
     comissao_indicacao: Optional[float] = None
+    nome_sistema: Optional[str] = None
+    logo_url: Optional[str] = None
+
+class PublicPaymentCreate(BaseModel):
+    valor: float
+    nome_pagador: str
+    cpf_pagador: str
+
+class ExternalTransactionCreate(BaseModel):
+    amount: float
+    description: Optional[str] = None
+    payer_name: Optional[str] = None
+    payer_cpf_cnpj: Optional[str] = None
+    custom_id: Optional[str] = None
 
 # ===================== UTILITIES =====================
 
