@@ -49,6 +49,8 @@ export default function AdminUsers() {
     setEditData({
       taxa_percentual: user.taxa_percentual?.toString() || "2",
       taxa_fixa: user.taxa_fixa?.toString() || "0.99",
+      taxa_saque: user.taxa_saque?.toString() || "1.5",
+      taxa_transferencia: user.taxa_transferencia?.toString() || "0.5",
       indicacoes_liberadas: user.indicacoes_liberadas?.toString() || "0",
       status: user.status || "active"
     });
