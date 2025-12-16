@@ -22,10 +22,46 @@ export default function PublicPage() {
     nome_pagador: "",
     cpf_pagador: ""
   });
+  const [checking, setChecking] = useState(false);
+  const pollingRef = useRef(null);
 
   useEffect(() => {
     fetchPageData();
+    
+    // Cleanup polling on unmount
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
   }, [codigo]);
+
+  // Polling para verificar status do pagamento
+  useEffect(() => {
+    if (transaction && transaction.status === "pending" && transaction.fastdepix_id) {
+      setChecking(true);
+      
+      pollingRef.current = setInterval(async () => {
+        try {
+          const response = await axios.get(`${API}/transactions/${transaction.id}/status`);
+          if (response.data.status === "paid") {
+            setTransaction(prev => ({ ...prev, status: "paid" }));
+            setChecking(false);
+            clearInterval(pollingRef.current);
+            toast.success("Pagamento confirmado!");
+          }
+        } catch (error) {
+          console.error("Error checking payment status:", error);
+        }
+      }, 5000); // Polling a cada 5 segundos
+      
+      return () => {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+        }
+      };
+    }
+  }, [transaction]);
 
   const fetchPageData = async () => {
     try {
