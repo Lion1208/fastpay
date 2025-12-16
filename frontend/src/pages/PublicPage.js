@@ -326,15 +326,21 @@ export default function PublicPage() {
 
                   <div className="flex items-center justify-center gap-2 py-3">
                     {transaction.status === "paid" ? (
-                      <>
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/20 border border-green-500/30">
                         <CheckCircle className="w-5 h-5 text-green-400" />
-                        <span className="text-green-400">Pagamento Confirmado!</span>
-                      </>
+                        <span className="text-green-400 font-medium">Pagamento Confirmado!</span>
+                      </div>
                     ) : (
-                      <>
-                        <Clock className="w-5 h-5 text-yellow-400" />
-                        <span className="text-yellow-400">Aguardando pagamento...</span>
-                      </>
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                        {checking ? (
+                          <Loader2 className="w-5 h-5 text-yellow-400 animate-spin" />
+                        ) : (
+                          <Clock className="w-5 h-5 text-yellow-400" />
+                        )}
+                        <span className="text-yellow-400">
+                          {checking ? "Verificando pagamento..." : "Aguardando pagamento..."}
+                        </span>
+                      </div>
                     )}
                   </div>
 
