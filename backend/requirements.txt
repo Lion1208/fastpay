@@ -46,6 +46,7 @@ pyflakes==3.4.0
 Pygments==2.19.2
 PyJWT==2.10.1
 pymongo==4.5.0
+pyotp==2.9.0
 pytest==9.0.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
@@ -53,6 +54,7 @@ python-jose==3.5.0
 python-multipart==0.0.20
 pytokens==0.3.0
 pytz==2025.2
+qrcode==8.2
 requests==2.32.5
 requests-oauthlib==2.0.0
 rich==14.2.0
