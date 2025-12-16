@@ -428,8 +428,10 @@ async def get_dashboard_stats(user: dict = Depends(get_current_user)):
     
     referrals = await db.referrals.find({"indicador_id": user["id"]}).to_list(1000)
     
-    can_refer = user_data.get("valor_movimentado", 0) >= config.get("valor_minimo_indicacao", 1000)
-    indicacoes_disponiveis = user_data.get("indicacoes_liberadas", 0) - user_data.get("indicacoes_usadas", 0)
+    indicacoes_liberadas = user_data.get("indicacoes_liberadas", 0)
+    indicacoes_usadas = user_data.get("indicacoes_usadas", 0)
+    indicacoes_disponiveis = indicacoes_liberadas - indicacoes_usadas
+    can_refer = indicacoes_disponiveis > 0
     
     recent_transactions = await db.transactions.find(
         {"parceiro_id": user["id"]},
