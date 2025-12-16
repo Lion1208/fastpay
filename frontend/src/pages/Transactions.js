@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Layout } from "../components/Layout";
 import axios from "axios";
 import { toast } from "sonner";
@@ -16,7 +16,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  QrCode
+  QrCode,
+  Loader2
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -30,10 +31,46 @@ export default function Transactions() {
   const [selectedTx, setSelectedTx] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [newTx, setNewTx] = useState({ valor: "", cpf_cnpj: "", descricao: "" });
+  const [checkingPayment, setCheckingPayment] = useState(false);
+  const pollingRef = useRef(null);
 
   useEffect(() => {
     fetchTransactions();
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
   }, []);
+
+  // Polling quando QR dialog está aberto com transação pendente
+  useEffect(() => {
+    if (showQrDialog && selectedTx && selectedTx.status === "pending") {
+      setCheckingPayment(true);
+      
+      pollingRef.current = setInterval(async () => {
+        try {
+          const response = await axios.get(`${API}/transactions/${selectedTx.id}/status`);
+          if (response.data.status === "paid") {
+            setSelectedTx(prev => ({ ...prev, status: "paid" }));
+            setTransactions(prev => prev.map(t => 
+              t.id === selectedTx.id ? { ...t, status: "paid" } : t
+            ));
+            setCheckingPayment(false);
+            clearInterval(pollingRef.current);
+            toast.success("Pagamento confirmado!");
+          }
+        } catch (error) {
+          console.error("Error checking payment:", error);
+        }
+      }, 5000);
+      
+      return () => {
+        if (pollingRef.current) clearInterval(pollingRef.current);
+      };
+    } else {
+      setCheckingPayment(false);
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    }
+  }, [showQrDialog, selectedTx]);
 
   const fetchTransactions = async () => {
     try {
