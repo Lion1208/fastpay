@@ -1878,6 +1878,96 @@ async def external_list_transactions(
         }
     }
 
+# ===================== ADMIN TEAM MANAGEMENT =====================
+
+@api_router.get("/admin/team")
+async def get_admin_team(admin: dict = Depends(get_admin_user)):
+    """Lista todos os admins promovidos por este admin"""
+    admins = await db.users.find({
+        "role": "admin",
+        "promoted_by": admin["id"]
+    }, {"_id": 0, "senha": 0, "two_factor_secret": 0}).to_list(100)
+    
+    return {"admins": admins}
+
+@api_router.post("/admin/team/promote/{user_id}")
+async def promote_to_admin(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Promove um usuário da rede a admin"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user.get("role") == "admin":
+        raise HTTPException(status_code=400, detail="Usuário já é admin")
+    
+    # Verifica se o usuário está na rede do admin
+    user_admin = await get_user_network_admin(user_id)
+    if not user_admin or user_admin["id"] != admin["id"]:
+        raise HTTPException(status_code=403, detail="Usuário não pertence à sua rede")
+    
+    # Promove a admin
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "role": "admin",
+            "promoted_by": admin["id"],
+            "is_root_admin": False,
+            "indicacoes_liberadas": 999
+        }}
+    )
+    
+    # Cria configuração inicial para o novo admin (cópia da config do promotor)
+    config = await get_config(admin["id"])
+    if not config.get("admin_id"):
+        config = await get_config()
+    
+    new_admin_config = {
+        "admin_id": user_id,
+        "fastdepix_api_key": "",  # Novo admin precisa configurar sua própria chave
+        "fastdepix_webhook_secret": "",
+        "taxa_percentual_padrao": config.get("taxa_percentual_padrao", 2.0),
+        "taxa_fixa_padrao": config.get("taxa_fixa_padrao", 0.99),
+        "taxa_saque_padrao": config.get("taxa_saque_padrao", 1.5),
+        "taxa_transferencia_padrao": config.get("taxa_transferencia_padrao", 0.5),
+        "valor_minimo_indicacao": config.get("valor_minimo_indicacao", 1000.0),
+        "comissao_indicacao": config.get("comissao_indicacao", 1.0),
+        "nome_sistema": config.get("nome_sistema", "FastPay"),
+        "logo_url": "",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.admin_configs.insert_one(new_admin_config)
+    
+    updated = await db.users.find_one({"id": user_id}, {"_id": 0, "senha": 0})
+    return updated
+
+@api_router.delete("/admin/team/demote/{user_id}")
+async def demote_from_admin(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Remove permissão de admin de um usuário"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user.get("is_root_admin"):
+        raise HTTPException(status_code=403, detail="Não é possível remover o admin raiz")
+    
+    if user.get("promoted_by") != admin["id"]:
+        raise HTTPException(status_code=403, detail="Você só pode remover admins que você promoveu")
+    
+    # Remove de admin
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "role": "user",
+            "promoted_by": None,
+            "is_root_admin": False
+        }}
+    )
+    
+    # Remove a configuração do admin
+    await db.admin_configs.delete_one({"admin_id": user_id})
+    
+    return {"message": "Admin removido com sucesso"}
+
 @api_router.get("/config/public")
 async def get_public_config():
     """Retorna configurações públicas do sistema incluindo taxas"""
