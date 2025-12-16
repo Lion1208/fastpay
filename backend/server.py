@@ -625,9 +625,7 @@ async def list_transactions(
             "total_transacoes": total_transacoes,
             "volume_total": volume_total,
             "valor_liquido_total": valor_liquido_total,
-            "transacoes_pagas": transacoes_pagas,
-            "volume_pago": volume_pago,
-            "valor_liquido_pago": valor_liquido_pago
+            "transacoes_pagas": transacoes_pagas
         },
         "usuario": {
             "nome": user_data.get("nome"),
