@@ -242,6 +242,21 @@ async def get_config_for_user(user_id: str):
             return config
     return await get_config()
 
+async def get_network_user_ids(admin_id: str):
+    """Retorna todos os IDs de usuários na rede do admin (incluindo o próprio admin)"""
+    network_ids = [admin_id]
+    
+    # Busca recursivamente todos os usuários indicados pelo admin e seus indicados
+    async def get_referrals(user_id):
+        referrals = await db.users.find({"indicador_id": user_id}, {"_id": 0, "id": 1}).to_list(1000)
+        for ref in referrals:
+            if ref["id"] not in network_ids:
+                network_ids.append(ref["id"])
+                await get_referrals(ref["id"])
+    
+    await get_referrals(admin_id)
+    return network_ids
+
 def generate_wallet_id():
     """Gera ID de carteira único"""
     return f"W{secrets.token_hex(6).upper()}"
