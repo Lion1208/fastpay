@@ -1061,8 +1061,8 @@ async def calculate_withdrawal(valor: float, user: dict = Depends(get_current_us
 async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_current_user)):
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
     config = await get_config()
-    taxa_saque = user_data.get("taxa_saque", 1.5)
-    valor_minimo = user_data.get("valor_minimo_saque", config.get("valor_minimo_saque", 10.0))
+    taxa_saque = user_data.get("taxa_saque") if user_data.get("taxa_saque") is not None else config.get("taxa_saque_padrao", 1.5)
+    valor_minimo = user_data.get("valor_minimo_saque") if user_data.get("valor_minimo_saque") is not None else config.get("valor_minimo_saque", 10.0)
     
     valor_taxa = data.valor * (taxa_saque / 100)
     valor_necessario = data.valor + valor_taxa
