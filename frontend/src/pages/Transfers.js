@@ -31,6 +31,7 @@ export default function Transfers() {
   const [loading, setLoading] = useState(true);
   const [carteiraId, setCarteiraId] = useState("");
   const [taxaTransferencia, setTaxaTransferencia] = useState(0.5);
+  const [valorMinimo, setValorMinimo] = useState(1);
   const [frequentes, setFrequentes] = useState([]);
   const [generatingWallet, setGeneratingWallet] = useState(false);
   
