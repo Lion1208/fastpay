@@ -18,20 +18,20 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.get("/auth/me");
       setUser(response.data);
+      setLoading(false);
     } catch (error) {
       // Só faz logout se for erro 401 explícito (token inválido)
       if (error.response?.status === 401) {
         localStorage.removeItem("token");
         setToken(null);
         setUser(null);
+        setLoading(false);
       } else if (retryCount < 2) {
-        // Para outros erros (rede, timeout), tenta novamente
+        // Para outros erros (rede, timeout), tenta novamente após 1 segundo
         setTimeout(() => fetchUser(retryCount + 1), 1000);
-        return; // Não seta loading false ainda
-      }
-      // Após 2 tentativas, desiste mas NÃO faz logout (pode ser erro de rede temporário)
-    } finally {
-      if (retryCount >= 2 || !error || error.response?.status === 401) {
+      } else {
+        // Após 2 tentativas, desiste mas NÃO faz logout (pode ser erro de rede temporário)
+        // Mantém o usuário logado se já tinha um user anterior
         setLoading(false);
       }
     }
