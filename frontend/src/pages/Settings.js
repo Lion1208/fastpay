@@ -162,6 +162,32 @@ export default function Settings() {
     toast.success("Copiado!");
   };
 
+  const handleTogglePush = async () => {
+    setPushLoading(true);
+    try {
+      if (pushEnabled) {
+        await unsubscribeFromPush();
+        setPushEnabled(false);
+        toast.success("Notificações desativadas");
+      } else {
+        await subscribeToPush();
+        setPushEnabled(true);
+        setPushPermission('granted');
+        toast.success("Notificações ativadas! Você receberá alertas mesmo com o navegador fechado.");
+      }
+    } catch (error) {
+      console.error("Push error:", error);
+      if (error.message?.includes('negada')) {
+        toast.error("Permissão de notificação negada. Habilite nas configurações do navegador.");
+        setPushPermission('denied');
+      } else {
+        toast.error(error.message || "Erro ao configurar notificações");
+      }
+    } finally {
+      setPushLoading(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
