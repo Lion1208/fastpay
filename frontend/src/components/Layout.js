@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import axios from "axios";
 import { 
   LayoutDashboard, 
   CreditCard, 
@@ -15,9 +16,11 @@ import {
   X,
   Settings,
   ChevronDown,
-  Shield
+  Shield,
+  Copy
 } from "lucide-react";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +28,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const userMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -50,14 +55,35 @@ export const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [config, setConfig] = useState({ nome_sistema: "FastPay", logo_url: "" });
 
   const isAdmin = user?.role === "admin";
   const menuItems = isAdmin ? adminMenuItems : userMenuItems;
+
+  useEffect(() => {
+    fetchConfig();
+  }, []);
+
+  const fetchConfig = async () => {
+    try {
+      const response = await axios.get(`${API}/config/public`);
+      setConfig(response.data);
+    } catch (error) {
+      console.error("Error fetching config:", error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Link copiado!");
+  };
+
+  const referralLink = `${window.location.origin}/register/${user?.codigo}`;
 
   return (
     <div className="min-h-screen bg-slate-950 flex">
@@ -80,11 +106,15 @@ export const Layout = ({ children }) => {
           <div className="p-6 border-b border-white/5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                  <span className="text-green-400 font-bold text-xl">$</span>
-                </div>
+                {config.logo_url ? (
+                  <img src={config.logo_url} alt={config.nome_sistema} className="h-10" />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <span className="text-green-400 font-bold text-xl">$</span>
+                  </div>
+                )}
                 <div>
-                  <h1 className="font-bold text-white">FastPay</h1>
+                  <h1 className="font-bold text-white">{config.nome_sistema}</h1>
                   <p className="text-xs text-slate-500">Sistema PIX</p>
                 </div>
               </div>
@@ -126,6 +156,23 @@ export const Layout = ({ children }) => {
               );
             })}
           </nav>
+
+          {/* Referral Link */}
+          <div className="p-4 border-t border-white/5">
+            <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+              <p className="text-xs text-slate-500 mb-2">Seu Link de Indicação</p>
+              <div className="flex items-center gap-2">
+                <code className="text-xs text-green-400 truncate flex-1">{user?.codigo}</code>
+                <button
+                  onClick={() => copyToClipboard(referralLink)}
+                  className="p-1.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-white transition-colors"
+                  data-testid="copy-referral-btn"
+                >
+                  <Copy size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
 
           {/* User Section */}
           <div className="p-4 border-t border-white/5">
