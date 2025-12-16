@@ -195,9 +195,111 @@ async def init_admin():
     
     await get_config()
 
+# ===================== BACKGROUND POLLING JOB =====================
+
+async def process_paid_transaction(transaction: dict, config: dict):
+    """Processa uma transação quando confirmada como paga"""
+    transaction_id = transaction["id"]
+    
+    # Atualiza status
+    paid_at = datetime.now(timezone.utc).isoformat()
+    await db.transactions.update_one(
+        {"id": transaction_id},
+        {"$set": {"status": "paid", "paid_at": paid_at}}
+    )
+    
+    # Atualiza saldo do parceiro
+    user = await db.users.find_one({"id": transaction["parceiro_id"]})
+    if user:
+        valor_liquido = transaction.get("valor_liquido", transaction["valor"])
+        await db.users.update_one(
+            {"id": user["id"]},
+            {
+                "$inc": {
+                    "saldo_disponivel": valor_liquido,
+                    "valor_movimentado": transaction["valor"]
+                }
+            }
+        )
+        
+        # Comissão para indicador
+        indicador_id = user.get("indicador_id")
+        if indicador_id:
+            comissao = transaction["valor"] * config.get("comissao_indicacao", 1.0) / 100
+            await db.users.update_one(
+                {"id": indicador_id},
+                {"$inc": {"saldo_comissoes": comissao}}
+            )
+            
+            await db.commissions.insert_one({
+                "id": str(uuid.uuid4()),
+                "indicador_id": indicador_id,
+                "indicado_id": user["id"],
+                "transacao_id": transaction_id,
+                "valor_transacao": transaction["valor"],
+                "percentual": config.get("comissao_indicacao", 1.0),
+                "valor_comissao": comissao,
+                "status": "credited",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        # Libera indicação se atingiu meta
+        updated_user = await db.users.find_one({"id": user["id"]})
+        if updated_user.get("valor_movimentado", 0) >= config.get("valor_minimo_indicacao", 1000):
+            current_liberadas = updated_user.get("indicacoes_liberadas", 0)
+            if current_liberadas == 0:
+                await db.users.update_one(
+                    {"id": user["id"]},
+                    {"$set": {"indicacoes_liberadas": 1}}
+                )
+    
+    logger.info(f"Transaction {transaction_id} marked as paid")
+
+async def check_pending_transactions():
+    """Job de background que verifica transações pendentes a cada 5 segundos"""
+    while True:
+        try:
+            config = await get_config()
+            api_key = config.get("fastdepix_api_key")
+            
+            if api_key:
+                # Busca transações pendentes com ID do FastDePix
+                pending_txs = await db.transactions.find({
+                    "status": "pending",
+                    "fastdepix_id": {"$ne": None}
+                }).to_list(100)
+                
+                for tx in pending_txs:
+                    try:
+                        async with httpx.AsyncClient() as client_http:
+                            response = await client_http.get(
+                                f"https://fastdepix.space/api/v1/transactions/{tx['fastdepix_id']}",
+                                headers={
+                                    "Authorization": f"Bearer {api_key}",
+                                    "Content-Type": "application/json"
+                                },
+                                timeout=10.0
+                            )
+                            
+                            if response.status_code == 200:
+                                result = response.json()
+                                if result.get("success"):
+                                    tx_data = result.get("data", {})
+                                    if tx_data.get("status") == "paid":
+                                        await process_paid_transaction(tx, config)
+                    except Exception as e:
+                        logger.error(f"Error checking transaction {tx['id']}: {e}")
+        except Exception as e:
+            logger.error(f"Error in background polling: {e}")
+        
+        await asyncio.sleep(5)  # Espera 5 segundos
+
 @app.on_event("startup")
 async def startup():
     await init_admin()
+    # Inicia o job de polling em background
+    asyncio.create_task(check_pending_transactions())
+    logger.info("Background payment polling started")
 
 # ===================== AUTH ROUTES =====================
 
