@@ -242,8 +242,10 @@ export default function Login() {
               )}
             </Button>
           </form>
+          )}
 
           {/* Info */}
+          {!blocked && (
           <div className="text-center">
             <p className="text-slate-500 text-sm">
               Não tem uma conta? Solicite um link de cadastro ao seu indicador.
