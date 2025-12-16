@@ -64,12 +64,12 @@ export default function Login() {
         return;
       }
       
-      // Login bem sucedido
-      const { user, token } = response.data;
-      localStorage.setItem("token", token);
+      // Login bem sucedido - usa a função login do contexto
+      const { user: userData, token: newToken } = response.data;
+      localStorage.setItem("token", newToken);
       
-      // Atualiza o contexto de auth manualmente
-      window.location.href = user.role === "admin" ? "/admin" : "/dashboard";
+      // Usa navigate ao invés de window.location para manter o estado do React
+      navigate(userData.role === "admin" ? "/admin" : "/dashboard");
     } catch (error) {
       const detail = error.response?.data?.detail || "";
       
