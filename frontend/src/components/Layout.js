@@ -49,7 +49,9 @@ const adminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
   { icon: Users, label: "Usuários", path: "/admin/users" },
   { icon: Wallet, label: "Saques", path: "/admin/withdrawals" },
+  { icon: ArrowLeftRight, label: "Transferências", path: "/transfers" },
   { icon: MessageSquare, label: "Tickets", path: "/admin/tickets" },
+  { icon: Shield, label: "Equipe Admin", path: "/admin/team" },
   { icon: Settings, label: "Configurações", path: "/admin/config" },
 ];
 
