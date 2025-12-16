@@ -364,18 +364,28 @@ export default function PublicPage() {
                     </>
                   )}
 
-                  {isAnonymous && (
+                  {isAnonymous && !isAnonymousOverLimit && (
                     <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/30">
                       <p className="text-purple-300 text-sm">
-                        💜 Pagamento anônimo: seu CPF não será solicitado, mas o limite é de {formatCurrency(ANONYMOUS_LIMIT)}.
+                        💜 Pagamento anônimo: seu CPF não será solicitado, limite de {formatCurrency(ANONYMOUS_LIMIT)}.
+                      </p>
+                    </div>
+                  )}
+
+                  {isAnonymousOverLimit && (
+                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                      <p className="text-red-400 text-sm flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
+                        Valor máximo para pagamento anônimo é {formatCurrency(ANONYMOUS_LIMIT)}. 
+                        Reduza o valor ou desative o modo anônimo.
                       </p>
                     </div>
                   )}
 
                   <Button
                     type="submit"
-                    disabled={creating}
-                    className="w-full h-14 text-lg font-semibold transition-all"
+                    disabled={creating || (isAnonymous && (!isAnonymousValueValid || isAnonymousOverLimit))}
+                    className="w-full h-14 text-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ 
                       backgroundColor: isAnonymous ? "#a855f7" : corPrimaria,
                       boxShadow: `0 0 30px ${isAnonymous ? "#a855f740" : corPrimaria + "40"}`
