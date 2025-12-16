@@ -130,14 +130,6 @@ export default function Login() {
               Não tem uma conta? Solicite um link de cadastro ao seu indicador.
             </p>
           </div>
-
-          {/* Demo Credentials */}
-          <div className="mt-8 p-4 rounded-lg bg-slate-900/50 border border-slate-800">
-            <p className="text-sm text-slate-400 text-center">
-              <span className="text-slate-500">Admin Demo:</span>{" "}
-              <span className="mono text-green-400">ADMIN001</span> / <span className="mono text-green-400">admin123</span>
-            </p>
-          </div>
         </div>
       </div>
 
