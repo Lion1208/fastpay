@@ -30,7 +30,7 @@ db = client[os.environ['DB_NAME']]
 # Security
 SECRET_KEY = os.environ.get('JWT_SECRET', secrets.token_hex(32))
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_HOURS = 24
+ACCESS_TOKEN_EXPIRE_HOURS = 168  # 7 dias
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
