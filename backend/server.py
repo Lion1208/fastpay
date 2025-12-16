@@ -320,16 +320,12 @@ async def register(data: UserCreate):
     
     # Admin pode indicar sem restrições
     if indicador.get("role") != "admin":
-        config = await get_config()
-        valor_minimo = config.get("valor_minimo_indicacao", 1000)
+        # Verificar se tem indicações disponíveis (liberadas pelo admin ou por movimentação)
+        indicacoes_liberadas = indicador.get("indicacoes_liberadas", 0)
+        indicacoes_usadas = indicador.get("indicacoes_usadas", 0)
         
-        # Verificar se tem movimentação mínima
-        if indicador.get("valor_movimentado", 0) < valor_minimo:
-            raise HTTPException(status_code=400, detail=f"Indicador precisa movimentar R${valor_minimo:.2f} para liberar indicações")
-        
-        # Verificar se tem indicações disponíveis
-        if indicador.get("indicacoes_usadas", 0) >= indicador.get("indicacoes_liberadas", 0):
-            raise HTTPException(status_code=400, detail="Indicador não tem mais indicações disponíveis")
+        if indicacoes_liberadas <= 0 or indicacoes_usadas >= indicacoes_liberadas:
+            raise HTTPException(status_code=400, detail="Indicador não tem indicações disponíveis")
     
     config = await get_config()
     
