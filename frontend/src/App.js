@@ -93,17 +93,17 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppRoutes />
-        <Toaster 
-          position="top-right" 
-          toastOptions={{
-            style: {
-              background: '#0f172a',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: '#f8fafc',
-            },
-          }}
-        />
       </AuthProvider>
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          style: {
+            background: '#0f172a',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: '#f8fafc',
+          },
+        }}
+      />
     </BrowserRouter>
   );
 }
