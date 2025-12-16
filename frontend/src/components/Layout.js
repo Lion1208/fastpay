@@ -68,6 +68,7 @@ export const Layout = ({ children }) => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [config, setConfig] = useState({ nome_sistema: "FastPay", logo_url: "" });
+  const [lastTransferCheck, setLastTransferCheck] = useState(null);
 
   const isAdmin = user?.role === "admin";
   const menuItems = isAdmin ? adminMenuItems : userMenuItems;
@@ -75,6 +76,45 @@ export const Layout = ({ children }) => {
   useEffect(() => {
     fetchConfig();
   }, []);
+
+  // Polling global para notificações de transferências recebidas
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const formatMoney = (value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
+    
+    const checkNewTransfers = async () => {
+      try {
+        const response = await axios.get(`${API}/transfers`);
+        const transfers = response.data.transfers || [];
+        const received = transfers.filter(t => t.destinatario_id === user.id);
+        
+        if (received.length > 0) {
+          const latestTransfer = received[0];
+          const latestTime = new Date(latestTransfer.created_at).getTime();
+          
+          if (lastTransferCheck && latestTime > lastTransferCheck) {
+            // Nova transferência recebida!
+            toast.success(
+              `💰 Você recebeu ${formatMoney(latestTransfer.valor_recebido)} de ${latestTransfer.remetente_nome}!`,
+              { duration: 8000 }
+            );
+          }
+          setLastTransferCheck(latestTime);
+        }
+      } catch (error) {
+        console.error("Error checking transfers:", error);
+      }
+    };
+    
+    // Primeira verificação para definir o baseline
+    checkNewTransfers();
+    
+    // Verifica a cada 5 segundos
+    const interval = setInterval(checkNewTransfers, 5000);
+    
+    return () => clearInterval(interval);
+  }, [user?.id, lastTransferCheck]);
 
   const fetchConfig = async () => {
     try {
