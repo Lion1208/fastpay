@@ -28,6 +28,24 @@ const buildUrl = (path) => {
   return `${API_URL}/api${path}`;
 };
 
+// Função de retry para chamadas que falham por erro de rede
+const withRetry = async (fn, retries = 1) => {
+  try {
+    return await fn();
+  } catch (error) {
+    // Não faz retry para erros 4xx (são erros de cliente, não de rede)
+    if (error.response && error.response.status >= 400 && error.response.status < 500) {
+      throw error;
+    }
+    // Para erros de rede/5xx, tenta novamente
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return withRetry(fn, retries - 1);
+    }
+    throw error;
+  }
+};
+
 // API wrapper simples que sempre pega o token do localStorage
 const api = {
   get: (url, config = {}) => {
