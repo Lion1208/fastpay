@@ -468,6 +468,14 @@ export default function Transfers() {
             <CardTitle className="text-white">Histórico de Transferências</CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Info sobre comprovantes */}
+            <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-slate-800/30 border border-slate-700/50">
+              <FileText className="w-4 h-4 text-slate-400" />
+              <p className="text-xs text-slate-400">
+                Comprovantes ficam disponíveis por 48h. Após esse período, clique em "Gerar" para criar um novo.
+              </p>
+            </div>
+            
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-green-500" />
@@ -476,35 +484,73 @@ export default function Transfers() {
               <div className="space-y-3">
                 {transfers.map((transfer) => {
                   const isOutgoing = transfer.remetente_id === user?.id;
+                  const within48h = isWithin48Hours(transfer.created_at);
+                  
                   return (
                     <div
                       key={transfer.id}
-                      className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 flex items-center justify-between"
+                      className="p-4 rounded-lg bg-slate-800/50 border border-slate-700"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${isOutgoing ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
-                          {isOutgoing ? (
-                            <ArrowUpRight className="w-5 h-5 text-red-400" />
-                          ) : (
-                            <ArrowDownLeft className="w-5 h-5 text-green-400" />
-                          )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${isOutgoing ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
+                            {isOutgoing ? (
+                              <ArrowUpRight className="w-5 h-5 text-red-400" />
+                            ) : (
+                              <ArrowDownLeft className="w-5 h-5 text-green-400" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">
+                              {isOutgoing ? `Para: ${transfer.destinatario_nome}` : `De: ${transfer.remetente_nome}`}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {new Date(transfer.created_at).toLocaleString("pt-BR")}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-white font-medium">
-                            {isOutgoing ? `Para: ${transfer.destinatario_nome}` : `De: ${transfer.remetente_nome}`}
+                        <div className="text-right">
+                          <p className={`font-bold ${isOutgoing ? 'text-red-400' : 'text-green-400'}`}>
+                            {isOutgoing ? '-' : '+'}{formatCurrency(isOutgoing ? transfer.valor_enviado : transfer.valor_recebido)}
                           </p>
-                          <p className="text-xs text-slate-500">
-                            {new Date(transfer.created_at).toLocaleString("pt-BR")}
-                          </p>
+                          <Badge className="bg-green-500/20 text-green-400 text-xs">
+                            Concluída
+                          </Badge>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className={`font-bold ${isOutgoing ? 'text-red-400' : 'text-green-400'}`}>
-                          {isOutgoing ? '-' : '+'}{formatCurrency(isOutgoing ? transfer.valor_enviado : transfer.valor_recebido)}
-                        </p>
-                        <Badge className="bg-green-500/20 text-green-400 text-xs">
-                          Concluída
-                        </Badge>
+                      
+                      {/* Botão de comprovante */}
+                      <div className="mt-3 pt-3 border-t border-slate-700/50 flex items-center justify-between">
+                        {within48h ? (
+                          <>
+                            <span className="text-xs text-slate-500 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              Disponível por 48h
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => generatePDF(transfer, isOutgoing)}
+                              className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                            >
+                              <Download className="w-4 h-4 mr-1" />
+                              Baixar PDF
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-xs text-slate-600">Comprovante expirado</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => generatePDF(transfer, isOutgoing)}
+                              className="text-slate-400 hover:text-white hover:bg-slate-700"
+                            >
+                              <FileText className="w-4 h-4 mr-1" />
+                              Gerar
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   );
