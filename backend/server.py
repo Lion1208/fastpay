@@ -192,6 +192,8 @@ async def get_config(admin_id: str = None):
             "taxa_saque_padrao": 1.5,
             "taxa_transferencia_padrao": 0.5,
             "valor_minimo_indicacao": 1000.0,
+            "valor_minimo_saque": 10.0,
+            "valor_minimo_transferencia": 1.0,
             "comissao_indicacao": 1.0,
             "nome_sistema": "FastPay",
             "logo_url": ""
