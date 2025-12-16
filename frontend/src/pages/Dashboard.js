@@ -17,8 +17,11 @@ import {
   Clock,
   Copy,
   ExternalLink,
-  Bell
+  Bell,
+  Link2,
+  QrCode
 } from "lucide-react";
+import { Button } from "../components/ui/button";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { isPushSupported, isSubscribedToPush } from "../utils/push";
