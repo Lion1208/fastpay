@@ -6,7 +6,8 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card, CardContent } from "../components/ui/card";
 import { toast, Toaster } from "sonner";
-import { QrCode, Copy, ArrowRight, CheckCircle, Clock, AlertCircle, Loader2, PartyPopper } from "lucide-react";
+import { QrCode, Copy, ArrowRight, CheckCircle, Clock, AlertCircle, Loader2, PartyPopper, UserX, User } from "lucide-react";
+import { Switch } from "../components/ui/switch";
 
 
 export default function PublicPage() {
