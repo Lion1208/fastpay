@@ -63,6 +63,8 @@ export default function AdminUsers() {
       const response = await axios.put(`${API}/admin/users/${selectedUser.id}`, {
         taxa_percentual: parseFloat(editData.taxa_percentual),
         taxa_fixa: parseFloat(editData.taxa_fixa),
+        taxa_saque: parseFloat(editData.taxa_saque),
+        taxa_transferencia: parseFloat(editData.taxa_transferencia),
         indicacoes_liberadas: parseInt(editData.indicacoes_liberadas),
         status: editData.status
       });
