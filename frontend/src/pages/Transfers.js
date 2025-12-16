@@ -166,26 +166,40 @@ export default function Transfers() {
     setError(null);
     
     try {
-      await axios.post(`${API}/transfers`, {
+      const response = await axios.post(`${API}/transfers`, {
         valor: parseFloat(valor),
         carteira_destino: carteiraDestino
       });
       
+      // Salva dados para o PDF
+      setLastTransferData({
+        id: response.data.transfer_id,
+        valor_enviado: parseFloat(valor),
+        valor_recebido: response.data.valor_recebido,
+        taxa_percentual: calculoTransfer?.taxa_percentual || taxaTransferencia,
+        valor_taxa: calculoTransfer?.valor_taxa || 0,
+        destinatario_nome: destinatario?.nome,
+        destinatario_carteira: carteiraDestino,
+        created_at: new Date().toISOString()
+      });
+      
       setSuccess(true);
-      setTimeout(() => {
-        setShowConfirmDialog(false);
-        setSuccess(false);
-        setValor("");
-        setCarteiraDestino("");
-        setDestinatario(null);
-        setCalculoTransfer(null);
-        fetchTransfers();
-      }, 2000);
     } catch (error) {
       setError(error.response?.data?.detail || "Erro ao processar transferência");
     } finally {
       setProcessing(false);
     }
+  };
+
+  const handleCloseSuccess = () => {
+    setShowConfirmDialog(false);
+    setSuccess(false);
+    setLastTransferData(null);
+    setValor("");
+    setCarteiraDestino("");
+    setDestinatario(null);
+    setCalculoTransfer(null);
+    fetchTransfers();
   };
 
   const formatCurrency = (value) => {
