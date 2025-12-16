@@ -92,21 +92,59 @@ export default function Transfers() {
     setDestinatario({ nome: freq.nome, carteira_id: freq.carteira_id });
   };
 
-  const handleValidateWallet = async () => {
-    if (!carteiraDestino) {
-      toast.error("Informe o ID da carteira");
+  // Busca automática ao digitar carteira
+  const [searchingWallet, setSearchingWallet] = useState(false);
+  
+  useEffect(() => {
+    if (!carteiraDestino || carteiraDestino.length < 5) {
+      setDestinatario(null);
       return;
     }
     
-    try {
-      const response = await axios.get(`${API}/transfers/validate/${carteiraDestino}`);
-      setDestinatario(response.data);
-      toast.success(`Carteira encontrada: ${response.data.nome}`);
-    } catch (error) {
-      setDestinatario(null);
-      toast.error(error.response?.data?.detail || "Carteira não encontrada");
-    }
-  };
+    const timer = setTimeout(async () => {
+      setSearchingWallet(true);
+      try {
+        const response = await axios.get(`${API}/transfers/validate/${carteiraDestino}`);
+        setDestinatario(response.data);
+      } catch (error) {
+        setDestinatario(null);
+      } finally {
+        setSearchingWallet(false);
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [carteiraDestino]);
+
+  // Polling para notificações de transferências recebidas
+  const [lastTransferCount, setLastTransferCount] = useState(0);
+  
+  useEffect(() => {
+    const checkNewTransfers = async () => {
+      try {
+        const response = await axios.get(`${API}/transfers`);
+        const currentTransfers = response.data.transfers || [];
+        const receivedTransfers = currentTransfers.filter(t => t.destinatario_id === user?.id);
+        
+        if (lastTransferCount > 0 && receivedTransfers.length > lastTransferCount) {
+          const newTransfer = receivedTransfers[0];
+          toast.success(
+            `Você recebeu ${formatCurrency(newTransfer.valor_recebido)} de ${newTransfer.remetente_nome}!`,
+            { duration: 5000 }
+          );
+          setTransfers(currentTransfers);
+        }
+        setLastTransferCount(receivedTransfers.length);
+      } catch (error) {
+        console.error("Error checking transfers:", error);
+      }
+    };
+    
+    // Verifica a cada 10 segundos
+    const interval = setInterval(checkNewTransfers, 10000);
+    
+    return () => clearInterval(interval);
+  }, [lastTransferCount, user?.id]);
 
   const handleCalculate = async () => {
     if (!valor || parseFloat(valor) < 1) {
