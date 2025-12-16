@@ -561,18 +561,82 @@ async def create_transaction(data: TransactionCreate, user: dict = Depends(get_c
 @api_router.get("/transactions")
 async def list_transactions(
     status: Optional[str] = None,
-    limit: int = Query(50, le=100),
+    data_inicial: Optional[str] = None,
+    data_final: Optional[str] = None,
+    busca: Optional[str] = None,
+    limit: int = Query(50, le=500),
     skip: int = 0,
     user: dict = Depends(get_current_user)
 ):
     query = {"parceiro_id": user["id"]}
+    
+    # Filtro por status
     if status:
         query["status"] = status
     
+    # Filtro por data inicial
+    if data_inicial:
+        try:
+            data_ini = datetime.fromisoformat(data_inicial.replace('Z', '+00:00'))
+            query["created_at"] = {"$gte": data_ini.isoformat()}
+        except:
+            pass
+    
+    # Filtro por data final
+    if data_final:
+        try:
+            data_fim = datetime.fromisoformat(data_final.replace('Z', '+00:00'))
+            # Adiciona 1 dia para incluir todo o dia final
+            data_fim = data_fim + timedelta(days=1)
+            if "created_at" in query:
+                query["created_at"]["$lte"] = data_fim.isoformat()
+            else:
+                query["created_at"] = {"$lte": data_fim.isoformat()}
+        except:
+            pass
+    
+    # Filtro por busca (CPF, nome ou ID)
+    if busca:
+        busca_clean = busca.strip()
+        query["$or"] = [
+            {"cpf_cnpj": {"$regex": busca_clean, "$options": "i"}},
+            {"nome_pagador": {"$regex": busca_clean, "$options": "i"}},
+            {"id": {"$regex": busca_clean, "$options": "i"}}
+        ]
+    
+    # Busca as transações
     transactions = await db.transactions.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     total = await db.transactions.count_documents(query)
     
-    return {"transactions": transactions, "total": total}
+    # Calcula estatísticas do filtro aplicado
+    all_filtered = await db.transactions.find(query, {"_id": 0}).to_list(10000)
+    
+    total_transacoes = len(all_filtered)
+    volume_total = sum(t.get("valor", 0) for t in all_filtered)
+    valor_liquido_total = sum(t.get("valor_liquido", 0) for t in all_filtered)
+    transacoes_pagas = sum(1 for t in all_filtered if t.get("status") == "paid")
+    volume_pago = sum(t.get("valor", 0) for t in all_filtered if t.get("status") == "paid")
+    valor_liquido_pago = sum(t.get("valor_liquido", 0) for t in all_filtered if t.get("status") == "paid")
+    
+    # Enriquece com dados do usuário (para quando admin visualizar)
+    user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0, "senha": 0})
+    
+    return {
+        "transactions": transactions, 
+        "total": total,
+        "stats": {
+            "total_transacoes": total_transacoes,
+            "volume_total": volume_total,
+            "valor_liquido_total": valor_liquido_total,
+            "transacoes_pagas": transacoes_pagas,
+            "volume_pago": volume_pago,
+            "valor_liquido_pago": valor_liquido_pago
+        },
+        "usuario": {
+            "nome": user_data.get("nome"),
+            "codigo": user_data.get("codigo")
+        }
+    }
 
 @api_router.get("/transactions/{transaction_id}")
 async def get_transaction(transaction_id: str, user: dict = Depends(get_current_user)):
@@ -1263,24 +1327,74 @@ async def external_get_transaction(transaction_id: str, user: dict = Depends(get
 @api_router.get("/v1/transactions")
 async def external_list_transactions(
     status: Optional[str] = None,
-    limit: int = Query(50, le=100),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = Query(50, le=500),
     user: dict = Depends(get_user_by_api_key)
 ):
-    """API externa para listar transações"""
+    """API externa para listar transações com filtros e estatísticas"""
     query = {"parceiro_id": user["id"]}
+    
     if status:
         query["status"] = status
     
+    # Filtro por data inicial
+    if start_date:
+        try:
+            data_ini = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+            query["created_at"] = {"$gte": data_ini.isoformat()}
+        except:
+            pass
+    
+    # Filtro por data final
+    if end_date:
+        try:
+            data_fim = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+            data_fim = data_fim + timedelta(days=1)
+            if "created_at" in query:
+                query["created_at"]["$lte"] = data_fim.isoformat()
+            else:
+                query["created_at"] = {"$lte": data_fim.isoformat()}
+        except:
+            pass
+    
+    # Filtro por busca (CPF, nome ou ID)
+    if search:
+        search_clean = search.strip()
+        query["$or"] = [
+            {"cpf_cnpj": {"$regex": search_clean, "$options": "i"}},
+            {"nome_pagador": {"$regex": search_clean, "$options": "i"}},
+            {"id": {"$regex": search_clean, "$options": "i"}}
+        ]
+    
     transactions = await db.transactions.find(query, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    # Calcula estatísticas
+    all_filtered = await db.transactions.find(query, {"_id": 0}).to_list(10000)
+    total_transactions = len(all_filtered)
+    total_volume = sum(t.get("valor", 0) for t in all_filtered)
+    total_net_value = sum(t.get("valor_liquido", 0) for t in all_filtered)
+    paid_transactions = sum(1 for t in all_filtered if t.get("status") == "paid")
     
     return {
         "data": [{
             "id": t["id"],
             "amount": t["valor"],
+            "net_amount": t.get("valor_liquido", 0),
+            "payer_name": t.get("nome_pagador"),
+            "payer_cpf_cnpj": t.get("cpf_cnpj"),
             "status": t["status"],
             "custom_id": t.get("custom_id"),
-            "created_at": t["created_at"]
-        } for t in transactions]
+            "created_at": t["created_at"],
+            "paid_at": t.get("paid_at")
+        } for t in transactions],
+        "stats": {
+            "total_transactions": total_transactions,
+            "total_volume": total_volume,
+            "total_net_value": total_net_value,
+            "paid_transactions": paid_transactions
+        }
     }
 
 @api_router.get("/config/public")
