@@ -204,6 +204,7 @@ async def init_admin():
         admin_user = {
             "id": str(uuid.uuid4()),
             "codigo": "ADMIN001",
+            "carteira_id": generate_wallet_id(),
             "nome": "Administrador",
             "email": "admin@sistema.com",
             "senha": hash_password("admin123"),
@@ -216,11 +217,30 @@ async def init_admin():
             "indicacoes_usadas": 0,
             "taxa_percentual": 2.0,
             "taxa_fixa": 0.99,
+            "taxa_saque": 1.5,
+            "taxa_transferencia": 0.5,
             "indicador_id": None,
+            "two_factor_enabled": False,
+            "two_factor_secret": None,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.users.insert_one(admin_user)
         logger.info("Admin user created: ADMIN001 / admin123")
+    else:
+        # Adiciona campos novos se não existirem
+        update_fields = {}
+        if "carteira_id" not in admin:
+            update_fields["carteira_id"] = generate_wallet_id()
+        if "taxa_saque" not in admin:
+            update_fields["taxa_saque"] = 1.5
+        if "taxa_transferencia" not in admin:
+            update_fields["taxa_transferencia"] = 0.5
+        if "two_factor_enabled" not in admin:
+            update_fields["two_factor_enabled"] = False
+        if "two_factor_secret" not in admin:
+            update_fields["two_factor_secret"] = None
+        if update_fields:
+            await db.users.update_one({"role": "admin"}, {"$set": update_fields})
     
     await get_config()
 
