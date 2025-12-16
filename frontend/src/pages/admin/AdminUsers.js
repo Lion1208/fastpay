@@ -25,6 +25,8 @@ export default function AdminUsers() {
     taxa_fixa: "",
     taxa_saque: "",
     taxa_transferencia: "",
+    valor_minimo_saque: "",
+    valor_minimo_transferencia: "",
     indicacoes_liberadas: "",
     status: ""
   });
