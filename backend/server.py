@@ -1533,10 +1533,21 @@ async def admin_get_config(admin: dict = Depends(get_admin_user)):
 
 @api_router.put("/admin/config")
 async def admin_update_config(data: AdminConfig, admin: dict = Depends(get_admin_user)):
-    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    # Pega apenas os campos que foram enviados (não None e não string vazia para campos de texto)
+    update_data = {}
+    for k, v in data.model_dump().items():
+        if v is not None:
+            # Para strings, aceita string vazia como valor válido (para limpar campos)
+            # Mas para campos numéricos, só aceita se não for None
+            update_data[k] = v
+    
     if update_data:
         update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
-        await db.config.update_one({"type": "system"}, {"$set": update_data})
+        await db.config.update_one(
+            {"type": "system"}, 
+            {"$set": update_data},
+            upsert=True  # Cria se não existir
+        )
     
     config = await get_config()
     return config
