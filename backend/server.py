@@ -70,6 +70,7 @@ class AdminUserUpdate(BaseModel):
 class TransactionCreate(BaseModel):
     valor: float
     cpf_cnpj: Optional[str] = None
+    nome_pagador: Optional[str] = None
     descricao: Optional[str] = None
 
 class WithdrawalCreate(BaseModel):
