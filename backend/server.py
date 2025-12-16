@@ -169,7 +169,14 @@ async def get_admin_user(user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Acesso negado")
     return user
 
-async def get_config():
+async def get_config(admin_id: str = None):
+    """Obtém configuração do sistema. Se admin_id fornecido, busca config específica da rede"""
+    if admin_id:
+        config = await db.admin_configs.find_one({"admin_id": admin_id}, {"_id": 0})
+        if config:
+            return config
+    
+    # Config global padrão
     config = await db.config.find_one({"type": "system"}, {"_id": 0})
     if not config:
         config = {
@@ -187,6 +194,47 @@ async def get_config():
         }
         await db.config.insert_one(config)
     return config
+
+async def get_user_network_admin(user_id: str):
+    """Encontra o admin raiz da rede do usuário"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        return None
+    
+    # Se é admin e é o admin raiz (sem promoted_by ou promoted_by é ele mesmo)
+    if user.get("role") == "admin" and not user.get("promoted_by"):
+        return user
+    
+    # Se é admin promovido, retorna ele mesmo (ele tem sua própria config)
+    if user.get("role") == "admin":
+        return user
+    
+    # Se é usuário comum, sobe a cadeia até encontrar um admin
+    current = user
+    visited = set()
+    while current:
+        if current["id"] in visited:
+            break
+        visited.add(current["id"])
+        
+        if current.get("role") == "admin":
+            return current
+        
+        if not current.get("indicador_id"):
+            break
+        
+        current = await db.users.find_one({"id": current["indicador_id"]}, {"_id": 0})
+    
+    return None
+
+async def get_config_for_user(user_id: str):
+    """Obtém a configuração aplicável para um usuário baseado em sua rede"""
+    admin = await get_user_network_admin(user_id)
+    if admin:
+        config = await get_config(admin["id"])
+        if config and config.get("admin_id"):
+            return config
+    return await get_config()
 
 def generate_wallet_id():
     """Gera ID de carteira único"""
