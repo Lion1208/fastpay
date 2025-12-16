@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import axios from "axios";
+import api from "../utils/api";
 import { 
   LayoutDashboard, 
   CreditCard, 
@@ -77,7 +77,7 @@ export const Layout = ({ children }) => {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await axios.get(`${API}/config/public`);
+        const response = await api.get(`${API}/config/public`);
         setConfig(response.data);
       } catch (error) {
         console.error("Error fetching config:", error);
@@ -98,7 +98,7 @@ export const Layout = ({ children }) => {
       if (!localStorage.getItem("token")) return;
       
       try {
-        const response = await axios.get(`${API}/transfers`);
+        const response = await api.get(`${API}/transfers`);
         const transfers = response.data.transfers || [];
         const received = transfers.filter(t => t.destinatario_id === user.id);
         

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../components/Layout";
 import { useAuth } from "../contexts/AuthContext";
-import axios from "axios";
+import api from "../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -28,7 +28,7 @@ export default function ApiIntegration() {
 
   const fetchKeys = async () => {
     try {
-      const response = await axios.get(`${API}/api-keys`);
+      const response = await api.get(`${API}/api-keys`);
       setKeys(response.data.keys);
     } catch (error) {
       toast.error("Erro ao carregar chaves");
@@ -45,7 +45,7 @@ export default function ApiIntegration() {
 
     setCreating(true);
     try {
-      const response = await axios.post(`${API}/api-keys?name=${encodeURIComponent(newKeyName)}`);
+      const response = await api.post(`${API}/api-keys?name=${encodeURIComponent(newKeyName)}`);
       setKeys([response.data, ...keys]);
       setNewKeyName("");
       setShowDialog(false);
@@ -61,7 +61,7 @@ export default function ApiIntegration() {
     if (!window.confirm("Tem certeza que deseja excluir esta chave?")) return;
 
     try {
-      await axios.delete(`${API}/api-keys/${keyId}`);
+      await api.delete(`${API}/api-keys/${keyId}`);
       setKeys(keys.filter(k => k.id !== keyId));
       toast.success("Chave removida");
     } catch (error) {

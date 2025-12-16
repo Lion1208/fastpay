@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../../components/Layout";
-import axios from "axios";
+import api from "../../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -24,7 +24,7 @@ export default function AdminTickets() {
 
   const fetchTickets = async () => {
     try {
-      const response = await axios.get(`${API}/tickets`);
+      const response = await api.get(`${API}/tickets`);
       setTickets(response.data.tickets);
     } catch (error) {
       toast.error("Erro ao carregar tickets");
@@ -38,7 +38,7 @@ export default function AdminTickets() {
 
     setSending(true);
     try {
-      const response = await axios.post(`${API}/tickets/${selectedTicket.id}/reply`, {
+      const response = await api.post(`${API}/tickets/${selectedTicket.id}/reply`, {
         mensagem: replyMessage
       });
       setSelectedTicket(response.data);
@@ -54,7 +54,7 @@ export default function AdminTickets() {
 
   const handleStatusChange = async (ticketId, newStatus) => {
     try {
-      await axios.put(`${API}/tickets/${ticketId}/status?status=${newStatus}`);
+      await api.put(`${API}/tickets/${ticketId}/status?status=${newStatus}`);
       setTickets(tickets.map(t => t.id === ticketId ? { ...t, status: newStatus } : t));
       if (selectedTicket?.id === ticketId) {
         setSelectedTicket(prev => ({ ...prev, status: newStatus }));

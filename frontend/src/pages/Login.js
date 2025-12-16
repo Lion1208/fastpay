@@ -6,7 +6,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Eye, EyeOff, LogIn, Shield, Loader2, Ban } from "lucide-react";
-import axios from "axios";
+import api from "../utils/api";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -28,7 +28,7 @@ export default function Login() {
 
   const fetchConfig = async () => {
     try {
-      const response = await axios.get(`${API}/config/public`);
+      const response = await api.get(`${API}/config/public`);
       setConfig(response.data);
     } catch (error) {
       console.error("Error fetching config:", error);
@@ -51,7 +51,7 @@ export default function Login() {
     setLoading(true);
     try {
       // Tenta login com 2FA
-      const response = await axios.post(`${API}/auth/login-2fa`, {
+      const response = await api.post(`${API}/auth/login-2fa`, {
         codigo,
         senha,
         two_factor_code: twoFactorCode || null

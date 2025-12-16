@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../../components/Layout";
-import axios from "axios";
+import api from "../../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -37,8 +37,8 @@ export default function AdminTeam() {
   const fetchData = async () => {
     try {
       const [teamRes, usersRes] = await Promise.all([
-        axios.get(`${API}/admin/team`),
-        axios.get(`${API}/admin/users`)
+        api.get(`${API}/admin/team`),
+        api.get(`${API}/admin/users`)
       ]);
       setAdmins(teamRes.data.admins || []);
       setUsers(usersRes.data.users?.filter(u => u.role !== "admin") || []);
@@ -54,7 +54,7 @@ export default function AdminTeam() {
     
     setProcessing(true);
     try {
-      await axios.post(`${API}/admin/team/promote/${selectedUser.id}`);
+      await api.post(`${API}/admin/team/promote/${selectedUser.id}`);
       toast.success(`${selectedUser.nome} foi promovido a administrador!`);
       setShowAddDialog(false);
       setSelectedUser(null);
@@ -71,7 +71,7 @@ export default function AdminTeam() {
     
     setProcessing(true);
     try {
-      await axios.delete(`${API}/admin/team/demote/${selectedUser.id}`);
+      await api.delete(`${API}/admin/team/demote/${selectedUser.id}`);
       toast.success(`${selectedUser.nome} foi removido da administração`);
       setShowRemoveDialog(false);
       setSelectedUser(null);

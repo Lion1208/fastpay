@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../../components/Layout";
-import axios from "axios";
+import api from "../../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -29,7 +29,7 @@ export default function AdminConfig() {
 
   const fetchConfig = async () => {
     try {
-      const response = await axios.get(`${API}/admin/config`);
+      const response = await api.get(`${API}/admin/config`);
       setConfig(response.data);
     } catch (error) {
       toast.error("Erro ao carregar configurações");
@@ -41,7 +41,7 @@ export default function AdminConfig() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await axios.put(`${API}/admin/config`, config);
+      const response = await api.put(`${API}/admin/config`, config);
       setConfig(response.data);
       toast.success("Configurações salvas! Recarregue a página para ver as alterações.");
     } catch (error) {
@@ -68,7 +68,7 @@ export default function AdminConfig() {
     
     setSavingCredentials(true);
     try {
-      await axios.put(`${API}/admin/credentials`, {
+      await api.put(`${API}/admin/credentials`, {
         codigo: adminCredentials.codigo || null,
         senha_atual: adminCredentials.senha_atual,
         senha_nova: adminCredentials.senha_nova || null

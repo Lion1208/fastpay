@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../components/Layout";
 import { useAuth } from "../contexts/AuthContext";
-import axios from "axios";
+import api from "../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -43,7 +43,7 @@ export default function Personalization() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const response = await axios.put(`${API}/auth/me`, formData);
+      const response = await api.put(`${API}/auth/me`, formData);
       updateUser(response.data);
       toast.success("Configurações salvas!");
     } catch (error) {

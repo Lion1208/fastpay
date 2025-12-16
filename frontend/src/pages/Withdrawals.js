@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../components/Layout";
 import { useAuth } from "../contexts/AuthContext";
-import axios from "axios";
+import api from "../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -49,8 +49,8 @@ export default function Withdrawals() {
   const fetchData = async () => {
     try {
       const [withdrawalsRes, statsRes] = await Promise.all([
-        axios.get(`${API}/withdrawals`),
-        axios.get(`${API}/dashboard/stats`)
+        api.get(`${API}/withdrawals`),
+        api.get(`${API}/dashboard/stats`)
       ]);
       setWithdrawals(withdrawalsRes.data.withdrawals);
       setTaxaSaque(withdrawalsRes.data.taxa_saque || 1.5);
@@ -71,7 +71,7 @@ export default function Withdrawals() {
     }
     
     try {
-      const response = await axios.get(`${API}/withdrawals/calculate?valor=${valor}`);
+      const response = await api.get(`${API}/withdrawals/calculate?valor=${valor}`);
       setCalculoSaque(response.data);
     } catch (error) {
       console.error("Error calculating:", error);
@@ -107,7 +107,7 @@ export default function Withdrawals() {
 
     setCreating(true);
     try {
-      const response = await axios.post(`${API}/withdrawals`, {
+      const response = await api.post(`${API}/withdrawals`, {
         valor: valor,
         chave_pix: newWithdrawal.chave_pix,
         tipo_chave: newWithdrawal.tipo_chave
@@ -127,7 +127,7 @@ export default function Withdrawals() {
 
   const handleViewDetails = async (withdrawal) => {
     try {
-      const response = await axios.get(`${API}/withdrawals/${withdrawal.id}`);
+      const response = await api.get(`${API}/withdrawals/${withdrawal.id}`);
       setSelectedWithdrawal(response.data);
       setShowDetailDialog(true);
     } catch (error) {

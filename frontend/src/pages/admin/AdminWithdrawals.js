@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../../components/Layout";
-import axios from "axios";
+import api from "../../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -38,7 +38,7 @@ export default function AdminWithdrawals() {
 
   const fetchWithdrawals = async () => {
     try {
-      const response = await axios.get(`${API}/admin/withdrawals`);
+      const response = await api.get(`${API}/admin/withdrawals`);
       setWithdrawals(response.data.withdrawals);
     } catch (error) {
       toast.error("Erro ao carregar saques");
@@ -49,7 +49,7 @@ export default function AdminWithdrawals() {
 
   const handleViewDetails = async (withdrawal) => {
     try {
-      const response = await axios.get(`${API}/admin/withdrawals/${withdrawal.id}`);
+      const response = await api.get(`${API}/admin/withdrawals/${withdrawal.id}`);
       setSelectedWithdrawal(response.data);
     } catch (error) {
       setSelectedWithdrawal(withdrawal);
@@ -60,7 +60,7 @@ export default function AdminWithdrawals() {
   const handleAction = async (action) => {
     setProcessing(true);
     try {
-      await axios.put(`${API}/admin/withdrawals/${selectedWithdrawal.id}`, {
+      await api.put(`${API}/admin/withdrawals/${selectedWithdrawal.id}`, {
         status: action,
         motivo: action === "rejected" ? rejectReason : null
       });
@@ -87,7 +87,7 @@ export default function AdminWithdrawals() {
     
     setSendingObservation(true);
     try {
-      const response = await axios.post(`${API}/admin/withdrawals/${selectedWithdrawal.id}/observation`, {
+      const response = await api.post(`${API}/admin/withdrawals/${selectedWithdrawal.id}/observation`, {
         observacao: newObservation.trim()
       });
       setSelectedWithdrawal(response.data);

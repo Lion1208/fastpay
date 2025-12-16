@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../components/Layout";
 import { useAuth } from "../contexts/AuthContext";
-import axios from "axios";
+import api from "../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Progress } from "../components/ui/progress";
@@ -46,7 +46,7 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${API}/dashboard/stats`);
+      const response = await api.get(`${API}/dashboard/stats`);
       setStats(response.data);
     } catch (error) {
       toast.error("Erro ao carregar estatísticas");

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Layout } from "../components/Layout";
-import axios from "axios";
+import api from "../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -77,7 +77,7 @@ export default function Transactions() {
       if (activeFilters.busca) params.append("busca", activeFilters.busca);
       params.append("limit", "500");
       
-      const response = await axios.get(`${API}/transactions?${params.toString()}`);
+      const response = await api.get(`${API}/transactions?${params.toString()}`);
       setTransactions(response.data.transactions);
       setStats(response.data.stats || {
         total_transacoes: 0,

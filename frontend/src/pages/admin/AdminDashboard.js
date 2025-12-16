@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../../components/Layout";
-import axios from "axios";
+import api from "../../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Users, CreditCard, Wallet, MessageSquare, TrendingUp, DollarSign } from "lucide-react";
@@ -18,7 +18,7 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${API}/admin/stats`);
+      const response = await api.get(`${API}/admin/stats`);
       setStats(response.data);
     } catch (error) {
       toast.error("Erro ao carregar estatísticas");

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../components/Layout";
 import { useAuth } from "../contexts/AuthContext";
-import axios from "axios";
+import api from "../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -22,7 +22,7 @@ export default function Referrals() {
 
   const fetchReferrals = async () => {
     try {
-      const response = await axios.get(`${API}/referrals`);
+      const response = await api.get(`${API}/referrals`);
       setData(response.data);
     } catch (error) {
       toast.error("Erro ao carregar indicações");

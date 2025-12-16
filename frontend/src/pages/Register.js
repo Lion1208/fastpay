@@ -6,7 +6,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Eye, EyeOff, UserPlus, ArrowLeft, AlertCircle } from "lucide-react";
-import axios from "axios";
+import api from "../utils/api";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -36,7 +36,7 @@ export default function Register() {
 
   const fetchConfig = async () => {
     try {
-      const response = await axios.get(`${API}/config/public`);
+      const response = await api.get(`${API}/config/public`);
       setConfig(response.data);
     } catch (error) {
       console.error("Error fetching config:", error);
@@ -45,7 +45,7 @@ export default function Register() {
 
   const verificarIndicador = async (codigoIndicador) => {
     try {
-      const response = await axios.get(`${API}/p/${codigoIndicador}`);
+      const response = await api.get(`${API}/p/${codigoIndicador}`);
       // Verificar se o indicador pode fazer indicações
       if (response.data.pode_indicar === false) {
         setIndicadorValido({ ...response.data, bloqueado: true });

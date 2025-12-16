@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/api";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -38,7 +38,7 @@ export default function PublicPage() {
     if (transaction && transaction.status === "pending") {
       pollingRef.current = setInterval(async () => {
         try {
-          const response = await axios.get(`${API}/transactions/${transaction.id}/status`);
+          const response = await api.get(`${API}/transactions/${transaction.id}/status`);
           if (response.data.status === "paid") {
             setTransaction(prev => ({ ...prev, status: "paid", paid_at: response.data.paid_at }));
             clearInterval(pollingRef.current);
@@ -58,7 +58,7 @@ export default function PublicPage() {
 
   const fetchPageData = async () => {
     try {
-      const response = await axios.get(`${API}/p/${codigo}`);
+      const response = await api.get(`${API}/p/${codigo}`);
       if (response.data.pode_indicar === false) {
         setPageData({ ...response.data, bloqueado: true });
       } else {
@@ -110,7 +110,7 @@ export default function PublicPage() {
 
     setCreating(true);
     try {
-      const response = await axios.post(`${API}/p/${codigo}/pay`, {
+      const response = await api.post(`${API}/p/${codigo}/pay`, {
         valor: valor,
         nome_pagador: formData.nome_pagador,
         cpf_pagador: formData.cpf_pagador.replace(/\D/g, "")

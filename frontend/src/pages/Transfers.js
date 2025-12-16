@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../components/Layout";
-import axios from "axios";
+import api from "../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -66,7 +66,7 @@ export default function Transfers() {
 
   const fetchTransfers = async () => {
     try {
-      const response = await axios.get(`${API}/transfers`);
+      const response = await api.get(`${API}/transfers`);
       setTransfers(response.data.transfers || []);
       setCarteiraId(response.data.carteira_id || "");
       setTaxaTransferencia(response.data.taxa_transferencia || 0.5);
@@ -81,7 +81,7 @@ export default function Transfers() {
   // Atualização silenciosa (sem loading, sem toast de erro)
   const fetchTransfersSilent = async () => {
     try {
-      const response = await axios.get(`${API}/transfers`);
+      const response = await api.get(`${API}/transfers`);
       setTransfers(response.data.transfers || []);
       setCarteiraId(response.data.carteira_id || "");
       setFrequentes(prev => prev); // Mantém frequentes
@@ -92,7 +92,7 @@ export default function Transfers() {
 
   const fetchFrequentes = async () => {
     try {
-      const response = await axios.get(`${API}/transfers/frequent`);
+      const response = await api.get(`${API}/transfers/frequent`);
       setFrequentes(response.data.frequentes || []);
     } catch (error) {
       console.error("Error fetching frequents:", error);
@@ -102,7 +102,7 @@ export default function Transfers() {
   const handleGenerateWallet = async () => {
     setGeneratingWallet(true);
     try {
-      const response = await axios.post(`${API}/user/generate-wallet`);
+      const response = await api.post(`${API}/user/generate-wallet`);
       setCarteiraId(response.data.carteira_id);
       toast.success("ID de carteira gerado com sucesso!");
     } catch (error) {
@@ -129,7 +129,7 @@ export default function Transfers() {
     const timer = setTimeout(async () => {
       setSearchingWallet(true);
       try {
-        const response = await axios.get(`${API}/transfers/validate/${carteiraDestino}`);
+        const response = await api.get(`${API}/transfers/validate/${carteiraDestino}`);
         setDestinatario(response.data);
       } catch (error) {
         setDestinatario(null);
@@ -153,7 +153,7 @@ export default function Transfers() {
     }
     
     try {
-      const response = await axios.get(`${API}/transfers/calculate?valor=${parseFloat(valor)}`);
+      const response = await api.get(`${API}/transfers/calculate?valor=${parseFloat(valor)}`);
       setCalculoTransfer(response.data);
       setShowConfirmDialog(true);
     } catch (error) {
@@ -166,7 +166,7 @@ export default function Transfers() {
     setError(null);
     
     try {
-      const response = await axios.post(`${API}/transfers`, {
+      const response = await api.post(`${API}/transfers`, {
         valor: parseFloat(valor),
         carteira_destino: carteiraDestino
       });
