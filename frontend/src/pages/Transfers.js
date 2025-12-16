@@ -18,7 +18,9 @@ import {
   CheckCircle,
   XCircle,
   Copy,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Star
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -30,6 +32,8 @@ export default function Transfers() {
   const [loading, setLoading] = useState(true);
   const [carteiraId, setCarteiraId] = useState("");
   const [taxaTransferencia, setTaxaTransferencia] = useState(0.5);
+  const [frequentes, setFrequentes] = useState([]);
+  const [generatingWallet, setGeneratingWallet] = useState(false);
   
   // Form
   const [valor, setValor] = useState("");
@@ -45,19 +49,47 @@ export default function Transfers() {
 
   useEffect(() => {
     fetchTransfers();
+    fetchFrequentes();
   }, []);
 
   const fetchTransfers = async () => {
     try {
       const response = await axios.get(`${API}/transfers`);
       setTransfers(response.data.transfers || []);
-      setCarteiraId(response.data.carteira_id);
+      setCarteiraId(response.data.carteira_id || "");
       setTaxaTransferencia(response.data.taxa_transferencia || 0.5);
     } catch (error) {
       toast.error("Erro ao carregar transferências");
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchFrequentes = async () => {
+    try {
+      const response = await axios.get(`${API}/transfers/frequent`);
+      setFrequentes(response.data.frequentes || []);
+    } catch (error) {
+      console.error("Error fetching frequents:", error);
+    }
+  };
+
+  const handleGenerateWallet = async () => {
+    setGeneratingWallet(true);
+    try {
+      const response = await axios.post(`${API}/user/generate-wallet`);
+      setCarteiraId(response.data.carteira_id);
+      toast.success("ID de carteira gerado com sucesso!");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erro ao gerar carteira");
+    } finally {
+      setGeneratingWallet(false);
+    }
+  };
+
+  const handleSelectFrequent = (freq) => {
+    setCarteiraDestino(freq.carteira_id);
+    setDestinatario({ nome: freq.nome, carteira_id: freq.carteira_id });
   };
 
   const handleValidateWallet = async () => {
