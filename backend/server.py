@@ -1112,9 +1112,13 @@ async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_cur
 async def list_withdrawals(user: dict = Depends(get_current_user)):
     withdrawals = await db.withdrawals.find({"parceiro_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    config = await get_config()
+    taxa_saque = user_data.get("taxa_saque") if user_data.get("taxa_saque") is not None else config.get("taxa_saque_padrao", 1.5)
+    valor_minimo = user_data.get("valor_minimo_saque") if user_data.get("valor_minimo_saque") is not None else config.get("valor_minimo_saque", 10.0)
     return {
         "withdrawals": withdrawals,
-        "taxa_saque": user_data.get("taxa_saque", 1.5)
+        "taxa_saque": taxa_saque,
+        "valor_minimo": valor_minimo
     }
 
 @api_router.get("/withdrawals/{withdrawal_id}")
