@@ -120,6 +120,8 @@ export default function Transfers() {
   const [lastTransferCount, setLastTransferCount] = useState(0);
   
   useEffect(() => {
+    const formatMoney = (value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
+    
     const checkNewTransfers = async () => {
       try {
         const response = await axios.get(`${API}/transfers`);
@@ -129,7 +131,7 @@ export default function Transfers() {
         if (lastTransferCount > 0 && receivedTransfers.length > lastTransferCount) {
           const newTransfer = receivedTransfers[0];
           toast.success(
-            `Você recebeu ${formatCurrency(newTransfer.valor_recebido)} de ${newTransfer.remetente_nome}!`,
+            `Você recebeu ${formatMoney(newTransfer.valor_recebido)} de ${newTransfer.remetente_nome}!`,
             { duration: 5000 }
           );
           setTransfers(currentTransfers);
