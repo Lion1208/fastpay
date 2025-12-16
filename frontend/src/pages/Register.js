@@ -197,13 +197,13 @@ export default function Register() {
             {/* Nome */}
             <div className="space-y-2">
               <Label htmlFor="nome" className="text-slate-300">
-                Nome Completo <span className="text-red-400">*</span>
+                Nome de Usuário <span className="text-red-400">*</span>
               </Label>
               <Input
                 id="nome"
                 name="nome"
                 type="text"
-                placeholder="Seu nome completo"
+                placeholder="Seu nome de usuário"
                 value={formData.nome}
                 onChange={handleChange}
                 className="input-default h-11"
