@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { Button } from "../components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card, CardContent } from "../components/ui/card";
 import { toast, Toaster } from "sonner";
-import { QrCode, Copy, ArrowRight, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { QrCode, Copy, ArrowRight, CheckCircle, Clock, AlertCircle, Loader2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
