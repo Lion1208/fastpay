@@ -251,6 +251,7 @@ export default function Login() {
               Não tem uma conta? Solicite um link de cadastro ao seu indicador.
             </p>
           </div>
+          )}
         </div>
       </div>
 
