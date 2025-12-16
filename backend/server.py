@@ -974,13 +974,36 @@ async def list_commissions(user: dict = Depends(get_current_user)):
 
 # ===================== WITHDRAWAL ROUTES =====================
 
+@api_router.get("/withdrawals/calculate")
+async def calculate_withdrawal(valor: float, user: dict = Depends(get_current_user)):
+    """Calcula quanto o usuário precisa ter para sacar um valor específico"""
+    user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    taxa_saque = user_data.get("taxa_saque", 1.5)
+    
+    valor_taxa = valor * (taxa_saque / 100)
+    valor_necessario = valor + valor_taxa
+    total_disponivel = user_data.get("saldo_disponivel", 0) + user_data.get("saldo_comissoes", 0)
+    
+    return {
+        "valor_solicitado": valor,
+        "taxa_percentual": taxa_saque,
+        "valor_taxa": round(valor_taxa, 2),
+        "valor_necessario": round(valor_necessario, 2),
+        "saldo_disponivel": total_disponivel,
+        "pode_sacar": total_disponivel >= valor_necessario
+    }
+
 @api_router.post("/withdrawals")
 async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_current_user)):
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    taxa_saque = user_data.get("taxa_saque", 1.5)
+    
+    valor_taxa = data.valor * (taxa_saque / 100)
+    valor_necessario = data.valor + valor_taxa
     total_disponivel = user_data.get("saldo_disponivel", 0) + user_data.get("saldo_comissoes", 0)
     
-    if data.valor > total_disponivel:
-        raise HTTPException(status_code=400, detail="Saldo insuficiente")
+    if valor_necessario > total_disponivel:
+        raise HTTPException(status_code=400, detail=f"Saldo insuficiente. Você precisa de R${valor_necessario:.2f} para sacar R${data.valor:.2f}")
     
     if data.valor < 10:
         raise HTTPException(status_code=400, detail="Valor mínimo de saque é R$10,00")
@@ -988,10 +1011,14 @@ async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_cur
     withdrawal = {
         "id": str(uuid.uuid4()),
         "parceiro_id": user["id"],
-        "valor": data.valor,
+        "valor_solicitado": data.valor,
+        "taxa_percentual": taxa_saque,
+        "valor_taxa": round(valor_taxa, 2),
+        "valor_total_retido": round(valor_necessario, 2),
         "chave_pix": data.chave_pix,
         "tipo_chave": data.tipo_chave,
         "status": "pending",
+        "observacoes": [],
         "motivo": None,
         "aprovado_por": None,
         "created_at": datetime.now(timezone.utc).isoformat()
@@ -999,6 +1026,139 @@ async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_cur
     
     await db.withdrawals.insert_one(withdrawal)
     
+    # Deduz o valor total (valor + taxa) do saldo
+    if valor_necessario <= user_data.get("saldo_disponivel", 0):
+        await db.users.update_one(
+            {"id": user["id"]},
+            {"$inc": {"saldo_disponivel": -valor_necessario}}
+        )
+    else:
+        resto = valor_necessario - user_data.get("saldo_disponivel", 0)
+        await db.users.update_one(
+            {"id": user["id"]},
+            {"$set": {"saldo_disponivel": 0}, "$inc": {"saldo_comissoes": -resto}}
+        )
+    
+    del withdrawal["_id"]
+    return withdrawal
+
+@api_router.get("/withdrawals")
+async def list_withdrawals(user: dict = Depends(get_current_user)):
+    withdrawals = await db.withdrawals.find({"parceiro_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    return {
+        "withdrawals": withdrawals,
+        "taxa_saque": user_data.get("taxa_saque", 1.5)
+    }
+
+@api_router.get("/withdrawals/{withdrawal_id}")
+async def get_withdrawal(withdrawal_id: str, user: dict = Depends(get_current_user)):
+    withdrawal = await db.withdrawals.find_one({"id": withdrawal_id, "parceiro_id": user["id"]}, {"_id": 0})
+    if not withdrawal:
+        raise HTTPException(status_code=404, detail="Saque não encontrado")
+    return withdrawal
+
+# ===================== TRANSFER ROUTES =====================
+
+@api_router.get("/transfers/validate/{carteira_id}")
+async def validate_transfer_wallet(carteira_id: str, user: dict = Depends(get_current_user)):
+    """Valida se uma carteira existe e retorna informações do destinatário"""
+    if carteira_id == user.get("carteira_id"):
+        raise HTTPException(status_code=400, detail="Não é possível transferir para sua própria carteira")
+    
+    destinatario = await db.users.find_one({"carteira_id": carteira_id, "status": "active"}, {"_id": 0, "senha": 0})
+    if not destinatario:
+        raise HTTPException(status_code=404, detail="Carteira não encontrada")
+    
+    return {
+        "nome": destinatario.get("nome"),
+        "carteira_id": destinatario.get("carteira_id")
+    }
+
+@api_router.get("/transfers/calculate")
+async def calculate_transfer(valor: float, user: dict = Depends(get_current_user)):
+    """Calcula os valores da transferência"""
+    user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    taxa_transferencia = user_data.get("taxa_transferencia", 0.5)
+    
+    valor_taxa = valor * (taxa_transferencia / 100)
+    valor_recebido = valor - valor_taxa
+    total_disponivel = user_data.get("saldo_disponivel", 0) + user_data.get("saldo_comissoes", 0)
+    
+    return {
+        "valor_enviado": valor,
+        "taxa_percentual": taxa_transferencia,
+        "valor_taxa": round(valor_taxa, 2),
+        "valor_recebido": round(valor_recebido, 2),
+        "saldo_disponivel": total_disponivel,
+        "pode_transferir": total_disponivel >= valor
+    }
+
+@api_router.post("/transfers")
+async def create_transfer(data: TransferCreate, user: dict = Depends(get_current_user)):
+    """Cria uma transferência entre usuários"""
+    user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    
+    if data.carteira_destino == user_data.get("carteira_id"):
+        raise HTTPException(status_code=400, detail="Não é possível transferir para sua própria carteira")
+    
+    destinatario = await db.users.find_one({"carteira_id": data.carteira_destino, "status": "active"})
+    if not destinatario:
+        raise HTTPException(status_code=404, detail="Carteira de destino não encontrada")
+    
+    if data.valor < 1:
+        raise HTTPException(status_code=400, detail="Valor mínimo de transferência é R$1,00")
+    
+    taxa_transferencia = user_data.get("taxa_transferencia", 0.5)
+    valor_taxa = data.valor * (taxa_transferencia / 100)
+    valor_recebido = data.valor - valor_taxa
+    
+    total_disponivel = user_data.get("saldo_disponivel", 0) + user_data.get("saldo_comissoes", 0)
+    if data.valor > total_disponivel:
+        raise HTTPException(status_code=400, detail="Saldo insuficiente")
+    
+    transfer_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Transação de saída (remetente)
+    tx_saida = {
+        "id": str(uuid.uuid4()),
+        "transfer_id": transfer_id,
+        "parceiro_id": user["id"],
+        "tipo": "transfer_out",
+        "valor": data.valor,
+        "valor_liquido": -data.valor,
+        "taxa_percentual": taxa_transferencia,
+        "taxa_total": round(valor_taxa, 2),
+        "destinatario_id": destinatario["id"],
+        "destinatario_nome": destinatario.get("nome"),
+        "destinatario_carteira": data.carteira_destino,
+        "status": "paid",
+        "descricao": f"Transferência para {destinatario.get('nome')}",
+        "created_at": now
+    }
+    
+    # Transação de entrada (destinatário)
+    tx_entrada = {
+        "id": str(uuid.uuid4()),
+        "transfer_id": transfer_id,
+        "parceiro_id": destinatario["id"],
+        "tipo": "transfer_in",
+        "valor": round(valor_recebido, 2),
+        "valor_liquido": round(valor_recebido, 2),
+        "remetente_id": user["id"],
+        "remetente_nome": user_data.get("nome"),
+        "remetente_carteira": user_data.get("carteira_id"),
+        "status": "paid",
+        "descricao": f"Transferência de {user_data.get('nome')}",
+        "created_at": now
+    }
+    
+    # Registra as transações
+    await db.transactions.insert_one(tx_saida)
+    await db.transactions.insert_one(tx_entrada)
+    
+    # Atualiza saldo do remetente
     if data.valor <= user_data.get("saldo_disponivel", 0):
         await db.users.update_one(
             {"id": user["id"]},
@@ -1011,13 +1171,56 @@ async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_cur
             {"$set": {"saldo_disponivel": 0}, "$inc": {"saldo_comissoes": -resto}}
         )
     
-    del withdrawal["_id"]
-    return withdrawal
+    # Atualiza saldo do destinatário
+    await db.users.update_one(
+        {"id": destinatario["id"]},
+        {"$inc": {"saldo_disponivel": valor_recebido}}
+    )
+    
+    # Registro da transferência
+    transfer = {
+        "id": transfer_id,
+        "remetente_id": user["id"],
+        "remetente_nome": user_data.get("nome"),
+        "remetente_carteira": user_data.get("carteira_id"),
+        "destinatario_id": destinatario["id"],
+        "destinatario_nome": destinatario.get("nome"),
+        "destinatario_carteira": data.carteira_destino,
+        "valor_enviado": data.valor,
+        "taxa_percentual": taxa_transferencia,
+        "valor_taxa": round(valor_taxa, 2),
+        "valor_recebido": round(valor_recebido, 2),
+        "status": "completed",
+        "created_at": now
+    }
+    
+    await db.transfers.insert_one(transfer)
+    
+    return {
+        "success": True,
+        "transfer_id": transfer_id,
+        "valor_enviado": data.valor,
+        "valor_recebido": round(valor_recebido, 2),
+        "destinatario": destinatario.get("nome")
+    }
 
-@api_router.get("/withdrawals")
-async def list_withdrawals(user: dict = Depends(get_current_user)):
-    withdrawals = await db.withdrawals.find({"parceiro_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(1000)
-    return {"withdrawals": withdrawals}
+@api_router.get("/transfers")
+async def list_transfers(user: dict = Depends(get_current_user)):
+    """Lista transferências do usuário (enviadas e recebidas)"""
+    transfers = await db.transfers.find({
+        "$or": [
+            {"remetente_id": user["id"]},
+            {"destinatario_id": user["id"]}
+        ]
+    }, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    
+    return {
+        "transfers": transfers,
+        "carteira_id": user_data.get("carteira_id"),
+        "taxa_transferencia": user_data.get("taxa_transferencia", 0.5)
+    }
 
 # ===================== TICKET ROUTES =====================
 
