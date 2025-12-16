@@ -155,7 +155,9 @@ async def get_config():
             "taxa_percentual_padrao": 2.0,
             "taxa_fixa_padrao": 0.99,
             "valor_minimo_indicacao": 1000.0,
-            "comissao_indicacao": 1.0
+            "comissao_indicacao": 1.0,
+            "nome_sistema": "FastPay",
+            "logo_url": ""
         }
         await db.config.insert_one(config)
     return config
