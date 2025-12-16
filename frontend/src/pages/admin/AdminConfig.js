@@ -384,13 +384,16 @@ export default function AdminConfig() {
           <CardHeader>
             <CardTitle className="text-lg text-white flex items-center gap-2">
               <Key className="w-5 h-5 text-red-400" />
-              Credenciais do Admin
+              Suas Credenciais de Acesso
             </CardTitle>
+            <p className="text-sm text-slate-500">
+              Altere seu código e senha pessoal. Não afeta outros administradores.
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-slate-300">Novo Código de Acesso</Label>
+                <Label className="text-slate-300">Seu Novo Código de Acesso</Label>
                 <Input
                   type="text"
                   placeholder="Ex: ADMIN2024"
@@ -400,7 +403,7 @@ export default function AdminConfig() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300">Nova Senha</Label>
+                <Label className="text-slate-300">Sua Nova Senha</Label>
                 <Input
                   type="password"
                   placeholder="Nova senha (deixe vazio para manter)"
@@ -412,7 +415,7 @@ export default function AdminConfig() {
             </div>
             
             <div className="space-y-2">
-              <Label className="text-slate-300">Senha Atual (obrigatório)</Label>
+              <Label className="text-slate-300">Sua Senha Atual (obrigatório)</Label>
               <Input
                 type="password"
                 placeholder="Digite sua senha atual para confirmar"
