@@ -38,8 +38,6 @@ export default function Transactions() {
     transacoes_pagas: 0
   });
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [showNewDialog, setShowNewDialog] = useState(false);
   const [showQrDialog, setShowQrDialog] = useState(false);
   const [selectedTx, setSelectedTx] = useState(null);
   
