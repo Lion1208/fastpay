@@ -178,6 +178,8 @@ async def get_config():
             "fastdepix_webhook_secret": "",
             "taxa_percentual_padrao": 2.0,
             "taxa_fixa_padrao": 0.99,
+            "taxa_saque_padrao": 1.5,
+            "taxa_transferencia_padrao": 0.5,
             "valor_minimo_indicacao": 1000.0,
             "comissao_indicacao": 1.0,
             "nome_sistema": "FastPay",
@@ -185,6 +187,10 @@ async def get_config():
         }
         await db.config.insert_one(config)
     return config
+
+def generate_wallet_id():
+    """Gera ID de carteira único"""
+    return f"W{secrets.token_hex(6).upper()}"
 
 def validate_cpf_cnpj(value: str) -> bool:
     clean = re.sub(r'[^\d]', '', value)
