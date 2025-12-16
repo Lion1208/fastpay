@@ -1618,6 +1618,11 @@ async def admin_get_user(user_id: str, admin: dict = Depends(get_admin_user)):
 
 @api_router.put("/admin/users/{user_id}")
 async def admin_update_user(user_id: str, data: AdminUserUpdate, admin: dict = Depends(get_admin_user)):
+    # Verifica se usuário está na rede do admin
+    network_ids = await get_network_user_ids(admin["id"])
+    if user_id not in network_ids:
+        raise HTTPException(status_code=403, detail="Usuário não pertence à sua rede")
+    
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
     if update_data:
         update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
@@ -1625,6 +1630,107 @@ async def admin_update_user(user_id: str, data: AdminUserUpdate, admin: dict = D
     
     updated = await db.users.find_one({"id": user_id}, {"_id": 0, "senha": 0})
     return updated
+
+class UserBlock(BaseModel):
+    motivo: str
+
+@api_router.post("/admin/users/{user_id}/block")
+async def admin_block_user(user_id: str, data: UserBlock, admin: dict = Depends(get_admin_user)):
+    """Bloqueia um usuário com motivo"""
+    # Verifica se usuário está na rede do admin
+    network_ids = await get_network_user_ids(admin["id"])
+    if user_id not in network_ids:
+        raise HTTPException(status_code=403, detail="Usuário não pertence à sua rede")
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user.get("role") == "admin":
+        raise HTTPException(status_code=400, detail="Não é possível bloquear um administrador")
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "status": "blocked",
+            "blocked_at": datetime.now(timezone.utc).isoformat(),
+            "blocked_by": admin["id"],
+            "block_reason": data.motivo
+        }}
+    )
+    
+    return {"message": "Usuário bloqueado com sucesso"}
+
+@api_router.post("/admin/users/{user_id}/unblock")
+async def admin_unblock_user(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Desbloqueia um usuário"""
+    # Verifica se usuário está na rede do admin
+    network_ids = await get_network_user_ids(admin["id"])
+    if user_id not in network_ids:
+        raise HTTPException(status_code=403, detail="Usuário não pertence à sua rede")
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "status": "active",
+            "unblocked_at": datetime.now(timezone.utc).isoformat()
+        },
+        "$unset": {
+            "blocked_at": "",
+            "blocked_by": "",
+            "block_reason": ""
+        }}
+    )
+    
+    return {"message": "Usuário desbloqueado com sucesso"}
+
+@api_router.delete("/admin/users/{user_id}")
+async def admin_delete_user(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Exclui um usuário e todos os seus dados"""
+    # Verifica se usuário está na rede do admin
+    network_ids = await get_network_user_ids(admin["id"])
+    if user_id not in network_ids:
+        raise HTTPException(status_code=403, detail="Usuário não pertence à sua rede")
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user.get("role") == "admin":
+        raise HTTPException(status_code=400, detail="Não é possível excluir um administrador")
+    
+    # Exclui todas as transações do usuário
+    await db.transactions.delete_many({"parceiro_id": user_id})
+    
+    # Exclui transferências
+    await db.transfers.delete_many({"$or": [{"remetente_id": user_id}, {"destinatario_id": user_id}]})
+    
+    # Exclui saques
+    await db.withdrawals.delete_many({"parceiro_id": user_id})
+    
+    # Exclui comissões relacionadas
+    await db.commissions.delete_many({"$or": [{"indicador_id": user_id}, {"indicado_id": user_id}]})
+    
+    # Exclui referrals
+    await db.referrals.delete_many({"$or": [{"indicador_id": user_id}, {"indicado_id": user_id}]})
+    
+    # Exclui tickets
+    await db.tickets.delete_many({"parceiro_id": user_id})
+    
+    # Exclui API keys
+    await db.api_keys.delete_many({"parceiro_id": user_id})
+    
+    # Exclui push subscriptions
+    await db.push_subscriptions.delete_many({"user_id": user_id})
+    
+    # Exclui o usuário
+    await db.users.delete_one({"id": user_id})
+    
+    return {"message": "Usuário excluído com sucesso"}
 
 @api_router.get("/admin/withdrawals")
 async def admin_list_withdrawals(
