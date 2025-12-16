@@ -1,19 +1,30 @@
 import axios from "axios";
 
-// Em produção, usa URL relativa (mesmo domínio)
-// Em desenvolvimento, usa a variável de ambiente
-const API_URL = process.env.REACT_APP_BACKEND_URL || "";
+// Detecta a URL base da API
+// 1. Primeiro tenta usar a variável de ambiente
+// 2. Se não existir, usa a URL atual do navegador (mesmo domínio)
+const getApiBaseUrl = () => {
+  if (process.env.REACT_APP_BACKEND_URL) {
+    return process.env.REACT_APP_BACKEND_URL;
+  }
+  // Fallback: usa o mesmo domínio do frontend
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return "";
+};
+
+const API_URL = getApiBaseUrl();
 
 // Função helper que adiciona o token em cada chamada
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  if (!token) return {};
+  return { Authorization: `Bearer ${token}` };
 };
 
 // Função para construir a URL correta
 const buildUrl = (path) => {
-  // Se API_URL está definido, usa ele + /api + path
-  // Se não, usa apenas /api + path (URL relativa)
   return `${API_URL}/api${path}`;
 };
 
