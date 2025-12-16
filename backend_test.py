@@ -282,9 +282,9 @@ class PIXSystemTester:
         else:
             self.log_result("API Key Listing", False, f"Response: {response}")
         
-        # Create new API key
+        # Create new API key (using query parameter as expected by backend)
         success, response = self.make_request(
-            "POST", "api-keys", {"name": "Test API Key"}, expected_status=200
+            "POST", "api-keys?name=Test API Key", None, expected_status=200
         )
         if success and "key" in response:
             self.log_result("API Key Creation", True, f"Created key: {response.get('name')}")
