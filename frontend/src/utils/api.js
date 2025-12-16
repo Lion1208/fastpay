@@ -2,22 +2,44 @@ import axios from "axios";
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-// Cria uma instância de axios configurada
-const api = axios.create({
-  baseURL: `${API_URL}/api`,
-  timeout: 30000,
-});
+// Função helper que adiciona o token em cada chamada
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
-// Interceptor para adicionar token em todas as requisições
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+// API wrapper simples que sempre pega o token do localStorage
+const api = {
+  get: (url, config = {}) => {
+    return axios.get(`${API_URL}/api${url}`, {
+      ...config,
+      headers: { ...getAuthHeaders(), ...config.headers }
+    });
   },
-  (error) => Promise.reject(error)
-);
+  post: (url, data, config = {}) => {
+    return axios.post(`${API_URL}/api${url}`, data, {
+      ...config,
+      headers: { ...getAuthHeaders(), ...config.headers }
+    });
+  },
+  put: (url, data, config = {}) => {
+    return axios.put(`${API_URL}/api${url}`, data, {
+      ...config,
+      headers: { ...getAuthHeaders(), ...config.headers }
+    });
+  },
+  delete: (url, config = {}) => {
+    return axios.delete(`${API_URL}/api${url}`, {
+      ...config,
+      headers: { ...getAuthHeaders(), ...config.headers }
+    });
+  },
+  patch: (url, data, config = {}) => {
+    return axios.patch(`${API_URL}/api${url}`, data, {
+      ...config,
+      headers: { ...getAuthHeaders(), ...config.headers }
+    });
+  }
+};
 
 export default api;
