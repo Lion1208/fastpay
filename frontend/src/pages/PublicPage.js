@@ -246,9 +246,9 @@ export default function PublicPage() {
               <CardContent className="p-6 text-center">
                 <div className="mb-6">
                   <div className="inline-block p-4 bg-white rounded-xl mb-4">
-                    {transaction.qr_code_base64 ? (
+                    {transaction.qr_code ? (
                       <img 
-                        src={`data:image/png;base64,${transaction.qr_code_base64}`} 
+                        src={transaction.qr_code} 
                         alt="QR Code PIX" 
                         className="w-48 h-48"
                       />
