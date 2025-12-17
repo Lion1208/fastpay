@@ -37,6 +37,8 @@ console.log("Current Origin:", typeof window !== 'undefined' ? window.location.o
 // Função helper que adiciona o token em cada chamada
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
+  // Debug: mostra se o token está presente
+  console.log("[API] getAuthHeaders - Token presente:", !!token);
   if (!token) return { 'Cache-Control': 'no-cache' };
   return { 
     Authorization: `Bearer ${token}`,
