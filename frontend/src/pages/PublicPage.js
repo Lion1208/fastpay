@@ -501,10 +501,53 @@ export default function PublicPage() {
                 </form>
               </CardContent>
             </Card>
+          ) : transaction.status === "expired" ? (
+            // PIX Expirado
+            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+              <CardContent className="p-6 text-center">
+                <div className="mb-6">
+                  <div className="inline-block p-4 bg-red-500/20 rounded-full mb-4">
+                    <AlertCircle className="w-16 h-16 text-red-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">PIX Expirado</h3>
+                  <p className="text-slate-400 mb-4">
+                    O tempo limite de {PIX_EXPIRATION_MINUTES} minutos foi excedido.
+                  </p>
+                  <p className="text-2xl font-bold text-red-400 mb-6">
+                    {formatCurrency(transaction.valor)}
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setTransaction(null);
+                      setTimeRemaining(null);
+                    }}
+                    className="w-full h-12"
+                    style={{ backgroundColor: corPrimaria }}
+                  >
+                    Gerar Novo PIX
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
               <CardContent className="p-6 text-center">
                 <div className="mb-6">
+                  {/* Timer de expiração */}
+                  {timeRemaining !== null && transaction.status === "pending" && (
+                    <div className={`mb-4 p-3 rounded-lg ${timeRemaining < 120 ? 'bg-red-500/20 border border-red-500/30' : 'bg-yellow-500/20 border border-yellow-500/30'}`}>
+                      <div className="flex items-center justify-center gap-2">
+                        <Timer className={`w-5 h-5 ${timeRemaining < 120 ? 'text-red-400' : 'text-yellow-400'}`} />
+                        <span className={`font-mono text-lg font-bold ${timeRemaining < 120 ? 'text-red-400' : 'text-yellow-400'}`}>
+                          {String(Math.floor(timeRemaining / 60)).padStart(2, '0')}:{String(timeRemaining % 60).padStart(2, '0')}
+                        </span>
+                      </div>
+                      <p className={`text-xs mt-1 ${timeRemaining < 120 ? 'text-red-300' : 'text-yellow-300'}`}>
+                        {timeRemaining < 120 ? 'Tempo quase esgotando!' : 'Tempo restante para pagamento'}
+                      </p>
+                    </div>
+                  )}
+                  
                   <div className="inline-block p-4 bg-white rounded-xl mb-4">
                     {transaction.qr_code ? (
                       <img 
