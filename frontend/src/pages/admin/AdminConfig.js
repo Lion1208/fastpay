@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Layout } from "../../components/Layout";
 import api from "../../utils/api";
 import { toast } from "sonner";
@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Settings, Key, Save, Eye, EyeOff, DollarSign, Palette, Image } from "lucide-react";
+import { Settings, Key, Save, Eye, EyeOff, DollarSign, Palette, Image, Upload, Trash2, Loader2 } from "lucide-react";
 
 
 export default function AdminConfig() {
