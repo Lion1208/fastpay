@@ -43,6 +43,8 @@ export default function Transactions() {
   const [loading, setLoading] = useState(true);
   const [showQrDialog, setShowQrDialog] = useState(false);
   const [selectedTx, setSelectedTx] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(null);
+  const timerRef = useRef(null);
   
   // Filtros
   const [filters, setFilters] = useState({
