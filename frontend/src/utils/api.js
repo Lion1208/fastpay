@@ -1,13 +1,26 @@
 import axios from "axios";
 
 // Detecta a URL base da API
-// 1. Primeiro tenta usar a variável de ambiente
-// 2. Se não existir, usa a URL atual do navegador (mesmo domínio)
+// Em produção (domínio próprio), usa a URL atual do navegador
+// Em desenvolvimento/preview, usa a variável de ambiente
 const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    const currentOrigin = window.location.origin;
+    
+    // Se está em um domínio de produção (não é localhost nem preview.emergentagent)
+    // usa o mesmo domínio para evitar problemas de CORS e configuração
+    if (!currentOrigin.includes('localhost') && 
+        !currentOrigin.includes('preview.emergentagent.com')) {
+      return currentOrigin;
+    }
+  }
+  
+  // Em desenvolvimento ou preview, usa a variável de ambiente
   if (process.env.REACT_APP_BACKEND_URL) {
     return process.env.REACT_APP_BACKEND_URL;
   }
-  // Fallback: usa o mesmo domínio do frontend
+  
+  // Fallback final: usa a origem atual
   if (typeof window !== 'undefined') {
     return window.location.origin;
   }
