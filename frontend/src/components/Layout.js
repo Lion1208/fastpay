@@ -90,9 +90,7 @@ export const Layout = ({ children }) => {
     fetchConfig();
   }, []);
 
-  // Polling global para notificações de transferências recebidas
-  // DESABILITADO TEMPORARIAMENTE - verificar se causa problemas em produção
-  /*
+  // Polling para notificações de transferências recebidas
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!user?.id || !token) return;
@@ -124,15 +122,15 @@ export const Layout = ({ children }) => {
       }
     };
     
-    const timeout = setTimeout(checkNewTransfers, 2000);
-    const interval = setInterval(checkNewTransfers, 15000);
+    // Inicia após 3 segundos e repete a cada 20 segundos
+    const timeout = setTimeout(checkNewTransfers, 3000);
+    const interval = setInterval(checkNewTransfers, 20000);
     
     return () => {
       clearTimeout(timeout);
       clearInterval(interval);
     };
   }, [user?.id, lastTransferCheck]);
-  */
 
   const handleLogout = () => {
     logout();
