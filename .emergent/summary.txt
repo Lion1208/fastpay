@@ -1,48 +1,54 @@
 <analysis>**original_problem_statement:**
-O usuário solicitou inicialmente um sistema de pagamentos e indicações com funcionalidades de login, cadastro por indicação, regras de comissão, limites de depósito e um painel de administração. O escopo foi expandido significativamente para incluir:
-- **Melhorias na UI/UX:** Filtros avançados e resumos na tela de transações, menus laterais fixos, e informações dinâmicas (taxas, nome do sistema) em várias telas.
+O usuário solicitou inicialmente um sistema de pagamentos e indicações com funcionalidades de login e cadastro. O escopo foi expandido para incluir:
+- **Melhorias na UI/UX:** Filtros, resumos, menus fixos e informações dinâmicas (taxas, nome do sistema). Adaptação de todas as telas de listagem para um layout de cards em dispositivos móveis.
 - **Novas Funcionalidades Core:**
-    - **Transferências entre Usuários:** Com ID de carteira único, taxas configuráveis, sugestões de contatos frequentes e busca automática de destinatário.
-    - **Sistema de Saques Avançado:** Com taxas configuráveis (global e por usuário), aprovação/recusa/observações pelo admin, e validação de saldo no frontend.
-    - **Segurança:** Implementação de 2FA para usuários e a capacidade do admin alterar as próprias credenciais.
-- **Arquitetura Multi-Admin:**
-    - Admins podem promover outros usuários a admin.
-    - Cada admin gerencia sua própria rede de usuários. As configurações de um admin (taxas, nome do sistema, API key) e a visualização de dados (saques, usuários, transações) devem ser isoladas para sua própria rede.
-- **Notificações:** Notificações em tempo real (via polling) para transferências recebidas e, mais recentemente, a solicitação de notificações push (Web Push API) que funcionam mesmo com o site fechado.
+    - **Transferências entre Usuários:** Com ID de carteira, taxas, sugestões de contatos e busca automática. Geração de comprovante em PDF, disponível por 48 horas.
+    - **Sistema de Saques Avançado:** Com taxas configuráveis, aprovação/recusa pelo admin e validação de saldo.
+    - **Segurança:** Implementação de 2FA e a capacidade do admin alterar as próprias credenciais.
+    - **Gestão de Usuários:** Admin pode bloquear (com motivo) e excluir usuários da sua rede.
+- **Arquitetura Multi-Admin:** Admins gerenciam sua própria rede de usuários, com configurações (taxas, nome do sistema) e visualização de dados (saques, usuários, transações) isoladas.
+- **Notificações:** Notificações em tempo real para transferências (via polling, atualmente desativado para depuração) e notificações push (Web Push API) para funcionar com o site fechado.
+- **Pagamento Público:** Permitir pagamento anônimo (com dados fictícios válidos na API) com um limite de R$ 500.
 
 **User's preferred language**: Portuguese
 
 **what currently exists?**
-Uma aplicação full-stack com backend FastAPI e frontend React.
-- **Backend:** Possui endpoints para gerenciar usuários, transações, saques, transferências, configurações, 2FA e a gestão de equipes de administradores. A lógica para o sistema multi-admin foi iniciada, com funções para identificar a rede de um admin. A verificação de pagamentos PIX e as notificações de transferência funcionam através de polling em .
-- **Frontend:** Interface com tema escuro que inclui painéis para usuário e admin. Possui páginas para transações (com filtros), saques (com cálculo de taxas), transferências (com busca automática), configurações de segurança (2FA) e um painel de admin completo para gerenciar usuários, configurações, saques e a equipe de admins. As notificações em tempo real são implementadas via polling no componente principal .
+Uma aplicação full-stack (FastAPI + React) com as seguintes funcionalidades implementadas:
+- **Autenticação e Usuários:** Login, registro por indicação, 2FA, e painéis para usuário e admin. Admins podem bloquear e excluir usuários. O tempo de expiração do token foi aumentado para 7 dias.
+- **Financeiro:** Transferências entre usuários (com geração de PDF), saques com aprovação de admin, comissões, e página de pagamento pública com opção de modo anônimo.
+- **Arquitetura Multi-Admin:** As funcionalidades de admin (listagem de usuários, saques, estatísticas) foram atualizadas para filtrar e operar apenas sobre os usuários da rede do admin logado. Configurações de taxas definidas pelo admin são aplicadas a todos os usuários de sua rede (existentes e novos).
+- **UI/UX:** A interface possui tema escuro e as principais telas de listagem (, , , ) são responsivas, exibindo cards em telas menores. O nome do sistema é carregado dinamicamente. Um favicon foi adicionado para corrigir erros 404.
+- **Notificações:** O backend e o frontend foram preparados para notificações push via Web Push API, mas a funcionalidade de polling que as acionava foi temporariamente desativada para depurar um problema crítico.
 
 **Last working item**:
-- **Last item agent was working:** Implementando as solicitações do usuário para a arquitetura multi-admin e notificações.
-    1.  Filtrou a lista de saques no painel de admin para mostrar apenas solicitações da rede do admin logado.
-    2.  Adicionou um card no dashboard do admin para exibir o valor total sacável de toda a sua rede.
-    3.  Reconheceu o pedido para implementar notificações push, mas ainda não iniciou a codificação.
+- **Last item agent was working:** Depurando um erro crítico e intermitente de  que ocorre exclusivamente no ambiente de produção. O usuário relata que ao navegar entre as páginas, a sessão é perdida aleatoriamente, forçando um redirecionamento para a tela de login. A hipótese do agente era um problema de *race condition* ou conflito com as chamadas de polling.
 - **Status:** IN PROGRESS
 - **Agent Testing Done:** N
-- **Which testing method agent to use?** both
+- **Which testing method agent to use?** N/A. O problema é específico do ambiente de produção e não pode ser reproduzido pelo agente. O próximo passo é o usuário fazer o deploy da última tentativa de correção e reportar o resultado. Se o erro persistir, o agente  deve ser invocado.
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Isolamento de Rede Multi-Admin Incompleto (P0)**
-  - **Description:** A principal exigência da arquitetura multi-admin é que um admin só possa ver e gerenciar dados (usuários, transações, etc.) de sua própria rede. A implementação foi iniciada para Saques e Estatísticas do Dashboard, mas precisa ser estendida a todas as outras áreas do painel de admin para garantir o isolamento completo.
+- **Issue 1: Erros intermitentes de  em produção (P0)**
+  - **Description:** A aplicação em produção está instável e praticamente inutilizável devido a erros  que ocorrem de forma intermitente ao navegar entre as páginas. Isso causa a perda da sessão do usuário e o redireciona para a tela de login. O problema não ocorre no ambiente de desenvolvimento do agente.
+  - **Attempted fixes:**
+    1.  Refatoração completa do sistema de autenticação para usar uma instância de  centralizada ().
+    2.  Aumento do tempo de expiração do token JWT para 7 dias.
+    3.  Tornou o  mais resiliente para fazer logout apenas em erros  explícitos, ignorando falhas de rede genéricas.
+    4.  Adição de lógica de  para chamadas de API falhas.
+    5.  **Última tentativa:** Desativação temporária do polling de notificações no  e adição de headers  nas chamadas de API para descartar problemas de cache ou conflito de requisições.
+  - **Next debug checklist:**
+    1.  O agente deve primeiro perguntar ao usuário se a última alteração (desativar o polling) resolveu o problema após o deploy em produção.
+    2.  Se o problema persistir, invocar o agente  imediatamente, pois este é um erro complexo e específico de ambiente.
+    3.  Investigar a configuração do ambiente de produção, especialmente como as variáveis de ambiente (como ) são injetadas durante o build.
+    4.  Analisar os logs do servidor de produção no momento exato em que um erro  ocorre para buscar mais pistas.
   - **Status:** IN PROGRESS
-  - **Is recurring issue?** N
-  - **Should Test frontend/backend/both after fix?** both
-
-- **Issue 2: Bug no Salvamento de Configurações do Admin (P1)**
-  - **Description:** O usuário relatou que algumas configurações salvas pelo admin (como o nome do sistema) não persistem após a atualização da página. O agente tentou uma correção, mas ela precisa ser verificada.
-  - **Status:** TESTING PENDING
   - **Is recurring issue?** Y
-  - **Should Test frontend/backend/both after fix?** both
+  - **Should Test frontend/backend/both after fix?** backend
+  - **Blocked on other issue:** N/A
 
-- **Issue 3: Bug na Aplicação de Valores Mínimos (P1)**
-  - **Description:** O valor mínimo para saque/transferência definido globalmente pelo admin não estava sendo aplicado corretamente a usuários sem um valor individual. O agente implementou uma correção na lógica de fallback do backend.
-  - **Status:** TESTING PENDING
+- **Issue 2: Bug no Salvamento de Configurações do Admin (P2)**
+  - **Description:** Um bug antigo onde configurações salvas pelo admin (ex: nome do sistema) não persistiam. O agente implementou uma correção que aplica as configurações a todos os usuários da rede do admin, mas essa correção nunca foi formalmente verificada pelo usuário.
+  - **Status:** USER VERIFICATION PENDING
   - **Is recurring issue?** Y
   - **Should Test frontend/backend/both after fix?** both
 
@@ -51,87 +57,113 @@ N/A
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-  - **Task 1: Implementar Notificações Push (P1):** Implementar a Web Push API para que os usuários recebam notificações de transferências mesmo com o navegador fechado. Isso exigirá a criação de um Service Worker no frontend e a adição de uma biblioteca como  no backend. (Files: , new , ).
-  - **Task 2: Concluir o Isolamento da Rede Multi-Admin (P0):** Auditar e refatorar todos os endpoints e páginas de administração (, , etc.) para usar a função  e garantir que um admin só possa acessar dados de sua própria rede. (Files: , ).
-  - **Task 3: Implementar Tickets de Suporte (P2):** Criar o sistema completo de tickets, uma funcionalidade do escopo original que ainda não foi iniciada. (Files: , new frontend pages).
-  - **Task 4: Permitir que o Admin altere o logo do sistema (P2):** Adicionar a funcionalidade de upload de imagem para o logo do sistema. (Files: , ).
+  - **Task 1: Reativar e Testar Notificações (P1):** Assim que o bug 401 for resolvido, reativar o polling no  e verificar se as notificações push e as notificações em tempo real (ícone de sino) estão funcionando corretamente. (Files: )
+  - **Task 2: Implementar Tickets de Suporte (P2):** Criar um sistema de tickets, funcionalidade do escopo original que ainda não foi iniciada. (Files: , new frontend pages).
+  - **Task 3: Permitir que o Admin altere o logo do sistema (P2):** Adicionar a funcionalidade de upload de imagem para o logo. (Files: , ).
 - **Future Tasks:**
-  - **Task 1: Estender o polling de backend para a API externa (P2):** A verificação de status de pagamento precisa ser implementada para transações originadas pela API externa do sistema. (File: ).
+  - **Task 1: Estender o polling de backend para a API externa (P3):** A verificação de status de pagamento PIX precisa ser implementada para transações originadas pela API externa do sistema. (File: ).
 
 **Completed work in this session**
-- **Sistema de Transferências:** Implementado de ponta a ponta, com carteira de usuário, taxas, confirmação de destinatário, busca automática e sugestões de contatos frequentes.
-- **Sistema de Saques:** Totalmente reformulado com taxas configuráveis, cálculo transparente, aprovação/recusa/observações pelo admin e validação de saldo.
-- **Segurança e Acesso:** Implementado 2FA com QR Code, e a funcionalidade para o admin alterar as próprias credenciais.
-- **Arquitetura Multi-Admin:** Iniciada a fundação com a capacidade de promover admins, criar uma equipe e começar a filtrar dados por rede.
-- **Melhorias de UI/UX:** Adicionados filtros avançados à tela de transações, menu lateral fixado, notificações em tempo real para transferências (via polling) e atualização automática de históricos.
-- **Correções de Bugs:** Resolvidos múltiplos problemas relatados pelo usuário, incluindo a lógica de indicações manuais, cálculo de volumes no dashboard e a aplicação de configurações globais de valores mínimos.
-- **Dinamismo da Interface:** O nome do sistema, taxas e comissões são agora carregados dinamicamente do backend e exibidos em locais como a página de login e o menu lateral.
+- **Refatoração de Autenticação:** Várias tentativas de corrigir erros de , incluindo a criação de uma instância  centralizada em  e a refatoração do .
+- **Gestão de Usuários pelo Admin:** Implementada a funcionalidade para admin bloquear (com motivo) e excluir usuários da sua própria rede.
+- **Responsividade da UI:** As principais telas de listagem (, , , etc.) foram adaptadas para exibir cards em dispositivos móveis.
+- **Geração de Comprovante PDF:** Adicionada a capacidade de gerar e baixar um PDF de comprovante para transferências, com o botão disponível por 48 horas no histórico.
+- **Pagamento Anônimo:** Implementada a opção de pagamento anônimo na página pública (), com validação de limite (R$ 500) e uso de dados fictícios para a API.
+- **Notificações Push:** Implementada a base para Web Push Notifications com  no backend e um Service Worker no frontend (atualmente inativo devido à depuração do erro 401).
+- **Correções de Bugs e UX:**
+  - O saldo do admin foi removido do cálculo de Total Sacável da Rede.
+  - As taxas definidas pelo admin agora são aplicadas a usuários existentes e novos da sua rede.
+  - A cor do valor líquido na lista de transações agora fica vermelha para valores negativos.
+  - Corrigido o erro do gráfico () no Dashboard adicionando .
+  - Corrigido o piscar do nome do sistema no login e no menu lateral.
+  - Adicionado um favicon para resolver erros 404.
+  - Adicionado um card na dashboard do usuário com seu link de pagamento público.
+
+**Earlier issues found/mentioned but not fixed**
+- A questão central e não resolvida é o erro intermitente de  em produção. Todas as outras questões se tornaram secundárias.
+
+**Known issue recurrence from previous fork**
+- **Bug no Salvamento de Configurações do Admin:** Recorrente da sessão anterior. Uma correção foi implementada, mas aguarda verificação.
+- **Erros :** Este é o principal problema recorrente *desta* sessão.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Backend:** FastAPI, Pydantic, Motor (MongoDB async),  para tarefas em segundo plano (polling),  para 2FA.
-- **Frontend:** React, React Router, Axios, TailwindCSS, Shadcn/UI.
-- **Database:** MongoDB.
-- **Architecture:** Full-stack desacoplado. A arquitetura está evoluindo para um modelo multi-admin com redes de usuários isoladas. A real-time UX é atualmente alcançada através de polling () no frontend.
+- **Backend:** FastAPI, Motor (MongoDB async),  (2FA),  (Push Notifications).
+- **Frontend:** React, React Router, Axios, TailwindCSS, Shadcn/UI,  (geração de PDF), Service Workers.
+- **Padrão de Código:** Foi estabelecida uma instância  centralizada em  para padronizar as chamadas de API e o tratamento de autenticação.
 
 **key DB schema**
-- : { , , ,  (para rastrear a rede), , , ,  (taxas, valores mínimos) }
-- : {  ('pix', 'transfer'), , , , , , ,  }
-- : { uid=0(root) gid=0(root) groups=0(root), , , , ,  }
+- : { , : ('active' | 'blocked' | 'inactive'), : str }
+- : { ,  }
+- : {  }
+- : {  }
 
 **changes in tech stack**
--  e  foram adicionados ao backend para suportar a funcionalidade de 2FA.
+- **Backend:** Adicionado .
+- **Frontend:** Adicionado  e .
 
 **All files of reference**
-- : Arquivo central que contém toda a lógica do backend.
-- : Componente crucial para a estrutura visual, menus e agora para a lógica de notificação global.
-- : Página da nova funcionalidade de transferências.
-- : Página de saques, significativamente modificada.
-- : Nova página para gerenciamento de admins.
-- : Página para o admin configurar taxas, nome do sistema e suas próprias credenciais.
-- : Página para admin gerenciar saques.
-- : Painel principal do admin.
+- : Modificado para adicionar endpoints de block/delete de usuário, push notifications e para corrigir a lógica de aplicação de taxas.
+- : Novo arquivo crítico que centraliza a configuração do  e o interceptor de autenticação.
+- : Refatorado múltiplas vezes para tentar corrigir o problema de autenticação.
+- : Modificado para carregar configurações de forma mais robusta e para desativar o polling de notificações (temporariamente).
+- : Modificado para exibir a mensagem de bloqueio e carregar o nome do sistema corretamente.
+- : Modificado para adicionar botões e modais de bloqueio/exclusão e para ser responsivo.
+- : Modificado para implementar a geração de PDF.
+- : Modificado para implementar a funcionalidade de pagamento anônimo.
+- : Novo arquivo para o Service Worker.
+
+**Areas that need refactoring**:
+- **Autenticação no Frontend:** O fluxo de autenticação (, , ) é extremamente frágil. Apesar das várias refatorações, ele ainda é a fonte do bug mais crítico da aplicação. Precisa de uma revisão completa e possivelmente de uma abordagem diferente para gerenciar o estado de  vs.  para evitar race conditions.
+
+**key api endpoints**
+- : Bloqueia um usuário com um motivo.
+- : Exclui um usuário.
+- : Obtém a chave pública VAPID.
+- : Registra um endpoint de push notification para um usuário.
 
 **Critical Info for New Agent**
-- **Isolamento de Rede Multi-Admin é a Prioridade Máxima:** Esta é a tarefa mais crítica e complexa em andamento. O usuário espera que cada admin opere em uma bolha, vendo e gerenciando apenas os usuários e dados de sua própria rede. A função  em  é a chave para isso e deve ser usada para filtrar dados em todos os endpoints de administração.
-- **Hierarquia de Configuração:** O sistema opera com uma hierarquia de 3 níveis para configurações como taxas e valores mínimos: 1º) Configuração específica do usuário, 2º) Configuração global do admin da rede, 3º) Padrão do sistema. Qualquer lógica de negócios que envolva esses valores deve respeitar essa ordem de precedência.
-- **UX em Tempo Real via Polling:** As notificações e atualizações de listas em tempo real são atualmente implementadas com  no frontend, que consulta o backend a cada poucos segundos. A próxima tarefa é evoluir para Web Push Notifications, que é uma tecnologia diferente e mais robusta.
+- **A PRIORIDADE MÁXIMA é resolver o erro intermitente de  em produção.** A aplicação está inutilizável por causa disso. O último passo do agente anterior foi desativar o polling como uma medida de diagnóstico. Seu primeiro passo deve ser confirmar com o usuário se isso resolveu o problema após um novo deploy. Se não, invoque o  imediatamente, pois o problema é complexo e específico do ambiente. Não perca tempo com outras tarefas até que isso seja resolvido.
+- A base para notificações push está implementada, mas foi desativada para a depuração. Uma vez que o bug 401 seja corrigido, essa funcionalidade precisa ser reativada e testada.
+- O usuário testa a aplicação manualmente após cada conjunto de alterações. Não use agentes de teste a menos que seja para um problema recorrente que você possa replicar.
 
 **documents created in this job**
-- 
+N/A
 
 **Last 10 User Messages and any pending user messages**
-- **10. User:** O saque do usuário só deve aparecer para o admin de sua rede. O dashboard do admin precisa mostrar o total sacável da rede. É possível fazer notificações push? (Status: **IN PROGRESS**)
-- **9. User:** A notificação de transferência agora funciona, mas o histórico na página de transferências não atualiza sem dar F5. (Status: **RESOLVED**)
-- **8. User:** Recebi uma transferência, mas a notificação não apareceu em tempo real. Deve funcionar em qualquer tela. (Status: **RESOLVED**)
-- **7. User:** O valor mínimo de transferência que mudei no admin não se refletiu para o usuário. (Status: **RESOLVED**)
-- **6. User:** O valor mínimo de saque que mudei no admin não se refletiu para o usuário. O menu do admin também precisa ter todas as opções do menu do usuário. (Status: **RESOLVED**)
-- **5. User:** Em transferências, a busca pelo usuário na carteira deveria ser automática ao digitar, sem precisar clicar na lupa. E precisamos de notificações em tempo real para transferências recebidas. (Status: **RESOLVED**)
-- **4. User:** As credenciais do admin (código/senha) que eu altero em  devem se aplicar apenas a mim, não a outros admins. (Status: **RESOLVED**, mas texto da UI foi melhorado)
-- **3. User:** Remove a página de Configurações do menu lateral e move as opções de 2FA/senha para o menu de perfil do usuário. O nome do sistema não está salvando corretamente. Valor mínimo de transferência/saque deve ser configurável. O ID da carteira precisa ser gerado para o usuário. (Status: **RESOLVED**)
-- **2. User:** O nome do sistema que o admin define precisa aparecer em todos os lugares (menu, login, etc.). As configurações do admin (taxas, apikey) devem se aplicar apenas à sua rede. (Status: **IN PROGRESS**)
-- **1. User:** As informações de taxas na tela de login devem ser dinâmicas. A tela de saque precisa ser mais transparente com informações sobre taxas e tempo de processamento. Admin também precisa da tela de transferências. (Status: **RESOLVED**)
+- **10. User:** Reportou que o erro 401 intermitente persiste, mesmo após várias tentativas de correção. (Status: **IN PROGRESS**)
+- **9. User:** Reportou que o nome do sistema aparece e some rapidamente ao carregar as páginas. (Status: **RESOLVED**)
+- **8. User:** Pediu para desabilitar o botão de pagamento anônimo se o valor for > 500 e usar dados fictícios na chamada da API. (Status: **RESOLVED**)
+- **7. User:** Pediu a implementação de pagamento anônimo com limite de R$ 500 na página pública. (Status: **RESOLVED**)
+- **6. User:** Reportou que o nome do sistema some na tela de login e há um erro de favicon. (Status: **RESOLVED**)
+- **5. User:** Reportou que o token de login expira muito rápido. (Status: **RESOLVED**)
+- **4. User:** Pediu para que as taxas configuradas pelo admin sejam aplicadas a usuários novos e existentes e que o saldo do admin não conte no total sacável. (Status: **RESOLVED**)
+- **3. User:** Reportou um erro  no console e problemas com o gráfico no dashboard. (Status: **RESOLVED**)
+- **2. User:** Pediu para colocar a tag  no HTML. (Status: **RESOLVED**)
+- **1. User:** Pediu para adaptar a página  para mobile e corrigir a cor de valores negativos em . (Status: **RESOLVED**)
 
 **Project Health Check:**
-- **Broken:** A funcionalidade de Multi-Admin está parcialmente implementada. Sem a conclusão do isolamento de rede, os admins podem ver dados que não deveriam, o que é um risco de segurança de dados.
+- **Broken:** A autenticação no ambiente de produção está quebrada. Erros intermitentes  tornam o sistema instável e inutilizável, sendo a principal causa de frustração do usuário.
 - **Mocked:** N/A
 
 **3rd Party Integrations**
-- **FastDePix:** Usada para a geração de QR Codes PIX. Requer uma chave de API que é configurada por cada administrador para sua própria rede.
+- **FastDePix:** Usada para a geração de QR Codes PIX.
+- **jsPDF (Frontend):** Usada para gerar comprovantes de transferência em PDF no lado do cliente.
 
 **Testing status**
-- **Testing agent used after significant changes:** NO (não recentemente)
+- **Testing agent used after significant changes:** NO
 - **Troubleshoot agent used after agent stuck in loop:** NO
 - **Test files created:** N/A
-- **Known regressions:** O salvamento do nome do sistema foi reportado como bug, uma correção foi tentada mas não verificada.
+- **Known regressions:** A funcionalidade de autenticação regrediu severamente, tornando-se instável em produção.
 
 **Credentials to test flow:**
-- **Admin:** O primeiro admin é criado com o código  e senha .
-- **Usuário:** Deve ser registrado através de um link de indicação, por exemplo: .
+- **Admin:** Código , senha .
+- **Usuário:** Deve ser criado através da página de registro com o código de um indicador, ex: .
 
 **What agent forgot to execute**
-- Implementar a funcionalidade de Tickets de Suporte, que fazia parte do escopo original.
-- Implementar a funcionalidade para o admin alterar o logo do sistema.
-- Estender a lógica de polling do backend para transações criadas via API externa.</analysis>
+- **Tickets de Suporte:** Funcionalidade do escopo original, ainda não iniciada.
+- **Upload de Logo:** Funcionalidade solicitada para o admin poder alterar o logo, não iniciada.
+- **Polling para API Externa:** Tarefa futura de estender a verificação de pagamentos para a API externa, não iniciada.
+- O agente foi completamente consumido pela tentativa de corrigir o bug crítico de autenticação, deixando todas as outras tarefas futuras de lado.</analysis>
