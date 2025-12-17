@@ -131,12 +131,15 @@ class PublicPaymentCreate(BaseModel):
     nome_pagador: str
     cpf_pagador: str
 
+class ExternalUserData(BaseModel):
+    name: str
+    cpf_cnpj: str
+    user_type: str = "individual"  # "individual" ou "company"
+
 class ExternalTransactionCreate(BaseModel):
     amount: float
-    description: Optional[str] = None
-    payer_name: Optional[str] = None
-    payer_cpf_cnpj: Optional[str] = None
-    custom_id: Optional[str] = None
+    user: ExternalUserData
+    custom_page_id: int  # OBRIGATÓRIO - ID da página de pagamento FastDePix
 
 class PushSubscription(BaseModel):
     endpoint: str
