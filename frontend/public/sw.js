@@ -132,12 +132,4 @@ self.addEventListener('notificationclick', function(event) {
   );
 });
 
-self.addEventListener('install', function(event) {
-  console.log('[SW] Instalado');
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', function(event) {
-  console.log('[SW] Ativado');
-  event.waitUntil(clients.claim());
-});
+// Service Worker ready
