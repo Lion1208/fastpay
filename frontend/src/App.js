@@ -144,6 +144,10 @@ function InstallPrompt() {
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const isAndroidDevice = /android/.test(ua);
     
+    // Debug para verificar no dispositivo
+    console.log('[PWA] User Agent:', ua);
+    console.log('[PWA] iOS:', isIOSDevice, 'Android:', isAndroidDevice);
+    
     setIsIOS(isIOSDevice);
     setIsAndroid(isAndroidDevice);
     
