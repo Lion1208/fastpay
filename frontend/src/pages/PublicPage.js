@@ -26,8 +26,55 @@ export default function PublicPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   
   const ANONYMOUS_LIMIT = 500; // Limite para pagamento anônimo
-  const ANONYMOUS_NAME = "Cliente Anônimo";
-  const ANONYMOUS_CPF = "12345678909"; // CPF válido fictício
+  
+  // Gera um CPF válido aleatório (com dígitos verificadores corretos)
+  const generateValidCPF = () => {
+    const randomDigit = () => Math.floor(Math.random() * 9);
+    const cpfArray = Array.from({ length: 9 }, randomDigit);
+    
+    // Calcula primeiro dígito verificador
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      sum += cpfArray[i] * (10 - i);
+    }
+    let d1 = 11 - (sum % 11);
+    d1 = d1 >= 10 ? 0 : d1;
+    cpfArray.push(d1);
+    
+    // Calcula segundo dígito verificador
+    sum = 0;
+    for (let i = 0; i < 10; i++) {
+      sum += cpfArray[i] * (11 - i);
+    }
+    let d2 = 11 - (sum % 11);
+    d2 = d2 >= 10 ? 0 : d2;
+    cpfArray.push(d2);
+    
+    return cpfArray.join('');
+  };
+  
+  // Gera um nome brasileiro aleatório
+  const generateRandomName = () => {
+    const firstNames = [
+      'João', 'Maria', 'José', 'Ana', 'Pedro', 'Paula', 'Carlos', 'Carla',
+      'Lucas', 'Julia', 'Gabriel', 'Amanda', 'Rafael', 'Fernanda', 'Bruno',
+      'Beatriz', 'Thiago', 'Leticia', 'Leonardo', 'Mariana', 'Gustavo', 'Camila',
+      'Daniel', 'Patricia', 'Felipe', 'Vanessa', 'Ricardo', 'Larissa', 'Eduardo',
+      'Natalia', 'Marcos', 'Tatiana', 'Alexandre', 'Renata', 'Rodrigo', 'Priscila'
+    ];
+    const lastNames = [
+      'Silva', 'Santos', 'Oliveira', 'Souza', 'Lima', 'Pereira', 'Costa', 'Rodrigues',
+      'Almeida', 'Nascimento', 'Ferreira', 'Araújo', 'Melo', 'Barbosa', 'Ribeiro',
+      'Martins', 'Carvalho', 'Gomes', 'Rocha', 'Dias', 'Monteiro', 'Cardoso',
+      'Moreira', 'Nunes', 'Vieira', 'Teixeira', 'Mendes', 'Freitas', 'Castro'
+    ];
+    
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName1 = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const lastName2 = lastNames[Math.floor(Math.random() * lastNames.length)];
+    
+    return `${firstName} ${lastName1} ${lastName2}`;
+  };
   
   // Verifica se o valor está dentro do limite anônimo
   const valorAtual = parseFloat(formData.valor) || 0;
