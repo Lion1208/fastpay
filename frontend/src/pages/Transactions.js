@@ -62,6 +62,16 @@ export default function Transactions() {
   
   const pollingRef = useRef(null);
 
+  // Calcula tempo restante baseado no created_at
+  const calculateTimeRemaining = useCallback((tx) => {
+    if (!tx?.created_at) return null;
+    const createdAt = new Date(tx.created_at);
+    const expiresAt = new Date(createdAt.getTime() + PIX_EXPIRATION_MINUTES * 60 * 1000);
+    const now = new Date();
+    const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+    return remaining;
+  }, []);
+
   useEffect(() => {
     fetchTransactions();
     
@@ -69,8 +79,34 @@ export default function Transactions() {
     
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
+
+  // Timer para o modal do PIX
+  useEffect(() => {
+    if (showQrDialog && selectedTx?.status === "pending") {
+      setTimeRemaining(calculateTimeRemaining(selectedTx));
+      
+      timerRef.current = setInterval(() => {
+        const remaining = calculateTimeRemaining(selectedTx);
+        setTimeRemaining(remaining);
+        
+        if (remaining <= 0) {
+          setSelectedTx(prev => ({ ...prev, status: "expired" }));
+          clearInterval(timerRef.current);
+          toast.error("Tempo esgotado! O PIX expirou.");
+        }
+      }, 1000);
+      
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
+    } else {
+      setTimeRemaining(null);
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, [showQrDialog, selectedTx?.id, selectedTx?.status, calculateTimeRemaining]);
 
   const fetchTransactions = async (showLoading = true) => {
     if (showLoading) setLoading(true);
