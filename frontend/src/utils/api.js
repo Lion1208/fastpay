@@ -69,37 +69,46 @@ const withRetry = async (fn, retries = 1) => {
   }
 };
 
+// Função que faz a chamada e loga detalhes
+const makeRequest = async (method, url, data = null, config = {}) => {
+  const fullUrl = buildUrl(url);
+  const headers = { ...getAuthHeaders(), ...config.headers };
+  
+  console.log(`[API] ${method.toUpperCase()} ${url}`);
+  console.log(`[API] Headers Authorization:`, headers.Authorization ? 'Bearer ***' : 'AUSENTE!');
+  
+  const requestConfig = { ...config, headers };
+  
+  try {
+    let response;
+    if (method === 'get' || method === 'delete') {
+      response = await axios[method](fullUrl, requestConfig);
+    } else {
+      response = await axios[method](fullUrl, data, requestConfig);
+    }
+    return response;
+  } catch (error) {
+    console.log(`[API] ERRO ${method.toUpperCase()} ${url}:`, error.response?.status, error.message);
+    throw error;
+  }
+};
+
 // API wrapper com retry automático para erros de rede
 const api = {
   get: (url, config = {}) => {
-    return withRetry(() => axios.get(buildUrl(url), {
-      ...config,
-      headers: { ...getAuthHeaders(), ...config.headers }
-    }));
+    return withRetry(() => makeRequest('get', url, null, config));
   },
   post: (url, data, config = {}) => {
-    return withRetry(() => axios.post(buildUrl(url), data, {
-      ...config,
-      headers: { ...getAuthHeaders(), ...config.headers }
-    }));
+    return withRetry(() => makeRequest('post', url, data, config));
   },
   put: (url, data, config = {}) => {
-    return withRetry(() => axios.put(buildUrl(url), data, {
-      ...config,
-      headers: { ...getAuthHeaders(), ...config.headers }
-    }));
+    return withRetry(() => makeRequest('put', url, data, config));
   },
   delete: (url, config = {}) => {
-    return withRetry(() => axios.delete(buildUrl(url), {
-      ...config,
-      headers: { ...getAuthHeaders(), ...config.headers }
-    }));
+    return withRetry(() => makeRequest('delete', url, null, config));
   },
   patch: (url, data, config = {}) => {
-    return withRetry(() => axios.patch(buildUrl(url), data, {
-      ...config,
-      headers: { ...getAuthHeaders(), ...config.headers }
-    }));
+    return withRetry(() => makeRequest('patch', url, data, config));
   }
 };
 
