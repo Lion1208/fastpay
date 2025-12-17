@@ -6,12 +6,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Inicializa o token de forma síncrona
-  const [token, setToken] = useState(() => {
-    const savedToken = localStorage.getItem("token");
-    console.log("[AuthContext] Init - Token no localStorage:", !!savedToken);
-    return savedToken;
-  });
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
 
   const logout = useCallback(() => {
     localStorage.removeItem("token");
