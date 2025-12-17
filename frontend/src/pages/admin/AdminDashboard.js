@@ -153,6 +153,47 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
+        {/* Payment Link Card */}
+        <Card className="card-dashboard">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center">
+                  <LinkIcon className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-white">Seu Link de Pagamento</p>
+                  <p className="text-sm text-slate-400">Compartilhe para receber pagamentos PIX</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex-1 min-w-0 px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700">
+                  <code className="text-green-400 text-sm truncate block">{paymentLink}</code>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => copyToClipboard(paymentLink)}
+                  className="border-slate-700 hover:bg-slate-800"
+                  title="Copiar link"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => window.open(paymentLink, '_blank')}
+                  className="border-slate-700 hover:bg-slate-800"
+                  title="Abrir link"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="card-dashboard">
