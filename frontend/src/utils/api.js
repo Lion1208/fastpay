@@ -29,6 +29,11 @@ const getApiBaseUrl = () => {
 
 const API_URL = getApiBaseUrl();
 
+// Debug: mostra qual URL está sendo usada (remover em produção final)
+console.log("=== API CONFIG ===");
+console.log("API_URL:", API_URL);
+console.log("Current Origin:", typeof window !== 'undefined' ? window.location.origin : 'N/A');
+
 // Função helper que adiciona o token em cada chamada
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
