@@ -162,6 +162,8 @@ export default function Transactions() {
         return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 flex items-center gap-1"><Clock className="w-3 h-3" /> Pendente</Badge>;
       case "cancelled":
         return <Badge className="bg-red-500/20 text-red-400 border-red-500/30 flex items-center gap-1"><XCircle className="w-3 h-3" /> Cancelado</Badge>;
+      case "expired":
+        return <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Expirado</Badge>;
       default:
         return <Badge className="bg-slate-500/20 text-slate-400">{status}</Badge>;
     }
