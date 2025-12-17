@@ -2090,7 +2090,7 @@ async def get_user_by_api_key(authorization: str = Header(None)):
 
 @api_router.post("/v1/transactions")
 async def external_create_transaction(data: ExternalTransactionCreate, user: dict = Depends(get_user_by_api_key)):
-    """API externa para criação de transações (compatível com FastDePix)"""
+    """API externa para criação de transações (compatível com FastDePix/CashMatrix)"""
     if data.amount < 10:
         raise HTTPException(status_code=400, detail="Valor mínimo é R$10,00")
     
@@ -2101,6 +2101,9 @@ async def external_create_transaction(data: ExternalTransactionCreate, user: dic
     taxa_total = (data.amount * taxa_percentual / 100) + taxa_fixa
     valor_liquido = data.amount - taxa_total
     
+    # Limpar CPF/CNPJ
+    cpf_cnpj_clean = data.user.cpf_cnpj.replace(".", "").replace("-", "").replace("/", "")
+    
     transaction = {
         "id": str(uuid.uuid4()),
         "parceiro_id": user["id"],
@@ -2109,10 +2112,10 @@ async def external_create_transaction(data: ExternalTransactionCreate, user: dic
         "taxa_percentual": taxa_percentual,
         "taxa_fixa": taxa_fixa,
         "taxa_total": taxa_total,
-        "cpf_cnpj": data.payer_cpf_cnpj,
-        "nome_pagador": data.payer_name,
-        "descricao": data.description or f"Pagamento via API",
-        "custom_id": data.custom_id,
+        "cpf_cnpj": cpf_cnpj_clean,
+        "nome_pagador": data.user.name,
+        "user_type": data.user.user_type,
+        "custom_page_id": data.custom_page_id,
         "status": "pending",
         "qr_code": None,
         "qr_code_base64": None,
@@ -2124,10 +2127,8 @@ async def external_create_transaction(data: ExternalTransactionCreate, user: dic
     api_key = config.get("fastdepix_api_key")
     if api_key:
         try:
-            cpf_cnpj_clean = (data.payer_cpf_cnpj or "").replace(".", "").replace("-", "").replace("/", "")
-            user_type = "company" if len(cpf_cnpj_clean) == 14 else "individual"
-            
             async with httpx.AsyncClient() as client_http:
+                # Payload correto para FastDePix/CashMatrix
                 response = await client_http.post(
                     "https://fastdepix.space/api/v1/transactions",
                     headers={
@@ -2137,10 +2138,11 @@ async def external_create_transaction(data: ExternalTransactionCreate, user: dic
                     json={
                         "amount": data.amount,
                         "user": {
-                            "name": data.payer_name or "Cliente",
+                            "name": data.user.name,
                             "cpf_cnpj": cpf_cnpj_clean,
-                            "user_type": user_type
-                        }
+                            "user_type": data.user.user_type
+                        },
+                        "custom_page_id": data.custom_page_id
                     },
                     timeout=30.0
                 )
@@ -2166,7 +2168,6 @@ async def external_create_transaction(data: ExternalTransactionCreate, user: dic
         "qr_code": transaction["qr_code"],
         "qr_code_base64": transaction["qr_code_base64"],
         "pix_copy_paste": transaction["pix_copia_cola"],
-        "custom_id": transaction.get("custom_id"),
         "created_at": transaction["created_at"]
     }
 
