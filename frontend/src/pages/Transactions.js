@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Layout } from "../components/Layout";
 import api from "../utils/api";
 import { toast } from "sonner";
@@ -24,8 +24,12 @@ import {
   DollarSign,
   Receipt,
   CreditCard,
-  Calendar
+  Calendar,
+  Timer,
+  AlertCircle
 } from "lucide-react";
+
+const PIX_EXPIRATION_MINUTES = 20;
 
 
 export default function Transactions() {
