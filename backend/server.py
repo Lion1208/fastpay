@@ -436,11 +436,31 @@ async def process_paid_transaction(transaction: dict, config: dict):
 
 async def check_pending_transactions():
     """Job de background que verifica transações pendentes a cada 5 segundos"""
+    EXPIRATION_MINUTES = 20  # Tempo limite para pagamento PIX
+    
     while True:
         try:
             config = await get_config()
             api_key = config.get("fastdepix_api_key")
             
+            # 1. EXPIRAR transações pendentes com mais de 20 minutos
+            expiration_time = datetime.now(timezone.utc) - timedelta(minutes=EXPIRATION_MINUTES)
+            expired_result = await db.transactions.update_many(
+                {
+                    "status": "pending",
+                    "created_at": {"$lt": expiration_time.isoformat()}
+                },
+                {
+                    "$set": {
+                        "status": "expired",
+                        "expired_at": datetime.now(timezone.utc).isoformat()
+                    }
+                }
+            )
+            if expired_result.modified_count > 0:
+                logger.info(f"Expired {expired_result.modified_count} transactions")
+            
+            # 2. Verificar pagamentos via FastDePix API
             if api_key:
                 # Busca transações pendentes com ID do FastDePix
                 pending_txs = await db.transactions.find({
