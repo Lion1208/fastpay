@@ -175,17 +175,56 @@ export default function AdminConfig() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-300">URL do Logo</Label>
-                <Input
-                  type="url"
-                  value={config?.logo_url || ""}
-                  onChange={(e) => handleChange("logo_url", e.target.value)}
-                  className="input-default"
-                  placeholder="https://exemplo.com/logo.png"
-                  data-testid="logo-url-input"
-                />
+                <Label className="text-slate-300">Logo do Sistema</Label>
+                
+                {/* Upload de arquivo */}
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleLogoUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingLogo}
+                    className="flex-1 border-slate-700 hover:bg-slate-800"
+                  >
+                    {uploadingLogo ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="mr-2 h-4 w-4" />
+                    )}
+                    {uploadingLogo ? "Enviando..." : "Fazer Upload"}
+                  </Button>
+                  {config?.logo_url && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleRemoveLogo}
+                      className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Ou URL externa */}
+                <div className="relative">
+                  <Input
+                    type="url"
+                    value={config?.logo_url || ""}
+                    onChange={(e) => handleChange("logo_url", e.target.value)}
+                    className="input-default"
+                    placeholder="Ou cole uma URL: https://exemplo.com/logo.png"
+                    data-testid="logo-url-input"
+                  />
+                </div>
                 <p className="text-xs text-slate-500">
-                  Deixe vazio para usar o ícone padrão
+                  Faça upload de uma imagem ou cole uma URL. Deixe vazio para usar o ícone padrão.
                 </p>
               </div>
 
