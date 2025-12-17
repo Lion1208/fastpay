@@ -21,10 +21,52 @@ export default function AdminConfig() {
     senha_nova: ""
   });
   const [savingCredentials, setSavingCredentials] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchConfig();
   }, []);
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor, selecione uma imagem");
+      return;
+    }
+
+    // Validar tamanho (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 2MB");
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await api.post('/admin/upload-logo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      handleChange("logo_url", response.data.url);
+      toast.success("Logo enviado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao enviar logo");
+    } finally {
+      setUploadingLogo(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    handleChange("logo_url", "");
+    toast.success("Logo removido");
+  };
 
   const fetchConfig = async () => {
     try {
