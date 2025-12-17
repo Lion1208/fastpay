@@ -44,11 +44,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    console.log("[AuthContext] useEffect disparado - token:", !!token);
     if (token) {
       fetchUser();
     } else {
-      console.log("[AuthContext] Sem token no state, setLoading false");
       setLoading(false);
     }
   }, [token, fetchUser]);
