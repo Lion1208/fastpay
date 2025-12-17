@@ -444,21 +444,49 @@ async def check_pending_transactions():
             api_key = config.get("fastdepix_api_key")
             
             # 1. EXPIRAR transações pendentes com mais de 20 minutos
-            expiration_time = datetime.now(timezone.utc) - timedelta(minutes=EXPIRATION_MINUTES)
-            expired_result = await db.transactions.update_many(
-                {
-                    "status": "pending",
-                    "created_at": {"$lt": expiration_time.isoformat()}
-                },
-                {
-                    "$set": {
-                        "status": "expired",
-                        "expired_at": datetime.now(timezone.utc).isoformat()
-                    }
-                }
-            )
-            if expired_result.modified_count > 0:
-                logger.info(f"Expired {expired_result.modified_count} transactions")
+            # Busca todas as transações pendentes e verifica manualmente (mais robusto)
+            now = datetime.now(timezone.utc)
+            pending_txs_to_expire = await db.transactions.find({
+                "status": "pending"
+            }).to_list(500)
+            
+            expired_count = 0
+            for tx in pending_txs_to_expire:
+                created_at_str = tx.get("created_at")
+                if created_at_str:
+                    try:
+                        # Tenta parsear o datetime
+                        if isinstance(created_at_str, str):
+                            # Remove timezone info se existir e adiciona UTC
+                            created_at_str = created_at_str.replace("Z", "+00:00")
+                            if "+" not in created_at_str and created_at_str.endswith("00:00"):
+                                created_at = datetime.fromisoformat(created_at_str)
+                            else:
+                                created_at = datetime.fromisoformat(created_at_str)
+                            if created_at.tzinfo is None:
+                                created_at = created_at.replace(tzinfo=timezone.utc)
+                        else:
+                            created_at = created_at_str
+                            if created_at.tzinfo is None:
+                                created_at = created_at.replace(tzinfo=timezone.utc)
+                        
+                        # Verifica se passou mais de 20 minutos
+                        age_minutes = (now - created_at).total_seconds() / 60
+                        if age_minutes >= EXPIRATION_MINUTES:
+                            await db.transactions.update_one(
+                                {"id": tx["id"]},
+                                {"$set": {
+                                    "status": "expired",
+                                    "expired_at": now.isoformat()
+                                }}
+                            )
+                            expired_count += 1
+                            logger.info(f"Expired transaction {tx['id']} (age: {age_minutes:.1f} min)")
+                    except Exception as parse_error:
+                        logger.error(f"Error parsing date for tx {tx.get('id')}: {parse_error}")
+            
+            if expired_count > 0:
+                logger.info(f"Total expired transactions: {expired_count}")
             
             # 2. Verificar pagamentos via FastDePix API
             if api_key:
