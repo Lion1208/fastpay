@@ -70,10 +70,34 @@ export default function Login() {
       
       // Login bem sucedido - salva token
       const { user: userData, token: newToken } = response.data;
+      
+      // Debug: verifica se o token veio do backend
+      console.log("=== LOGIN DEBUG ===");
+      console.log("Token recebido:", newToken ? "SIM (length: " + newToken.length + ")" : "NÃO");
+      console.log("User recebido:", userData);
+      
+      if (!newToken) {
+        toast.error("Erro: Token não recebido do servidor");
+        setLoading(false);
+        return;
+      }
+      
+      // Salva o token no localStorage
       localStorage.setItem("token", newToken);
+      
+      // Verifica se foi salvo corretamente
+      const savedToken = localStorage.getItem("token");
+      console.log("Token salvo no localStorage:", savedToken ? "SIM" : "NÃO");
+      
+      if (!savedToken) {
+        toast.error("Erro: Não foi possível salvar o token");
+        setLoading(false);
+        return;
+      }
       
       // Força recarga completa para garantir que o contexto carregue o token
       const destino = userData.role === "admin" ? "/admin" : "/dashboard";
+      console.log("Redirecionando para:", destino);
       window.location.replace(destino);
     } catch (error) {
       const detail = error.response?.data?.detail || "";
