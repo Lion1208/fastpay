@@ -85,11 +85,13 @@ const response = await fetch('${baseUrl}/api/v1/transactions', {
     'Authorization': 'Bearer SUA_API_KEY'
   },
   body: JSON.stringify({
-    amount: 100.00,
-    description: 'Pagamento de serviço',
-    payer_name: 'João Silva',
-    payer_cpf_cnpj: '12345678900',
-    custom_id: 'pedido_123' // opcional
+    amount: 150.00,
+    user: {
+      name: "João Silva",
+      cpf_cnpj: "12345678901",
+      user_type: "individual"  // "individual" ou "company"
+    },
+    custom_page_id: 123  // OBRIGATÓRIO - ID da página de pagamento
   })
 });
 
@@ -97,14 +99,17 @@ const data = await response.json();
 console.log(data);
 // {
 //   id: "uuid",
-//   amount: 100.00,
+//   amount: 150.00,
 //   status: "pending",
-//   qr_code: "...",
-//   qr_code_base64: "...",
-//   pix_copy_paste: "...",
-//   custom_id: "pedido_123",
+//   qr_code: "00020126...",
+//   qr_code_base64: "data:image/png;base64,...",
+//   pix_copy_paste: "00020126...",
 //   created_at: "2024-01-01T00:00:00Z"
-// }`,
+// }
+
+// ⚠️ IMPORTANTE: O sistema faz polling automático para detectar
+// pagamentos e atualizar o status. Você também pode consultar
+// manualmente usando o endpoint de consulta.`,
     get: `// Consultar transação
 const response = await fetch('${baseUrl}/api/v1/transactions/{transaction_id}', {
   method: 'GET',
@@ -114,7 +119,13 @@ const response = await fetch('${baseUrl}/api/v1/transactions/{transaction_id}', 
 });
 
 const data = await response.json();
-// Retorna detalhes da transação incluindo status atualizado`,
+// {
+//   id: "uuid",
+//   amount: 150.00,
+//   status: "paid",  // "pending", "paid", "expired", "cancelled"
+//   paid_at: "2024-01-01T12:00:00Z",
+//   ...
+// }`,
     list: `// Listar transações
 const response = await fetch('${baseUrl}/api/v1/transactions?status=paid&limit=50', {
   method: 'GET',
@@ -124,18 +135,29 @@ const response = await fetch('${baseUrl}/api/v1/transactions?status=paid&limit=5
 });
 
 const data = await response.json();
-// { data: [...transações] }`,
-    webhook: `// Exemplo de payload do webhook
+// { 
+//   data: [...transações],
+//   total: 100,
+//   page: 1
+// }`,
+    webhook: `// Exemplo de payload do webhook (quando configurado)
+// O sistema notifica automaticamente quando um pagamento é confirmado
 {
   "event": "transaction.paid",
   "data": {
     "id": "uuid-da-transacao",
-    "amount": 100.00,
+    "amount": 150.00,
     "status": "paid",
-    "custom_id": "pedido_123",
+    "user": {
+      "name": "João Silva",
+      "cpf_cnpj": "12345678901"
+    },
     "paid_at": "2024-01-01T12:00:00Z"
   }
-}`
+}
+
+// ⚠️ NOTA: O polling de pagamento é feito automaticamente pelo sistema
+// para detectar pagamentos e atualizar o status em tempo real.`
   };
 
   return (
