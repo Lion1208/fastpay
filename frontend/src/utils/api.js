@@ -19,8 +19,11 @@ const API_URL = getApiBaseUrl();
 // Função helper que adiciona o token em cada chamada
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
-  if (!token) return {};
-  return { Authorization: `Bearer ${token}` };
+  if (!token) return { 'Cache-Control': 'no-cache' };
+  return { 
+    Authorization: `Bearer ${token}`,
+    'Cache-Control': 'no-cache'
+  };
 };
 
 // Função para construir a URL correta
