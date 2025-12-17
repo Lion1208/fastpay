@@ -83,14 +83,52 @@ export default function PublicPage() {
   const isAnonymousValueValid = valorAtual >= 10 && valorAtual <= ANONYMOUS_LIMIT;
   const isAnonymousOverLimit = isAnonymous && valorAtual > ANONYMOUS_LIMIT;
   const pollingRef = useRef(null);
+  const timerRef = useRef(null);
+
+  // Calcula tempo restante baseado no created_at
+  const calculateTimeRemaining = useCallback(() => {
+    if (!transaction?.created_at) return null;
+    const createdAt = new Date(transaction.created_at);
+    const expiresAt = new Date(createdAt.getTime() + PIX_EXPIRATION_MINUTES * 60 * 1000);
+    const now = new Date();
+    const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+    return remaining;
+  }, [transaction?.created_at]);
 
   useEffect(() => {
     fetchPageData();
     
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [codigo]);
+
+  // Timer de contagem regressiva
+  useEffect(() => {
+    if (transaction && transaction.status === "pending") {
+      // Calcular tempo inicial
+      setTimeRemaining(calculateTimeRemaining());
+      
+      // Atualizar a cada segundo
+      timerRef.current = setInterval(() => {
+        const remaining = calculateTimeRemaining();
+        setTimeRemaining(remaining);
+        
+        // Se expirou, marcar como expirado
+        if (remaining <= 0) {
+          setTransaction(prev => ({ ...prev, status: "expired" }));
+          clearInterval(timerRef.current);
+          clearInterval(pollingRef.current);
+          toast.error("Tempo esgotado! O PIX expirou.");
+        }
+      }, 1000);
+      
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
+    }
+  }, [transaction?.id, transaction?.status, calculateTimeRemaining]);
 
   // Polling para verificar status (apenas consulta o backend que já faz o trabalho)
   useEffect(() => {
@@ -101,8 +139,14 @@ export default function PublicPage() {
           if (response.data.status === "paid") {
             setTransaction(prev => ({ ...prev, status: "paid", paid_at: response.data.paid_at }));
             clearInterval(pollingRef.current);
+            clearInterval(timerRef.current);
             setShowSuccess(true);
             toast.success("Pagamento confirmado!");
+          } else if (response.data.status === "expired") {
+            setTransaction(prev => ({ ...prev, status: "expired" }));
+            clearInterval(pollingRef.current);
+            clearInterval(timerRef.current);
+            toast.error("Tempo esgotado! O PIX expirou.");
           }
         } catch (error) {
           console.error("Error checking payment status:", error);
