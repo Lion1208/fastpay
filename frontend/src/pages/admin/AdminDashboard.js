@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../../components/Layout";
+import { useAuth } from "../../contexts/AuthContext";
 import api from "../../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Users, CreditCard, Wallet, MessageSquare, TrendingUp, DollarSign } from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { Users, CreditCard, Wallet, MessageSquare, TrendingUp, DollarSign, Link as LinkIcon, Copy, ExternalLink } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 
 
