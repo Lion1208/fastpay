@@ -175,10 +175,14 @@ export default function PublicPage() {
 
     setCreating(true);
     try {
+      // Gera dados fictícios únicos para pagamento anônimo
+      const nomePagador = isAnonymous ? generateRandomName() : formData.nome_pagador;
+      const cpfPagador = isAnonymous ? generateValidCPF() : formData.cpf_pagador.replace(/\D/g, "");
+      
       const response = await api.post(`/p/${codigo}/pay`, {
         valor: valor,
-        nome_pagador: isAnonymous ? ANONYMOUS_NAME : formData.nome_pagador,
-        cpf_pagador: isAnonymous ? ANONYMOUS_CPF : formData.cpf_pagador.replace(/\D/g, "")
+        nome_pagador: nomePagador,
+        cpf_pagador: cpfPagador
       });
       setTransaction(response.data);
       toast.success("PIX gerado com sucesso!");
