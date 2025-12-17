@@ -485,13 +485,37 @@ export default function Transactions() {
             </DialogHeader>
             {selectedTx && (
               <div className="space-y-4 mt-4">
+                {/* Timer de expiração para transações pendentes */}
+                {selectedTx.status === "pending" && timeRemaining !== null && (
+                  <div className={`p-3 rounded-lg ${timeRemaining < 120 ? 'bg-red-500/20 border border-red-500/30' : 'bg-yellow-500/20 border border-yellow-500/30'}`}>
+                    <div className="flex items-center justify-center gap-2">
+                      <Timer className={`w-5 h-5 ${timeRemaining < 120 ? 'text-red-400' : 'text-yellow-400'}`} />
+                      <span className={`font-mono text-lg font-bold ${timeRemaining < 120 ? 'text-red-400' : 'text-yellow-400'}`}>
+                        {String(Math.floor(timeRemaining / 60)).padStart(2, '0')}:{String(timeRemaining % 60).padStart(2, '0')}
+                      </span>
+                    </div>
+                    <p className={`text-xs text-center mt-1 ${timeRemaining < 120 ? 'text-red-300' : 'text-yellow-300'}`}>
+                      {timeRemaining < 120 ? 'Tempo quase esgotando!' : 'Tempo restante para pagamento'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Mensagem de expirado */}
+                {selectedTx.status === "expired" && (
+                  <div className="p-4 rounded-lg bg-red-500/20 border border-red-500/30 text-center">
+                    <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+                    <p className="text-red-400 font-semibold">PIX Expirado</p>
+                    <p className="text-red-300 text-sm">O tempo limite de {PIX_EXPIRATION_MINUTES} minutos foi excedido</p>
+                  </div>
+                )}
+
                 <div className="text-center">
-                  <div className="inline-block p-4 bg-white rounded-xl">
+                  <div className={`inline-block p-4 rounded-xl ${selectedTx.status === "expired" ? 'bg-slate-200' : 'bg-white'}`}>
                     {selectedTx.qr_code ? (
                       <img 
                         src={selectedTx.qr_code} 
                         alt="QR Code PIX" 
-                        className="w-48 h-48"
+                        className={`w-48 h-48 ${selectedTx.status === "expired" ? 'opacity-30 grayscale' : ''}`}
                       />
                     ) : (
                       <div className="w-48 h-48 flex items-center justify-center bg-slate-100">
