@@ -1892,6 +1892,28 @@ async def admin_update_config(data: AdminConfig, admin: dict = Depends(get_admin
     config = await get_config()
     return config
 
+@api_router.post("/admin/upload-logo")
+async def admin_upload_logo(file: UploadFile = File(...), admin: dict = Depends(get_admin_user)):
+    """Upload de logo do sistema - converte para base64 data URL"""
+    import base64
+    
+    # Validar tipo de arquivo
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="Arquivo deve ser uma imagem")
+    
+    # Ler conteúdo do arquivo
+    content = await file.read()
+    
+    # Validar tamanho (max 2MB)
+    if len(content) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Imagem deve ter no máximo 2MB")
+    
+    # Converter para base64 data URL
+    base64_content = base64.b64encode(content).decode('utf-8')
+    data_url = f"data:{file.content_type};base64,{base64_content}"
+    
+    return {"url": data_url, "filename": file.filename}
+
 @api_router.get("/admin/stats")
 async def admin_get_stats(admin: dict = Depends(get_admin_user)):
     # Obtém IDs dos usuários da rede do admin
