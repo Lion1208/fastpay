@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../utils/api";
 import { Button } from "../components/ui/button";
@@ -6,9 +6,10 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card, CardContent } from "../components/ui/card";
 import { toast, Toaster } from "sonner";
-import { QrCode, Copy, ArrowRight, CheckCircle, Clock, AlertCircle, Loader2, PartyPopper, UserX, User } from "lucide-react";
+import { QrCode, Copy, ArrowRight, CheckCircle, Clock, AlertCircle, Loader2, PartyPopper, UserX, User, Timer } from "lucide-react";
 import { Switch } from "../components/ui/switch";
 
+const PIX_EXPIRATION_MINUTES = 20; // Tempo limite para pagamento
 
 export default function PublicPage() {
   const { codigo } = useParams();
@@ -24,6 +25,7 @@ export default function PublicPage() {
   });
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(null); // Tempo restante em segundos
   
   const ANONYMOUS_LIMIT = 500; // Limite para pagamento anônimo
   
