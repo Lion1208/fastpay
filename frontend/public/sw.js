@@ -1,5 +1,72 @@
-// Service Worker para Push Notifications
+// Service Worker para PWA e Push Notifications
+const CACHE_NAME = 'fastpay-v1';
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/manifest.json'
+];
 
+// Cache de assets estáticos na instalação
+self.addEventListener('install', function(event) {
+  console.log('[SW] Instalando...');
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('[SW] Cacheando assets estáticos');
+        return cache.addAll(STATIC_ASSETS);
+      })
+      .then(() => self.skipWaiting())
+  );
+});
+
+// Limpar caches antigos na ativação
+self.addEventListener('activate', function(event) {
+  console.log('[SW] Ativando...');
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Removendo cache antigo:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => clients.claim())
+  );
+});
+
+// Estratégia Network First com fallback para cache
+self.addEventListener('fetch', function(event) {
+  // Ignorar requisições de API e websocket
+  if (event.request.url.includes('/api/') || 
+      event.request.url.includes('ws://') ||
+      event.request.url.includes('wss://')) {
+    return;
+  }
+  
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        // Cachear resposta válida
+        if (response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Fallback para cache se offline
+        return caches.match(event.request);
+      })
+  );
+});
+
+// Push Notifications
 self.addEventListener('push', function(event) {
   console.log('[SW] Push recebido:', event);
   
