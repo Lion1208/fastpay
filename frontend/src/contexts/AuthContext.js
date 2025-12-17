@@ -15,38 +15,29 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const fetchUser = useCallback(async (retryCount = 0) => {
-    console.log("[AuthContext] fetchUser chamado, tentativa:", retryCount + 1);
     const currentToken = localStorage.getItem("token");
-    console.log("[AuthContext] Token atual no localStorage:", !!currentToken);
     
     if (!currentToken) {
-      console.log("[AuthContext] Sem token, abortando fetchUser");
       setLoading(false);
       return;
     }
     
     try {
       const response = await api.get("/auth/me");
-      console.log("[AuthContext] fetchUser sucesso:", response.data?.nome);
       setUser(response.data);
       setLoading(false);
     } catch (error) {
-      console.log("[AuthContext] fetchUser erro:", error.response?.status, error.message);
       // Só faz logout se for erro 401 explícito (token inválido)
       if (error.response?.status === 401) {
-        console.log("[AuthContext] 401 - removendo token");
         localStorage.removeItem("token");
         setToken(null);
         setUser(null);
         setLoading(false);
       } else if (retryCount < 2) {
         // Para outros erros (rede, timeout), tenta novamente após 1 segundo
-        console.log("[AuthContext] Erro de rede, tentando novamente em 1s");
         setTimeout(() => fetchUser(retryCount + 1), 1000);
       } else {
         // Após 2 tentativas, desiste mas NÃO faz logout (pode ser erro de rede temporário)
-        // Mantém o usuário logado se já tinha um user anterior
-        console.log("[AuthContext] Máximo de tentativas, finalizando loading");
         setLoading(false);
       }
     }
