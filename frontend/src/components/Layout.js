@@ -91,6 +91,8 @@ export const Layout = ({ children }) => {
   }, []);
 
   // Polling global para notificações de transferências recebidas
+  // DESABILITADO TEMPORARIAMENTE - verificar se causa problemas em produção
+  /*
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!user?.id || !token) return;
@@ -98,7 +100,6 @@ export const Layout = ({ children }) => {
     const formatMoney = (value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
     
     const checkNewTransfers = async () => {
-      // Verifica se ainda tem token antes de fazer a chamada
       if (!localStorage.getItem("token")) return;
       
       try {
@@ -111,7 +112,6 @@ export const Layout = ({ children }) => {
           const latestTime = new Date(latestTransfer.created_at).getTime();
           
           if (lastTransferCheck && latestTime > lastTransferCheck) {
-            // Nova transferência recebida!
             toast.success(
               `💰 Você recebeu ${formatMoney(latestTransfer.valor_recebido)} de ${latestTransfer.remetente_nome}!`,
               { duration: 8000 }
@@ -120,24 +120,19 @@ export const Layout = ({ children }) => {
           setLastTransferCheck(latestTime);
         }
       } catch (error) {
-        // Ignora erros 401 silenciosamente (token expirado)
-        if (error.response?.status !== 401) {
-          console.error("Error checking transfers:", error);
-        }
+        // Ignora erros silenciosamente
       }
     };
     
-    // Primeira verificação para definir o baseline (com delay para garantir token)
-    const timeout = setTimeout(checkNewTransfers, 1000);
-    
-    // Verifica a cada 10 segundos (reduzido para menos requisições)
-    const interval = setInterval(checkNewTransfers, 10000);
+    const timeout = setTimeout(checkNewTransfers, 2000);
+    const interval = setInterval(checkNewTransfers, 15000);
     
     return () => {
       clearTimeout(timeout);
       clearInterval(interval);
     };
   }, [user?.id, lastTransferCheck]);
+  */
 
   const handleLogout = () => {
     logout();
