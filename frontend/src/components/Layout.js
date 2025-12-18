@@ -18,7 +18,9 @@ import {
   ChevronDown,
   Shield,
   Copy,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
