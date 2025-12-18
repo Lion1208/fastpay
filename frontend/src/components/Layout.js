@@ -308,7 +308,22 @@ export const Layout = ({ children }) => {
               </h2>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Saldo Disponível */}
+              <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700">
+                <Wallet className="w-4 h-4 text-green-400 hidden sm:block" />
+                <span className="text-xs sm:text-sm font-semibold text-white">
+                  {showBalance ? formatCurrency(userBalance) : "R$ •••••"}
+                </span>
+                <button
+                  onClick={toggleBalanceVisibility}
+                  className="p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+                  title={showBalance ? "Ocultar saldo" : "Mostrar saldo"}
+                >
+                  {showBalance ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2" data-testid="user-menu-btn">
@@ -317,7 +332,7 @@ export const Layout = ({ children }) => {
                         {user?.nome?.charAt(0)?.toUpperCase() || "U"}
                       </span>
                     </div>
-                    <ChevronDown size={16} className="text-slate-400" />
+                    <ChevronDown size={16} className="text-slate-400 hidden sm:block" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-slate-800">
