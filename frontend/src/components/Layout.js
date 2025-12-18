@@ -273,28 +273,6 @@ export const Layout = ({ children }) => {
             )}
           </div>
 
-          {/* Saldo Section (Mobile) */}
-          <div className="p-4 border-t border-white/5">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-              <div className="flex items-center gap-2">
-                <Wallet className="w-5 h-5 text-green-400" />
-                <div>
-                  <p className="text-xs text-slate-500">Saldo Disponível</p>
-                  <p className="text-lg font-bold text-white">
-                    {showBalance ? formatCurrency(userBalance) : "R$ •••••"}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={toggleBalanceVisibility}
-                className="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-                title={showBalance ? "Ocultar saldo" : "Mostrar saldo"}
-              >
-                {showBalance ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-
           {/* User Section */}
           <div className="p-4 border-t border-white/5">
             <div className="flex items-center gap-3 px-3 py-2">
