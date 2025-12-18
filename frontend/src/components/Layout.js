@@ -70,9 +70,28 @@ export const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [config, setConfig] = useState({ nome_sistema: "FastPay", logo_url: "" });
   const [lastTransferCheck, setLastTransferCheck] = useState(null);
+  const [showBalance, setShowBalance] = useState(() => {
+    // Carrega preferência do localStorage
+    const saved = localStorage.getItem("showBalance");
+    return saved !== null ? saved === "true" : true;
+  });
 
   const isAdmin = user?.role === "admin";
   const menuItems = isAdmin ? adminMenuItems : userMenuItems;
+
+  // Salva preferência de visibilidade do saldo
+  const toggleBalanceVisibility = () => {
+    const newValue = !showBalance;
+    setShowBalance(newValue);
+    localStorage.setItem("showBalance", newValue.toString());
+  };
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
+  };
+
+  // Saldo a mostrar (disponível + comissões para usuário comum, só disponível para admin)
+  const userBalance = user?.saldo_disponivel || 0;
 
   // Busca configuração pública do sistema
   useEffect(() => {
