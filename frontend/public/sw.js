@@ -40,18 +40,19 @@ self.addEventListener('activate', function(event) {
 
 // Estratégia Network First com fallback para cache
 self.addEventListener('fetch', function(event) {
-  // Ignorar requisições de API e websocket
+  // Ignorar requisições de API, websocket e métodos não-GET
   if (event.request.url.includes('/api/') || 
       event.request.url.includes('ws://') ||
-      event.request.url.includes('wss://')) {
+      event.request.url.includes('wss://') ||
+      event.request.method !== 'GET') {
     return;
   }
   
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Cachear resposta válida
-        if (response.status === 200) {
+        // Cachear apenas respostas válidas de GET
+        if (response.status === 200 && event.request.method === 'GET') {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then(cache => {
             cache.put(event.request, responseClone);
