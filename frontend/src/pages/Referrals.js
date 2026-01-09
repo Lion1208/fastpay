@@ -48,7 +48,12 @@ export default function Referrals() {
     }
   };
 
-  const progress = data ? (data.valor_atual / data.valor_minimo_indicacao) * 100 : 0;
+  // Evita divisão por zero - se valor_minimo_indicacao for 0, progress é 100%
+  const progress = data 
+    ? (data.valor_minimo_indicacao > 0 
+        ? (data.valor_atual / data.valor_minimo_indicacao) * 100 
+        : 100) 
+    : 0;
 
   if (loading) {
     return (
