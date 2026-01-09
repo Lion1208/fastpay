@@ -90,8 +90,7 @@ const response = await fetch('${baseUrl}/api/v1/transactions', {
       name: "João Silva",
       cpf_cnpj: "12345678901",
       user_type: "individual"  // "individual" ou "company"
-    },
-    custom_page_id: 123  // OBRIGATÓRIO - ID da página de pagamento
+    }
   })
 });
 
