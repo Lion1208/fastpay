@@ -42,7 +42,7 @@ export default function Referrals() {
   const shareLink = () => {
     const url = `${window.location.origin}/register/${data?.codigo_indicacao}`;
     if (navigator.share) {
-      navigator.share({ title: "Cadastre-se no FastPay", url });
+      navigator.share({ title: "Cadastre-se no FastPix", url });
     } else {
       copyToClipboard(url);
     }

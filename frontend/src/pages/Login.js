@@ -16,7 +16,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [requires2FA, setRequires2FA] = useState(false);
-  const [config, setConfig] = useState({ nome_sistema: "FastPay", logo_url: "" });
+  const [config, setConfig] = useState({ nome_sistema: "FastPix", logo_url: "" });
   const [blocked, setBlocked] = useState(null); // { blocked: true, reason: "motivo" }
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ export default function Login() {
         setConfig(prev => ({
           ...prev,
           ...response.data,
-          nome_sistema: response.data?.nome_sistema || prev.nome_sistema || "FastPay"
+          nome_sistema: response.data?.nome_sistema || prev.nome_sistema || "FastPix"
         }));
       } catch (error) {
         // Ignora erros, mantém valor padrão

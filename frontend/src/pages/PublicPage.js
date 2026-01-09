@@ -281,7 +281,7 @@ export default function PublicPage() {
   }
 
   const corPrimaria = pageData?.pagina_personalizada?.cor_primaria || "#22c55e";
-  const nomeSistema = pageData?.nome_sistema || "FastPay";
+  const nomeSistema = pageData?.nome_sistema || "FastPix";
 
   // Animação de sucesso
   if (showSuccess && transaction?.status === "paid") {

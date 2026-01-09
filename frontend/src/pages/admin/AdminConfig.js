@@ -166,7 +166,7 @@ export default function AdminConfig() {
                   value={config?.nome_sistema || ""}
                   onChange={(e) => handleChange("nome_sistema", e.target.value)}
                   className="input-default"
-                  placeholder="Ex: FastPay, PixPro, etc"
+                  placeholder="Ex: FastPix, PixPro, etc"
                   data-testid="nome-sistema-input"
                 />
                 <p className="text-xs text-slate-500">
@@ -240,7 +240,7 @@ export default function AdminConfig() {
                     </div>
                   )}
                   <div>
-                    <h3 className="font-bold text-white">{config?.nome_sistema || "FastPay"}</h3>
+                    <h3 className="font-bold text-white">{config?.nome_sistema || "FastPix"}</h3>
                     <p className="text-xs text-slate-500">Sistema PIX</p>
                   </div>
                 </div>

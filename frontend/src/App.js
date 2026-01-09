@@ -225,7 +225,7 @@ function InstallPrompt() {
             <span className="text-green-400 font-bold text-2xl">$</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-white text-sm">Instalar FastPay</h3>
+            <h3 className="font-semibold text-white text-sm">Instalar FastPix</h3>
             <p className="text-xs text-slate-400 mt-1 mb-3">
               Adicione à tela inicial para acesso rápido:
             </p>
@@ -264,7 +264,7 @@ function InstallPrompt() {
             <span className="text-green-400 font-bold text-2xl">$</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-white text-sm">Instalar FastPay</h3>
+            <h3 className="font-semibold text-white text-sm">Instalar FastPix</h3>
             <p className="text-xs text-slate-400 mt-1 mb-3">
               Adicione à tela inicial para acesso rápido:
             </p>
@@ -298,7 +298,7 @@ function InstallPrompt() {
           <span className="text-green-400 font-bold text-2xl">$</span>
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-white text-sm">Instalar FastPay</h3>
+          <h3 className="font-semibold text-white text-sm">Instalar FastPix</h3>
           <p className="text-xs text-slate-400 mt-1">
             Adicione à tela inicial para acesso rápido
           </p>
