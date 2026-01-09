@@ -9,10 +9,12 @@ import { DollarSign, TrendingUp, Wallet, Clock } from "lucide-react";
 
 export default function Commissions() {
   const [data, setData] = useState(null);
+  const [config, setConfig] = useState({ comissao_indicacao: 1 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCommissions();
+    fetchConfig();
   }, []);
 
   const fetchCommissions = async () => {
@@ -23,6 +25,15 @@ export default function Commissions() {
       toast.error("Erro ao carregar comissões");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchConfig = async () => {
+    try {
+      const response = await api.get('/config/public');
+      setConfig(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar config");
     }
   };
 
