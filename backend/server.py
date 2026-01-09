@@ -2166,7 +2166,6 @@ async def external_create_transaction(data: ExternalTransactionCreate, user: dic
         "cpf_cnpj": cpf_cnpj_clean,
         "nome_pagador": data.user.name,
         "user_type": data.user.user_type,
-        "custom_page_id": data.custom_page_id,
         "status": "pending",
         "qr_code": None,
         "qr_code_base64": None,
@@ -2179,22 +2178,26 @@ async def external_create_transaction(data: ExternalTransactionCreate, user: dic
     if api_key:
         try:
             async with httpx.AsyncClient() as client_http:
-                # Payload correto para FastDePix/CashMatrix
+                # Payload para FastDePix/CashMatrix
+                payload = {
+                    "amount": data.amount,
+                    "user": {
+                        "name": data.user.name,
+                        "cpf_cnpj": cpf_cnpj_clean,
+                        "user_type": data.user.user_type
+                    }
+                }
+                # Adiciona custom_page_id apenas se informado
+                if data.custom_page_id:
+                    payload["custom_page_id"] = data.custom_page_id
+                
                 response = await client_http.post(
                     "https://fastdepix.space/api/v1/transactions",
                     headers={
                         "Authorization": f"Bearer {api_key}",
                         "Content-Type": "application/json"
                     },
-                    json={
-                        "amount": data.amount,
-                        "user": {
-                            "name": data.user.name,
-                            "cpf_cnpj": cpf_cnpj_clean,
-                            "user_type": data.user.user_type
-                        },
-                        "custom_page_id": data.custom_page_id
-                    },
+                    json=payload,
                     timeout=30.0
                 )
                 logger.info(f"FastDePix external API response: {response.status_code} - {response.text}")
