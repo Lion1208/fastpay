@@ -158,7 +158,7 @@ export default function Referrals() {
 
                 <div className="text-sm text-slate-500">
                   <p>• Cada R$1.000 movimentados libera 1 indicação</p>
-                  <p>• Você ganha 1% de todas as transações dos indicados</p>
+                  <p>• Você ganha {data?.comissao_indicacao || 1}% de todas as transações dos indicados</p>
                 </div>
               </div>
             </CardContent>
