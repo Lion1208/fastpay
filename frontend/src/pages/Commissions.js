@@ -115,7 +115,7 @@ export default function Commissions() {
               <div>
                 <h3 className="font-medium text-white">Como funcionam as comissões?</h3>
                 <p className="text-slate-400 text-sm mt-1">
-                  Você ganha <span className="text-green-400 font-medium">1%</span> de todas as transações 
+                  Você ganha <span className="text-green-400 font-medium">{config?.comissao_indicacao || 1}%</span> de todas as transações 
                   realizadas pelos usuários que você indicou. As comissões são creditadas automaticamente 
                   em seu saldo quando a transação é confirmada.
                 </p>
