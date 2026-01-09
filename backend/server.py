@@ -139,7 +139,7 @@ class ExternalUserData(BaseModel):
 class ExternalTransactionCreate(BaseModel):
     amount: float
     user: ExternalUserData
-    custom_page_id: int  # OBRIGATÓRIO - ID da página de pagamento FastDePix
+    custom_page_id: Optional[int] = None  # Opcional - se não informado, usa configuração do usuário
 
 class PushSubscription(BaseModel):
     endpoint: str
