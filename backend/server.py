@@ -1146,7 +1146,10 @@ async def list_referrals(user: dict = Depends(get_current_user)):
         "can_refer": can_refer,
         "indicacoes_disponiveis": indicacoes_disponiveis,
         "indicacoes_liberadas": indicacoes_liberadas,
-        "codigo_indicacao": user_data.get("codigo")
+        "codigo_indicacao": user_data.get("codigo"),
+        "comissao_indicacao": config.get("comissao_indicacao", 1.0),
+        "valor_minimo_indicacao": config.get("valor_minimo_indicacao", 1000),
+        "valor_atual": user_data.get("valor_movimentado", 0)
     }
 
 # ===================== COMMISSION ROUTES =====================
