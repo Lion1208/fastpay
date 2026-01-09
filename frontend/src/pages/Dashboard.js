@@ -69,7 +69,12 @@ export default function Dashboard() {
     toast.success("Copiado!");
   };
 
-  const referralProgress = stats ? (stats.valor_movimentado / stats.valor_minimo_indicacao) * 100 : 0;
+  // Evita divisão por zero
+  const referralProgress = stats 
+    ? (stats.valor_minimo_indicacao > 0 
+        ? (stats.valor_movimentado / stats.valor_minimo_indicacao) * 100 
+        : 100) 
+    : 0;
 
   if (loading) {
     return (
