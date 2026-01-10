@@ -27,7 +27,10 @@ import {
   Banknote,
   Plus,
   Loader2,
-  Timer
+  Timer,
+  AlertTriangle,
+  Key,
+  ShieldAlert
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
