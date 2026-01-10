@@ -389,42 +389,40 @@ export default function Dashboard() {
 
         {/* ========== EXTRATO ========== */}
         <Card className="card-dashboard">
-          <CardHeader className="py-3 px-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm text-white flex items-center gap-2">
-                <History className="w-4 h-4 text-slate-400" />
-                Extrato
-              </CardTitle>
-            </div>
+          <CardHeader className="py-2 px-3">
+            <CardTitle className="text-xs text-white flex items-center gap-1.5">
+              <History className="w-3 h-3 text-slate-400" />
+              Extrato
+            </CardTitle>
           </CardHeader>
-          <CardContent className="px-4 pb-4 pt-0">
+          <CardContent className="px-3 pb-3 pt-0">
             {extrato.length > 0 ? (
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {extrato.map((item, index) => {
                   const IconComponent = item.icon;
                   const isPositive = item.valor >= 0;
                   return (
-                    <div key={`${item.id}-${index}`} className="flex items-center justify-between py-2">
+                    <div key={`${item.id}-${index}`} className="flex items-center justify-between py-1.5">
                       <div className="flex items-center gap-2">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
                           item.color === 'green' ? 'bg-green-500/20' :
                           item.color === 'red' ? 'bg-red-500/20' :
                           'bg-purple-500/20'
                         }`}>
-                          <IconComponent className={`w-4 h-4 ${
+                          <IconComponent className={`w-3 h-3 ${
                             item.color === 'green' ? 'text-green-400' :
                             item.color === 'red' ? 'text-red-400' :
                             'text-purple-400'
                           }`} />
                         </div>
                         <div>
-                          <p className="text-xs font-medium text-white">{item.descricao}</p>
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-[10px] font-medium text-white">{item.descricao}</p>
+                          <p className="text-[9px] text-slate-500">
                             {new Date(item.data).toLocaleDateString("pt-BR")}
                           </p>
                         </div>
                       </div>
-                      <p className={`text-sm font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                      <p className={`text-xs font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
                         {isPositive ? '+' : ''}{formatCurrency(item.valor)}
                       </p>
                     </div>
@@ -432,9 +430,9 @@ export default function Dashboard() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-6">
-                <Receipt className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                <p className="text-slate-500 text-xs">Nenhuma movimentação</p>
+              <div className="text-center py-4">
+                <Receipt className="w-6 h-6 text-slate-600 mx-auto mb-1" />
+                <p className="text-slate-500 text-[10px]">Nenhuma movimentação</p>
               </div>
             )}
           </CardContent>
