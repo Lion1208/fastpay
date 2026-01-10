@@ -38,6 +38,50 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 import { useNavigate } from "react-router-dom";
 import { isPushSupported, isSubscribedToPush } from "../utils/push";
 
+// Gera um CPF válido aleatório (com dígitos verificadores corretos)
+const generateValidCPF = () => {
+  const randomDigit = () => Math.floor(Math.random() * 9);
+  const cpfArray = Array.from({ length: 9 }, randomDigit);
+  
+  // Calcula primeiro dígito verificador
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += cpfArray[i] * (10 - i);
+  }
+  let d1 = 11 - (sum % 11);
+  d1 = d1 >= 10 ? 0 : d1;
+  cpfArray.push(d1);
+  
+  // Calcula segundo dígito verificador
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += cpfArray[i] * (11 - i);
+  }
+  let d2 = 11 - (sum % 11);
+  d2 = d2 >= 10 ? 0 : d2;
+  cpfArray.push(d2);
+  
+  return cpfArray.join('');
+};
+
+// Gera um nome brasileiro aleatório
+const generateRandomName = () => {
+  const firstNames = [
+    'João', 'Maria', 'José', 'Ana', 'Pedro', 'Paula', 'Carlos', 'Carla',
+    'Lucas', 'Julia', 'Gabriel', 'Amanda', 'Rafael', 'Fernanda', 'Bruno'
+  ];
+  const lastNames = [
+    'Silva', 'Santos', 'Oliveira', 'Souza', 'Lima', 'Pereira', 'Costa', 
+    'Rodrigues', 'Almeida', 'Nascimento', 'Ferreira', 'Araújo', 'Melo'
+  ];
+  
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const lastName1 = lastNames[Math.floor(Math.random() * lastNames.length)];
+  const lastName2 = lastNames[Math.floor(Math.random() * lastNames.length)];
+  
+  return `${firstName} ${lastName1} ${lastName2}`;
+};
+
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
