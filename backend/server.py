@@ -1564,6 +1564,34 @@ async def list_tickets(user: dict = Depends(get_current_user)):
     tickets = await db.tickets.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
     return {"tickets": tickets}
 
+@api_router.get("/tickets/unread-count")
+async def get_unread_tickets_count(user: dict = Depends(get_current_user)):
+    """Conta tickets com respostas não lidas pelo usuário"""
+    # Para usuário: tickets onde a última resposta foi do admin
+    query = {
+        "parceiro_id": user["id"],
+        "status": {"$in": ["open", "in_progress"]},
+        "last_responder_role": "admin"
+    }
+    count = await db.tickets.count_documents(query)
+    return {"count": count}
+
+@api_router.get("/admin/tickets/unread-count")
+async def get_admin_unread_tickets_count(admin: dict = Depends(get_admin_user)):
+    """Conta tickets com respostas não lidas pelo admin"""
+    # Para admin: tickets onde a última resposta foi do usuário ou tickets novos
+    network_ids = await get_network_user_ids(admin["id"])
+    query = {
+        "parceiro_id": {"$in": network_ids},
+        "status": {"$in": ["open", "in_progress"]},
+        "$or": [
+            {"last_responder_role": "user"},
+            {"last_responder_role": {"$exists": False}}
+        ]
+    }
+    count = await db.tickets.count_documents(query)
+    return {"count": count}
+
 @api_router.get("/tickets/{ticket_id}")
 async def get_ticket(ticket_id: str, user: dict = Depends(get_current_user)):
     query = {"id": ticket_id}
