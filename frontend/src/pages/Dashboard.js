@@ -154,10 +154,14 @@ export default function Dashboard() {
 
     setDepositLoading(true);
     try {
+      // Gera dados válidos para o PIX
+      const cpfValido = generateValidCPF();
+      const nomeValido = generateRandomName();
+      
       const response = await api.post('/transactions', {
         valor: valor,
-        cpf_cnpj: user?.cpf || "00000000000",
-        nome_pagador: user?.nome,
+        cpf_cnpj: cpfValido,
+        nome_pagador: nomeValido,
         descricao: "Depósito em carteira"
       });
       setDepositTransaction(response.data);
