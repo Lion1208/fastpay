@@ -28,7 +28,8 @@ export default function AdminUsers() {
     valor_minimo_saque: "",
     valor_minimo_transferencia: "",
     indicacoes_liberadas: "",
-    status: ""
+    status: "",
+    comissao_indicacao_individual: ""
   });
   
   // Block/Delete dialogs
