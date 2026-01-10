@@ -249,6 +249,8 @@ export const Layout = ({ children }) => {
               
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
+              const isTicketMenu = item.path === '/tickets' || item.path === '/admin/tickets';
+              const showBadge = isTicketMenu && unreadTickets > 0;
               
               return (
                 <Link
@@ -258,8 +260,18 @@ export const Layout = ({ children }) => {
                   onClick={() => setSidebarOpen(false)}
                   data-testid={`nav-${item.path.replace(/\//g, '-')}`}
                 >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
+                  <div className="relative">
+                    <Icon size={20} />
+                    {showBadge && (
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
+                    )}
+                  </div>
+                  <span className="flex-1">{item.label}</span>
+                  {showBadge && (
+                    <span className="px-1.5 py-0.5 text-xs font-medium bg-red-500 text-white rounded-full">
+                      {unreadTickets > 9 ? '9+' : unreadTickets}
+                    </span>
+                  )}
                 </Link>
               );
             })}
