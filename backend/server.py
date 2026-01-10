@@ -582,6 +582,7 @@ async def register(data: UserCreate):
         "pagina_personalizada": {"titulo": data.nome, "cor_primaria": "#22c55e"},
         "two_factor_enabled": False,
         "two_factor_secret": None,
+        "saw_code_warning": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
