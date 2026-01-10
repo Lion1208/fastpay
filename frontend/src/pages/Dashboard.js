@@ -139,7 +139,6 @@ export default function Dashboard() {
 
     setDepositLoading(true);
     try {
-      // Gera dados válidos para o PIX
       const cpfValido = generateValidCPF();
       const nomeValido = generateRandomName();
       
@@ -150,6 +149,7 @@ export default function Dashboard() {
         descricao: "Depósito em carteira"
       });
       setDepositTransaction(response.data);
+      setDepositTimeRemaining(PIX_EXPIRATION_MINUTES * 60); // Inicia timer
       toast.success("PIX gerado! Escaneie o QR Code");
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erro ao gerar depósito");
@@ -157,6 +157,23 @@ export default function Dashboard() {
       setDepositLoading(false);
     }
   };
+
+  // Timer de expiração do depósito
+  useEffect(() => {
+    if (depositTransaction && depositTransaction.status === "pending" && depositTimeRemaining > 0) {
+      const timer = setInterval(() => {
+        setDepositTimeRemaining(prev => {
+          if (prev <= 1) {
+            setDepositTransaction(t => ({ ...t, status: "expired" }));
+            toast.error("PIX expirado!");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [depositTransaction, depositTimeRemaining]);
 
   // Polling para verificar pagamento do depósito
   useEffect(() => {
@@ -167,7 +184,10 @@ export default function Dashboard() {
           if (response.data.status === "paid") {
             setDepositTransaction(prev => ({ ...prev, status: "paid" }));
             toast.success("Depósito confirmado!");
-            fetchStats(); // Atualizar saldo
+            fetchStats();
+            clearInterval(interval);
+          } else if (response.data.status === "expired") {
+            setDepositTransaction(prev => ({ ...prev, status: "expired" }));
             clearInterval(interval);
           }
         } catch (error) {
