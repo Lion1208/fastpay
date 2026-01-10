@@ -813,10 +813,33 @@ async def get_dashboard_stats(user: dict = Depends(get_current_user)):
     indicacoes_disponiveis = indicacoes_liberadas - indicacoes_usadas
     can_refer = indicacoes_disponiveis > 0
     
+    # Transações recentes (pagas)
     recent_transactions = await db.transactions.find(
-        {"parceiro_id": user["id"]},
+        {"parceiro_id": user["id"], "status": "paid"},
         {"_id": 0}
-    ).sort("created_at", -1).limit(10).to_list(10)
+    ).sort("created_at", -1).limit(5).to_list(5)
+    
+    # Transferências enviadas
+    recent_transfers_sent = await db.transfers.find(
+        {"remetente_id": user["id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(5).to_list(5)
+    
+    # Transferências recebidas
+    recent_transfers_received = await db.transfers.find(
+        {"destinatario_id": user["id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(5).to_list(5)
+    
+    # Comissões recebidas
+    recent_commissions = await db.commissions.find(
+        {"indicador_id": user["id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(5).to_list(5)
+    
+    # Total de comissões recebidas
+    all_commissions = await db.commissions.find({"indicador_id": user["id"]}).to_list(1000)
+    total_comissoes_recebidas = sum(c.get("valor_comissao", 0) for c in all_commissions)
     
     chart_data = []
     for i in range(7):
@@ -837,6 +860,10 @@ async def get_dashboard_stats(user: dict = Depends(get_current_user)):
         "can_refer": can_refer,
         "valor_minimo_indicacao": config.get("valor_minimo_indicacao", 1000),
         "recent_transactions": recent_transactions,
+        "recent_transfers_sent": recent_transfers_sent,
+        "recent_transfers_received": recent_transfers_received,
+        "recent_commissions": recent_commissions,
+        "total_comissoes_recebidas": total_comissoes_recebidas,
         "chart_data": chart_data,
         "taxa_percentual": user_data.get("taxa_percentual", 2.0),
         "taxa_fixa": user_data.get("taxa_fixa", 0.99)
