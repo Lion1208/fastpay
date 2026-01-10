@@ -202,6 +202,7 @@ export default function Dashboard() {
     setShowDepositModal(false);
     setDepositAmount("");
     setDepositTransaction(null);
+    setDepositTimeRemaining(null);
   };
 
   const referralProgress = stats 
