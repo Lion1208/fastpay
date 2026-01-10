@@ -5,12 +5,10 @@ import api from "../utils/api";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Progress } from "../components/ui/progress";
-import { Badge } from "../components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { 
-  Wallet, 
   TrendingUp, 
   Users, 
   DollarSign,
@@ -26,24 +24,23 @@ import {
   Send,
   Receipt,
   History,
-  ChevronRight,
   Banknote,
-  PiggyBank,
   Plus,
   Loader2,
-  X
+  Timer
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { isPushSupported, isSubscribedToPush } from "../utils/push";
 
+const PIX_EXPIRATION_MINUTES = 20;
+
 // Gera um CPF válido aleatório (com dígitos verificadores corretos)
 const generateValidCPF = () => {
   const randomDigit = () => Math.floor(Math.random() * 9);
   const cpfArray = Array.from({ length: 9 }, randomDigit);
   
-  // Calcula primeiro dígito verificador
   let sum = 0;
   for (let i = 0; i < 9; i++) {
     sum += cpfArray[i] * (10 - i);
@@ -52,7 +49,6 @@ const generateValidCPF = () => {
   d1 = d1 >= 10 ? 0 : d1;
   cpfArray.push(d1);
   
-  // Calcula segundo dígito verificador
   sum = 0;
   for (let i = 0; i < 10; i++) {
     sum += cpfArray[i] * (11 - i);
@@ -64,22 +60,10 @@ const generateValidCPF = () => {
   return cpfArray.join('');
 };
 
-// Gera um nome brasileiro aleatório
 const generateRandomName = () => {
-  const firstNames = [
-    'João', 'Maria', 'José', 'Ana', 'Pedro', 'Paula', 'Carlos', 'Carla',
-    'Lucas', 'Julia', 'Gabriel', 'Amanda', 'Rafael', 'Fernanda', 'Bruno'
-  ];
-  const lastNames = [
-    'Silva', 'Santos', 'Oliveira', 'Souza', 'Lima', 'Pereira', 'Costa', 
-    'Rodrigues', 'Almeida', 'Nascimento', 'Ferreira', 'Araújo', 'Melo'
-  ];
-  
-  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-  const lastName1 = lastNames[Math.floor(Math.random() * lastNames.length)];
-  const lastName2 = lastNames[Math.floor(Math.random() * lastNames.length)];
-  
-  return `${firstName} ${lastName1} ${lastName2}`;
+  const firstNames = ['João', 'Maria', 'José', 'Ana', 'Pedro', 'Paula', 'Carlos', 'Lucas', 'Julia', 'Gabriel'];
+  const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Lima', 'Pereira', 'Costa', 'Rodrigues', 'Almeida'];
+  return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
 };
 
 export default function Dashboard() {
@@ -98,6 +82,7 @@ export default function Dashboard() {
   const [depositAmount, setDepositAmount] = useState("");
   const [depositLoading, setDepositLoading] = useState(false);
   const [depositTransaction, setDepositTransaction] = useState(null);
+  const [depositTimeRemaining, setDepositTimeRemaining] = useState(null);
 
   useEffect(() => {
     fetchStats();
