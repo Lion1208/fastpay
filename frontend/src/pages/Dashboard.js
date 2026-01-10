@@ -500,22 +500,22 @@ export default function Dashboard() {
         </div>
 
         {/* ========== INFO CARDS ========== */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <div className="p-2 rounded-lg bg-slate-800/30 border border-slate-700/50 text-center min-w-0">
-            <p className="text-base sm:text-lg font-bold text-white">{stats?.total_transacoes || 0}</p>
-            <p className="text-[9px] text-slate-400 truncate">Transações</p>
+        <div className="grid grid-cols-2 gap-1.5">
+          <div className="p-1.5 rounded bg-slate-800/30 border border-slate-700/50 text-center">
+            <p className="text-sm font-bold text-white">{stats?.total_transacoes || 0}</p>
+            <p className="text-[8px] text-slate-400">Transações</p>
           </div>
-          <div className="p-2 rounded-lg bg-slate-800/30 border border-slate-700/50 text-center min-w-0">
-            <p className="text-base sm:text-lg font-bold text-white">{stats?.taxa_percentual || 2}%</p>
-            <p className="text-[9px] text-slate-400 truncate">Taxa</p>
+          <div className="p-1.5 rounded bg-slate-800/30 border border-slate-700/50 text-center">
+            <p className="text-sm font-bold text-white">{stats?.taxa_percentual || 2}%</p>
+            <p className="text-[8px] text-slate-400">Taxa</p>
           </div>
-          <div className="p-2 rounded-lg bg-slate-800/30 border border-slate-700/50 text-center min-w-0">
-            <p className="text-base sm:text-lg font-bold text-green-400 truncate">{formatCurrency(stats?.valor_hoje).replace('R$', '')}</p>
-            <p className="text-[9px] text-slate-400 truncate">Hoje</p>
+          <div className="p-1.5 rounded bg-slate-800/30 border border-slate-700/50 text-center">
+            <p className="text-sm font-bold text-green-400 truncate">{formatCurrency(stats?.valor_hoje).replace('R$', '')}</p>
+            <p className="text-[8px] text-slate-400">Hoje</p>
           </div>
-          <div className="p-2 rounded-lg bg-slate-800/30 border border-slate-700/50 text-center min-w-0">
-            <p className="text-base sm:text-lg font-bold text-white truncate">{formatCurrency(stats?.total_recebido).replace('R$', '')}</p>
-            <p className="text-[9px] text-slate-400 truncate">Total</p>
+          <div className="p-1.5 rounded bg-slate-800/30 border border-slate-700/50 text-center">
+            <p className="text-sm font-bold text-white truncate">{formatCurrency(stats?.total_recebido).replace('R$', '')}</p>
+            <p className="text-[8px] text-slate-400">Total</p>
           </div>
         </div>
 
