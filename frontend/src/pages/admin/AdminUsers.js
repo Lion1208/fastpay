@@ -72,7 +72,7 @@ export default function AdminUsers() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await api.put(`/admin/users/${selectedUser.id}`, {
+      const updatePayload = {
         taxa_percentual: parseFloat(editData.taxa_percentual),
         taxa_fixa: parseFloat(editData.taxa_fixa),
         taxa_saque: parseFloat(editData.taxa_saque),
@@ -81,7 +81,16 @@ export default function AdminUsers() {
         valor_minimo_transferencia: parseFloat(editData.valor_minimo_transferencia),
         indicacoes_liberadas: parseInt(editData.indicacoes_liberadas),
         status: editData.status
-      });
+      };
+      
+      // Adiciona comissão individual apenas se preenchida
+      if (editData.comissao_indicacao_individual !== "") {
+        updatePayload.comissao_indicacao_individual = parseFloat(editData.comissao_indicacao_individual);
+      } else {
+        updatePayload.comissao_indicacao_individual = null; // Remove comissão individual
+      }
+      
+      const response = await api.put(`/admin/users/${selectedUser.id}`, updatePayload);
       
       setUsers(users.map(u => u.id === selectedUser.id ? response.data : u));
       setShowEditDialog(false);
