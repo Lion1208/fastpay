@@ -77,8 +77,12 @@ export const AuthProvider = ({ children }) => {
     setUser(prev => ({ ...prev, ...updatedData }));
   };
 
+  const refreshUser = async () => {
+    await fetchUser();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, token }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, refreshUser, token }}>
       {children}
     </AuthContext.Provider>
   );
