@@ -1543,6 +1543,7 @@ async def create_ticket(data: TicketCreate, user: dict = Depends(get_current_use
         "assunto": data.assunto,
         "prioridade": data.prioridade,
         "status": "open",
+        "last_responder_role": "user",  # Usuário criou o ticket
         "mensagens": [{
             "id": str(uuid.uuid4()),
             "autor_id": user["id"],
