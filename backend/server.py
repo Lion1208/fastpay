@@ -1116,7 +1116,10 @@ async def fastdepix_webhook(
                 
                 indicador_id = user.get("indicador_id")
                 if indicador_id:
-                    comissao = transaction["valor"] * config.get("comissao_indicacao", 1.0) / 100
+                    # Busca o indicador para verificar se tem comissão individual
+                    indicador = await db.users.find_one({"id": indicador_id})
+                    percentual_comissao = indicador.get("comissao_indicacao_individual") if indicador and indicador.get("comissao_indicacao_individual") is not None else config.get("comissao_indicacao", 1.0)
+                    comissao = transaction["valor"] * percentual_comissao / 100
                     await db.users.update_one(
                         {"id": indicador_id},
                         {"$inc": {"saldo_comissoes": comissao}}
@@ -1128,7 +1131,7 @@ async def fastdepix_webhook(
                         "indicado_id": user["id"],
                         "transacao_id": custom_id,
                         "valor_transacao": transaction["valor"],
-                        "percentual": config.get("comissao_indicacao", 1.0),
+                        "percentual": percentual_comissao,
                         "valor_comissao": comissao,
                         "status": "credited",
                         "created_at": datetime.now(timezone.utc).isoformat()
