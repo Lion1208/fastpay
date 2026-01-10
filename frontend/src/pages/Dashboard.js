@@ -316,14 +316,14 @@ export default function Dashboard() {
         </div>
 
         {/* ========== LINK DE PAGAMENTO ========== */}
-        <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 w-full overflow-hidden">
+          <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
             <Link2 className="w-4 h-4 text-green-400 flex-shrink-0" />
             <span className="text-xs text-slate-400 truncate">
               {window.location.origin}/p/{user?.codigo}
             </span>
           </div>
-          <div className="flex gap-1 flex-shrink-0">
+          <div className="flex gap-1 flex-shrink-0 ml-2">
             <Button size="sm" variant="ghost" onClick={() => copyToClipboard(`${window.location.origin}/p/${user?.codigo}`)} className="h-7 px-2">
               <Copy className="w-3 h-3" />
             </Button>
