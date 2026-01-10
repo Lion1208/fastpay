@@ -54,7 +54,6 @@ const adminMenuItems = [
   { icon: ArrowLeftRight, label: "Transferências", path: "/transfers" },
   { icon: Palette, label: "Personalização", path: "/personalization" },
   { icon: Code, label: "API", path: "/api-integration" },
-  { icon: MessageSquare, label: "Suporte", path: "/tickets" },
   { divider: true },
   { icon: Users, label: "Gerenciar Usuários", path: "/admin/users" },
   { icon: Wallet, label: "Gerenciar Saques", path: "/admin/withdrawals" },
