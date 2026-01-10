@@ -1626,7 +1626,10 @@ async def reply_ticket(ticket_id: str, data: TicketResponse, user: dict = Depend
         {"id": ticket_id},
         {
             "$push": {"mensagens": new_message},
-            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            "$set": {
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "last_responder_role": user.get("role", "user")
+            }
         }
     )
     
