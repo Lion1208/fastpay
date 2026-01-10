@@ -63,7 +63,8 @@ export default function AdminUsers() {
       valor_minimo_saque: user.valor_minimo_saque?.toString() || "10",
       valor_minimo_transferencia: user.valor_minimo_transferencia?.toString() || "1",
       indicacoes_liberadas: user.indicacoes_liberadas?.toString() || "0",
-      status: user.status || "active"
+      status: user.status || "active",
+      comissao_indicacao_individual: user.comissao_indicacao_individual?.toString() || ""
     });
     setShowEditDialog(true);
   };
