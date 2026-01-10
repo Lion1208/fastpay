@@ -70,7 +70,7 @@ const generateRandomName = () => {
 };
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -79,6 +79,10 @@ export default function Dashboard() {
     const saved = localStorage.getItem("showBalance");
     return saved !== null ? saved === "true" : true;
   });
+  
+  // Modal de aviso do código
+  const [showCodeWarning, setShowCodeWarning] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   
   // Modal de depósito
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -90,13 +94,38 @@ export default function Dashboard() {
   useEffect(() => {
     fetchStats();
     checkPushStatus();
-  }, []);
+    // Verificar se precisa mostrar o aviso do código
+    if (user && user.saw_code_warning === false) {
+      setShowCodeWarning(true);
+    }
+  }, [user]);
 
   const checkPushStatus = async () => {
     if (isPushSupported()) {
       const subscribed = await isSubscribedToPush();
       setPushEnabled(subscribed);
     }
+  };
+
+  const handleCloseCodeWarning = async () => {
+    if (!codeCopied) {
+      toast.error("Por favor, copie seu código antes de continuar!");
+      return;
+    }
+    try {
+      await api.post('/auth/saw-code-warning');
+      setShowCodeWarning(false);
+      if (refreshUser) refreshUser();
+    } catch (error) {
+      console.error("Erro ao marcar aviso como visto:", error);
+      setShowCodeWarning(false);
+    }
+  };
+
+  const copyCode = () => {
+    navigator.clipboard.writeText(user?.codigo);
+    setCodeCopied(true);
+    toast.success("Código copiado!");
   };
 
   const fetchStats = async () => {
