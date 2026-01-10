@@ -433,6 +433,20 @@ export default function AdminUsers() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label className="text-slate-300">Comissão Individual (%)</Label>
+                  <Input
+                    type="number"
+                    value={editData.comissao_indicacao_individual}
+                    onChange={(e) => setEditData({ ...editData, comissao_indicacao_individual: e.target.value })}
+                    className="input-default"
+                    step="0.1"
+                    placeholder="Deixe vazio para usar padrão"
+                    data-testid="edit-comissao-individual"
+                  />
+                  <p className="text-xs text-slate-500">Taxa de comissão que este usuário recebe por indicação. Deixe vazio para usar a taxa padrão do sistema.</p>
+                </div>
+
+                <div className="space-y-2">
                   <Label className="text-slate-300">Status</Label>
                   <Select
                     value={editData.status}
