@@ -585,22 +585,44 @@ export default function Dashboard() {
                 Fechar
               </Button>
             </div>
+          ) : depositTransaction.status === "expired" ? (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+                <Timer className="w-8 h-8 text-red-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">PIX Expirado</h3>
+              <p className="text-slate-400 text-sm mb-4">O tempo limite de {PIX_EXPIRATION_MINUTES} minutos foi excedido.</p>
+              <Button onClick={closeDepositModal} className="bg-slate-700 hover:bg-slate-600">
+                Fechar
+              </Button>
+            </div>
           ) : (
-            <div className="space-y-4 mt-4">
+            <div className="space-y-3 mt-2">
+              {/* Timer */}
+              {depositTimeRemaining !== null && (
+                <div className={`p-2 rounded-lg text-center ${depositTimeRemaining < 120 ? 'bg-red-500/20 border border-red-500/30' : 'bg-yellow-500/20 border border-yellow-500/30'}`}>
+                  <div className="flex items-center justify-center gap-2">
+                    <Timer className={`w-4 h-4 ${depositTimeRemaining < 120 ? 'text-red-400' : 'text-yellow-400'}`} />
+                    <span className={`font-mono text-lg font-bold ${depositTimeRemaining < 120 ? 'text-red-400' : 'text-yellow-400'}`}>
+                      {String(Math.floor(depositTimeRemaining / 60)).padStart(2, '0')}:{String(depositTimeRemaining % 60).padStart(2, '0')}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               <div className="text-center">
-                <div className="inline-block p-3 bg-white rounded-xl mb-3">
+                <div className="inline-block p-2 bg-white rounded-xl mb-2">
                   {depositTransaction.qr_code ? (
-                    <img src={depositTransaction.qr_code} alt="QR Code" className="w-40 h-40" />
+                    <img src={depositTransaction.qr_code} alt="QR Code" className="w-32 h-32" />
                   ) : (
-                    <QrCode className="w-40 h-40 text-slate-300" />
+                    <QrCode className="w-32 h-32 text-slate-300" />
                   )}
                 </div>
-                <p className="text-xl font-bold text-white">{formatCurrency(depositTransaction.valor)}</p>
-                <p className="text-xs text-slate-400 mt-1">Escaneie o QR Code ou copie o código</p>
+                <p className="text-lg font-bold text-white">{formatCurrency(depositTransaction.valor)}</p>
               </div>
               
               {depositTransaction.pix_copia_cola && (
-                <div className="p-3 bg-slate-800 rounded-lg">
+                <div className="p-2 bg-slate-800 rounded-lg">
                   <p className="text-[10px] text-slate-400 mb-1">PIX Copia e Cola</p>
                   <div className="flex gap-2">
                     <input
