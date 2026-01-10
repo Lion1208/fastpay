@@ -655,6 +655,15 @@ async def change_password(current_password: str, new_password: str, user: dict =
     )
     return {"message": "Senha alterada com sucesso"}
 
+@api_router.post("/auth/saw-code-warning")
+async def mark_code_warning_seen(user: dict = Depends(get_current_user)):
+    """Marca que o usuário já viu o aviso sobre o código"""
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"saw_code_warning": True}}
+    )
+    return {"success": True}
+
 # ===================== ADMIN CREDENTIALS =====================
 
 @api_router.put("/admin/credentials")
