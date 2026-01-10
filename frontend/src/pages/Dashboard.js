@@ -239,14 +239,14 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="space-y-4 animate-fade-in" data-testid="dashboard">
+      <div className="space-y-4 animate-fade-in w-full max-w-full overflow-hidden" data-testid="dashboard">
         
         {/* ========== SALDO PRINCIPAL ========== */}
-        <div className="rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 p-4">
+        <div className="rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 p-4 w-full">
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
-            <p className="text-slate-400 text-sm">Olá, {user?.nome?.split(" ")[0]}</p>
-            <button onClick={toggleBalance} className="p-1.5 rounded-lg bg-slate-700/50 text-slate-400">
+            <p className="text-slate-400 text-sm truncate">Olá, {user?.nome?.split(" ")[0]}</p>
+            <button onClick={toggleBalance} className="p-1.5 rounded-lg bg-slate-700/50 text-slate-400 flex-shrink-0">
               {showBalance ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
@@ -254,59 +254,63 @@ export default function Dashboard() {
           {/* Saldo */}
           <div className="mb-4">
             <p className="text-slate-500 text-xs">Saldo Total</p>
-            <p className="text-2xl md:text-3xl font-bold text-white">
+            <p className="text-2xl md:text-3xl font-bold text-white break-words">
               {showBalance ? formatCurrency(saldoTotal) : "R$ •••••"}
             </p>
           </div>
 
           {/* Breakdown */}
-          <div className="flex gap-4 mb-4 text-sm">
-            <div>
+          <div className="flex gap-4 mb-4 text-sm flex-wrap">
+            <div className="min-w-0">
               <p className="text-slate-500 text-xs">Disponível</p>
-              <p className="text-white font-medium">
+              <p className="text-white font-medium truncate">
                 {showBalance ? formatCurrency(stats?.saldo_disponivel) : "•••"}
               </p>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-slate-500 text-xs">Comissões</p>
-              <p className="text-purple-400 font-medium">
+              <p className="text-purple-400 font-medium truncate">
                 {showBalance ? formatCurrency(stats?.saldo_comissoes) : "•••"}
               </p>
             </div>
           </div>
 
           {/* Ações Rápidas - 4 botões compactos */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-1 sm:gap-2">
             <button
               onClick={() => setShowDepositModal(true)}
-              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-green-500/10 border border-green-500/20 hover:bg-green-500/20"
+              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 min-w-0"
+              data-testid="btn-depositar"
             >
-              <Plus className="w-5 h-5 text-green-400" />
-              <span className="text-[10px] text-slate-300">Depositar</span>
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
+              <span className="text-[9px] sm:text-[10px] text-slate-300 truncate">Depositar</span>
             </button>
             
             <button
               onClick={() => navigate('/transfers')}
-              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20"
+              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 min-w-0"
+              data-testid="btn-transferir"
             >
-              <Send className="w-5 h-5 text-blue-400" />
-              <span className="text-[10px] text-slate-300">Transferir</span>
+              <Send className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 flex-shrink-0" />
+              <span className="text-[9px] sm:text-[10px] text-slate-300 truncate">Transferir</span>
             </button>
             
             <button
               onClick={() => navigate('/withdrawals')}
-              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20"
+              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 min-w-0"
+              data-testid="btn-sacar"
             >
-              <Banknote className="w-5 h-5 text-orange-400" />
-              <span className="text-[10px] text-slate-300">Sacar</span>
+              <Banknote className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 flex-shrink-0" />
+              <span className="text-[9px] sm:text-[10px] text-slate-300 truncate">Sacar</span>
             </button>
             
             <button
               onClick={() => navigate('/transactions')}
-              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20"
+              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 min-w-0"
+              data-testid="btn-cobrar"
             >
-              <QrCode className="w-5 h-5 text-purple-400" />
-              <span className="text-[10px] text-slate-300">Cobrar</span>
+              <QrCode className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 flex-shrink-0" />
+              <span className="text-[9px] sm:text-[10px] text-slate-300 truncate">Cobrar</span>
             </button>
           </div>
         </div>
