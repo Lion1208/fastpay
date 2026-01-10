@@ -439,26 +439,26 @@ export default function Dashboard() {
         </Card>
 
         {/* ========== INDICAÇÕES + GRÁFICO ========== */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3">
           {/* Indicações */}
           <Card className="card-dashboard">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Users className="w-4 h-4 text-orange-400" />
-                <span className="text-sm font-medium text-white">Indicações</span>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Users className="w-3 h-3 text-orange-400" />
+                <span className="text-xs font-medium text-white">Indicações</span>
               </div>
-              <div className="flex gap-4 mb-3">
+              <div className="flex gap-4 mb-2">
                 <div>
-                  <p className="text-xl font-bold text-white">{stats?.total_indicados || 0}</p>
-                  <p className="text-[10px] text-slate-400">Indicados</p>
+                  <p className="text-lg font-bold text-white">{stats?.total_indicados || 0}</p>
+                  <p className="text-[9px] text-slate-400">Indicados</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-green-400">{stats?.indicacoes_disponiveis || 0}</p>
-                  <p className="text-[10px] text-slate-400">Disponíveis</p>
+                  <p className="text-lg font-bold text-green-400">{stats?.indicacoes_disponiveis || 0}</p>
+                  <p className="text-[9px] text-slate-400">Disponíveis</p>
                 </div>
               </div>
-              <Progress value={Math.min(referralProgress, 100)} className="h-1.5 bg-slate-800" />
-              <Button onClick={() => navigate('/referrals')} size="sm" className="w-full mt-3 bg-orange-600 hover:bg-orange-700 h-8 text-xs">
+              <Progress value={Math.min(referralProgress, 100)} className="h-1 bg-slate-800" />
+              <Button onClick={() => navigate('/referrals')} size="sm" className="w-full mt-2 bg-orange-600 hover:bg-orange-700 h-7 text-[10px]">
                 Ver Indicações
               </Button>
             </CardContent>
@@ -466,14 +466,14 @@ export default function Dashboard() {
 
           {/* Gráfico */}
           <Card className="card-dashboard">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="w-4 h-4 text-cyan-400" />
-                <span className="text-sm font-medium text-white">7 dias</span>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-1.5 mb-2">
+                <TrendingUp className="w-3 h-3 text-cyan-400" />
+                <span className="text-xs font-medium text-white">7 dias</span>
               </div>
-              <div style={{ width: '100%', height: 120 }}>
+              <div style={{ width: '100%', height: 80 }}>
                 {stats?.chart_data && stats.chart_data.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={120}>
+                  <ResponsiveContainer width="100%" height={80}>
                     <AreaChart data={stats.chart_data}>
                       <defs>
                         <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
@@ -481,17 +481,17 @@ export default function Dashboard() {
                           <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <XAxis dataKey="date" stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} />
+                      <XAxis dataKey="date" stroke="#64748b" fontSize={8} tickLine={false} axisLine={false} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff', fontSize: '11px' }}
+                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#fff', fontSize: '10px' }}
                         formatter={(value) => [formatCurrency(value), "Valor"]}
                       />
-                      <Area type="monotone" dataKey="valor" stroke="#22c55e" strokeWidth={2} fill="url(#colorValor)" />
+                      <Area type="monotone" dataKey="valor" stroke="#22c55e" strokeWidth={1.5} fill="url(#colorValor)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex items-center justify-center h-full text-slate-500">
-                    <p className="text-xs">Sem dados</p>
+                    <p className="text-[10px]">Sem dados</p>
                   </div>
                 )}
               </div>
