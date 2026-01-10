@@ -521,10 +521,10 @@ export default function Dashboard() {
 
         {/* Push hint */}
         {!pushEnabled && isPushSupported() && (
-          <div onClick={() => navigate('/settings')} className="flex items-center gap-2 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20 cursor-pointer">
-            <Bell className="w-4 h-4 text-purple-400" />
-            <p className="text-purple-300 text-xs flex-1">Ative as notificações push</p>
-            <span className="text-purple-400 text-xs">→</span>
+          <div onClick={() => navigate('/settings')} className="flex items-center gap-2 p-2 rounded bg-purple-500/10 border border-purple-500/20 cursor-pointer">
+            <Bell className="w-3 h-3 text-purple-400" />
+            <p className="text-purple-300 text-[10px] flex-1">Ative as notificações push</p>
+            <span className="text-purple-400 text-[10px]">→</span>
           </div>
         )}
       </div>
