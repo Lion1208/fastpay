@@ -323,42 +323,42 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Ações Rápidas - 4 botões compactos */}
-          <div className="grid grid-cols-4 gap-1 sm:gap-2">
+          {/* Ações Rápidas - 2x2 grid para mobile */}
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setShowDepositModal(true)}
-              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 min-w-0"
+              className="flex flex-col items-center gap-1 p-3 rounded-lg bg-green-500/10 border border-green-500/20 hover:bg-green-500/20"
               data-testid="btn-depositar"
             >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
-              <span className="text-[9px] sm:text-[10px] text-slate-300 truncate">Depositar</span>
+              <Plus className="w-5 h-5 text-green-400" />
+              <span className="text-xs text-slate-300">Depositar</span>
             </button>
             
             <button
               onClick={() => navigate('/transfers')}
-              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 min-w-0"
+              className="flex flex-col items-center gap-1 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20"
               data-testid="btn-transferir"
             >
-              <Send className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 flex-shrink-0" />
-              <span className="text-[9px] sm:text-[10px] text-slate-300 truncate">Transferir</span>
+              <Send className="w-5 h-5 text-blue-400" />
+              <span className="text-xs text-slate-300">Transferir</span>
             </button>
             
             <button
               onClick={() => navigate('/withdrawals')}
-              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 min-w-0"
+              className="flex flex-col items-center gap-1 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20"
               data-testid="btn-sacar"
             >
-              <Banknote className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 flex-shrink-0" />
-              <span className="text-[9px] sm:text-[10px] text-slate-300 truncate">Sacar</span>
+              <Banknote className="w-5 h-5 text-orange-400" />
+              <span className="text-xs text-slate-300">Sacar</span>
             </button>
             
             <button
-              onClick={() => navigate('/transactions')}
-              className="flex flex-col items-center gap-1 p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 min-w-0"
+              onClick={() => window.open(`/p/${user?.codigo}`, '_blank')}
+              className="flex flex-col items-center gap-1 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20"
               data-testid="btn-cobrar"
             >
-              <QrCode className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 flex-shrink-0" />
-              <span className="text-[9px] sm:text-[10px] text-slate-300 truncate">Cobrar</span>
+              <QrCode className="w-5 h-5 text-purple-400" />
+              <span className="text-xs text-slate-300">Cobrar</span>
             </button>
           </div>
         </div>
