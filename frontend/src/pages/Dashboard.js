@@ -681,6 +681,70 @@ export default function Dashboard() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* ========== MODAL AVISO DO CÓDIGO ========== */}
+      <Dialog open={showCodeWarning} onOpenChange={() => {}}>
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-sm mx-4" hideCloseButton>
+          <div className="text-center space-y-4">
+            {/* Ícone de alerta */}
+            <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto">
+              <ShieldAlert className="w-8 h-8 text-yellow-400" />
+            </div>
+            
+            {/* Título */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-1">Informação Importante!</h3>
+              <p className="text-slate-400 text-sm">Guarde seu código de acesso</p>
+            </div>
+            
+            {/* Código */}
+            <div className="p-4 bg-slate-800 rounded-lg border-2 border-yellow-500/50">
+              <p className="text-[10px] text-slate-400 mb-1">Seu código de acesso:</p>
+              <p className="text-2xl font-mono font-bold text-yellow-400 tracking-wider">
+                {user?.codigo}
+              </p>
+            </div>
+            
+            {/* Botão copiar */}
+            <Button
+              onClick={copyCode}
+              className={`w-full ${codeCopied ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'}`}
+            >
+              {codeCopied ? (
+                <>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Código Copiado!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar Código
+                </>
+              )}
+            </Button>
+            
+            {/* Aviso */}
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-red-300 text-xs text-left">
+                  <strong>ATENÇÃO:</strong> Este código, junto com sua senha, é a única forma de acessar sua conta. 
+                  <strong> Não há como recuperá-lo!</strong> Anote em um lugar seguro.
+                </p>
+              </div>
+            </div>
+            
+            {/* Botão continuar */}
+            <Button
+              onClick={handleCloseCodeWarning}
+              disabled={!codeCopied}
+              className="w-full bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {codeCopied ? "Entendi, já copiei meu código" : "Copie o código para continuar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
