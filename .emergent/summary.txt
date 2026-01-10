@@ -1,53 +1,57 @@
 <analysis>**original_problem_statement:**
-O usuário solicitou inicialmente um sistema de pagamentos e indicações com funcionalidades de login e cadastro. O escopo foi expandido para incluir:
-- **Melhorias na UI/UX:** Filtros, resumos, menus fixos e informações dinâmicas (taxas, nome do sistema). Adaptação de todas as telas de listagem para um layout de cards em dispositivos móveis.
-- **Novas Funcionalidades Core:**
-    - **Transferências entre Usuários:** Com ID de carteira, taxas, sugestões de contatos e busca automática. Geração de comprovante em PDF, disponível por 48 horas.
-    - **Sistema de Saques Avançado:** Com taxas configuráveis, aprovação/recusa pelo admin e validação de saldo.
-    - **Segurança:** Implementação de 2FA e a capacidade do admin alterar as próprias credenciais.
-    - **Gestão de Usuários:** Admin pode bloquear (com motivo) e excluir usuários da sua rede.
-- **Arquitetura Multi-Admin:** Admins gerenciam sua própria rede de usuários, com configurações (taxas, nome do sistema) e visualização de dados (saques, usuários, transações) isoladas.
-- **Notificações:** Notificações em tempo real para transferências (via polling, atualmente desativado para depuração) e notificações push (Web Push API) para funcionar com o site fechado.
-- **Pagamento Público:** Permitir pagamento anônimo (com dados fictícios válidos na API) com um limite de R$ 500.
+O usuário solicitou inicialmente um sistema de pagamentos e indicações. O escopo foi expandido para incluir melhorias de UI/UX, transferências entre usuários, saques, 2FA, arquitetura multi-admin, notificações push, e uma página de pagamento anônima.
+
+**PRODUCT REQUIREMENTS (Solicitações mais recentes):**
+1.  **Corrigir Dashboard do Usuário:**
+    *   O layout da nova dashboard estilo banco está quebrando em dispositivos móveis (expande horizontalmente).
+    *   A nova função Depositar está quebrada; não gera o QR Code PIX nem o código copia-e-cola.
+2.  **Melhorias na Dashboard:**
+    *   Renomear o botão Meu Link para Cobrar.
+    *   Implementar a funcionalidade do botão Depositar, que deve abrir um modal para o usuário gerar um PIX e adicionar fundos à própria carteira.
+3.  **Nova Funcionalidade (Admin):**
+    *   Permitir que o administrador defina uma taxa de comissão individual para cada usuário em sua rede, através do painel de gerenciamento de usuários.
 
 **User's preferred language**: Portuguese
 
 **what currently exists?**
-Uma aplicação full-stack (FastAPI + React) com as seguintes funcionalidades implementadas:
-- **Autenticação e Usuários:** Login, registro por indicação, 2FA, e painéis para usuário e admin. Admins podem bloquear e excluir usuários. O tempo de expiração do token foi aumentado para 7 dias.
-- **Financeiro:** Transferências entre usuários (com geração de PDF), saques com aprovação de admin, comissões, e página de pagamento pública com opção de modo anônimo.
-- **Arquitetura Multi-Admin:** As funcionalidades de admin (listagem de usuários, saques, estatísticas) foram atualizadas para filtrar e operar apenas sobre os usuários da rede do admin logado. Configurações de taxas definidas pelo admin são aplicadas a todos os usuários de sua rede (existentes e novos).
-- **UI/UX:** A interface possui tema escuro e as principais telas de listagem (, , , ) são responsivas, exibindo cards em telas menores. O nome do sistema é carregado dinamicamente. Um favicon foi adicionado para corrigir erros 404.
-- **Notificações:** O backend e o frontend foram preparados para notificações push via Web Push API, mas a funcionalidade de polling que as acionava foi temporariamente desativada para depurar um problema crítico.
+Uma aplicação full-stack (FastAPI + React) com um conjunto robusto de funcionalidades, incluindo autenticação completa (com 2FA), gestão de usuários por admins, transferências, saques, comissões, e pagamentos públicos. O bug crítico de  foi resolvido com a fixação da . A aplicação foi configurada para ser um PWA (Adicionar à Tela Inicial). Recentemente, a dashboard do usuário foi redesenhada para um estilo banco, e foram adicionadas notificações para tickets de suporte, mas essas novas funcionalidades apresentam bugs. Um script de deploy automatizado () para Ubuntu 24 foi criado e depurado.
 
 **Last working item**:
-- **Last item agent was working:** Depurando um erro crítico e intermitente de  que ocorre exclusivamente no ambiente de produção. O usuário relata que ao navegar entre as páginas, a sessão é perdida aleatoriamente, forçando um redirecionamento para a tela de login. A hipótese do agente era um problema de *race condition* ou conflito com as chamadas de polling.
+- **Last item agent was working:** O agente estava no início da correção de um conjunto de problemas relatados pelo usuário após o redesenho da dashboard:
+    1.  O layout da nova dashboard está quebrando em dispositivos móveis (overflow horizontal).
+    2.  A recém-adicionada funcionalidade de Depositar está quebrada, não gerando o PIX.
+    3.  O agente estava prestes a iniciar a implementação da funcionalidade de comissões individuais por usuário, solicitada pelo usuário.
 - **Status:** IN PROGRESS
 - **Agent Testing Done:** N
-- **Which testing method agent to use?** N/A. O problema é específico do ambiente de produção e não pode ser reproduzido pelo agente. O próximo passo é o usuário fazer o deploy da última tentativa de correção e reportar o resultado. Se o erro persistir, o agente  deve ser invocado.
-- **User Testing Done:** N
+- **Which testing method agent to use?** both. Usar o  para validar a correção do layout mobile e a funcionalidade do modal de depósito. Para a comissão individual, usar  ou  para validar a nova lógica de API.
+- **User Testing Done:** Y (O usuário testou e reportou os problemas na nova dashboard)
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Erros intermitentes de  em produção (P0)**
-  - **Description:** A aplicação em produção está instável e praticamente inutilizável devido a erros  que ocorrem de forma intermitente ao navegar entre as páginas. Isso causa a perda da sessão do usuário e o redireciona para a tela de login. O problema não ocorre no ambiente de desenvolvimento do agente.
-  - **Attempted fixes:**
-    1.  Refatoração completa do sistema de autenticação para usar uma instância de  centralizada ().
-    2.  Aumento do tempo de expiração do token JWT para 7 dias.
-    3.  Tornou o  mais resiliente para fazer logout apenas em erros  explícitos, ignorando falhas de rede genéricas.
-    4.  Adição de lógica de  para chamadas de API falhas.
-    5.  **Última tentativa:** Desativação temporária do polling de notificações no  e adição de headers  nas chamadas de API para descartar problemas de cache ou conflito de requisições.
+- **Issue 1: Funcionalidade Depositar está quebrada (P0)**
+  - **Description:** No novo dashboard do usuário, ao clicar em Depositar e tentar gerar um PIX, o modal não exibe o QR Code nem o código copia-e-cola. A funcionalidade principal está inoperante.
+  - **Attempted fixes:** A funcionalidade foi implementada na última reescrita do , mas foi reportada como quebrada imediatamente. Nenhuma correção foi tentada.
   - **Next debug checklist:**
-    1.  O agente deve primeiro perguntar ao usuário se a última alteração (desativar o polling) resolveu o problema após o deploy em produção.
-    2.  Se o problema persistir, invocar o agente  imediatamente, pois este é um erro complexo e específico de ambiente.
-    3.  Investigar a configuração do ambiente de produção, especialmente como as variáveis de ambiente (como ) são injetadas durante o build.
-    4.  Analisar os logs do servidor de produção no momento exato em que um erro  ocorre para buscar mais pistas.
+    1.  **Frontend:** Inspecionar a função  em . Verificar a chamada à API e como a resposta (ou a falta dela) é tratada. Adicionar logs no console para ver o que a API retorna.
+    2.  **Backend:** Analisar o endpoint que gera a transação de depósito (provavelmente uma variação do endpoint de pagamento público). Garantir que ele está chamando a API FastDePix corretamente e retornando os dados do PIX (, ) para o frontend.
   - **Status:** IN PROGRESS
-  - **Is recurring issue?** Y
-  - **Should Test frontend/backend/both after fix?** backend
+  - **Is recurring issue?** N
+  - **Should Test frontend/backend/both after fix?** both
   - **Blocked on other issue:** N/A
 
-- **Issue 2: Bug no Salvamento de Configurações do Admin (P2)**
-  - **Description:** Um bug antigo onde configurações salvas pelo admin (ex: nome do sistema) não persistiam. O agente implementou uma correção que aplica as configurações a todos os usuários da rede do admin, mas essa correção nunca foi formalmente verificada pelo usuário.
+- **Issue 2: Layout da Dashboard quebrado no mobile (P1)**
+  - **Description:** A nova dashboard do usuário () expande horizontalmente em telas pequenas, exigindo rolagem lateral e prejudicando a usabilidade.
+  - **Attempted fixes:** Nenhuma. O bug foi introduzido na última reescrita do componente.
+  - **Next debug checklist:**
+    1.  **Frontend:** Abrir  e usar as ferramentas de desenvolvedor do navegador no modo responsivo.
+    2.  Identificar o elemento que está causando o overflow. Provavelmente é um  com  fixo, ou um container flex/grid que não está quebrando (wrapping) corretamente.
+    3.  Revisar as classes do Tailwind CSS para garantir que larguras e espaçamentos são responsivos (ex: usar  em vez de larguras fixas em  ou  para containers principais).
+  - **Status:** IN PROGRESS
+  - **Is recurring issue?** N
+  - **Should Test frontend/backend/both after fix?** frontend
+  - **Blocked on other issue:** N/A
+
+- **Issue 3: Bug no Salvamento de Configurações do Admin (P2)**
+  - **Description:** Um bug antigo onde configurações salvas pelo admin (ex: nome do sistema) não persistiam. Uma correção foi implementada, mas nunca foi formalmente verificada pelo usuário.
   - **Status:** USER VERIFICATION PENDING
   - **Is recurring issue?** Y
   - **Should Test frontend/backend/both after fix?** both
@@ -57,113 +61,151 @@ N/A
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-  - **Task 1: Reativar e Testar Notificações (P1):** Assim que o bug 401 for resolvido, reativar o polling no  e verificar se as notificações push e as notificações em tempo real (ícone de sino) estão funcionando corretamente. (Files: )
-  - **Task 2: Implementar Tickets de Suporte (P2):** Criar um sistema de tickets, funcionalidade do escopo original que ainda não foi iniciada. (Files: , new frontend pages).
-  - **Task 3: Permitir que o Admin altere o logo do sistema (P2):** Adicionar a funcionalidade de upload de imagem para o logo. (Files: , ).
+  - **Task 1: Implementar Comissões Individuais por Usuário (P0):** Permitir que o admin defina uma taxa de comissão específica para cada usuário.
+    - **Onde resumir:**
+      - **Backend ():** Adicionar um campo  ao modelo do usuário no DB. Modificar o endpoint de atualização de usuário para que o admin possa setar este valor. Atualizar a lógica de cálculo de comissão para priorizar esta taxa individual, usando a taxa geral do admin como fallback.
+      - **Frontend ():** Adicionar um campo de input no modal/painel de edição de usuário para que o admin possa definir essa taxa.
+    - **Status:** NOT STARTED
+  - **Task 2: Ajustes de texto na Dashboard (P2):** Renomear o botão de ação Meu Link para Cobrar. (File: ).
+    - **Status:** NOT STARTED
 - **Future Tasks:**
   - **Task 1: Estender o polling de backend para a API externa (P3):** A verificação de status de pagamento PIX precisa ser implementada para transações originadas pela API externa do sistema. (File: ).
 
 **Completed work in this session**
-- **Refatoração de Autenticação:** Várias tentativas de corrigir erros de , incluindo a criação de uma instância  centralizada em  e a refatoração do .
-- **Gestão de Usuários pelo Admin:** Implementada a funcionalidade para admin bloquear (com motivo) e excluir usuários da sua própria rede.
-- **Responsividade da UI:** As principais telas de listagem (, , , etc.) foram adaptadas para exibir cards em dispositivos móveis.
-- **Geração de Comprovante PDF:** Adicionada a capacidade de gerar e baixar um PDF de comprovante para transferências, com o botão disponível por 48 horas no histórico.
-- **Pagamento Anônimo:** Implementada a opção de pagamento anônimo na página pública (), com validação de limite (R$ 500) e uso de dados fictícios para a API.
-- **Notificações Push:** Implementada a base para Web Push Notifications com  no backend e um Service Worker no frontend (atualmente inativo devido à depuração do erro 401).
-- **Correções de Bugs e UX:**
-  - O saldo do admin foi removido do cálculo de Total Sacável da Rede.
-  - As taxas definidas pelo admin agora são aplicadas a usuários existentes e novos da sua rede.
-  - A cor do valor líquido na lista de transações agora fica vermelha para valores negativos.
-  - Corrigido o erro do gráfico () no Dashboard adicionando .
-  - Corrigido o piscar do nome do sistema no login e no menu lateral.
-  - Adicionado um favicon para resolver erros 404.
-  - Adicionado um card na dashboard do usuário com seu link de pagamento público.
+- **Correção Crítica de Autenticação:** Resolvido o erro intermitente  ao fixar a  no .
+- **Dashboard do Usuário Redesenhada:** A página foi completamente refeita para ter um visual de aplicativo de banco (atualmente com bugs).
+- **Notificações de Suporte:** Implementado um indicador (ponto vermelho) para tickets de suporte com respostas não lidas, tanto para o admin quanto para o usuário.
+- **Funcionalidade PWA:** Implementada a capacidade de Adicionar à Tela Inicial em dispositivos móveis e desktop.
+- **Expiração de PIX:** Implementado um timer de 20 minutos para transações pendentes, com lógica no backend para marcar como expirado e um contador regressivo no frontend.
+- **Geração de Dados Dinâmicos:** Pagamentos anônimos agora usam um CPF e nome válidos e únicos a cada transação.
+- **Melhorias na API:** A API externa foi simplificada, tornando o  opcional.
+- **UI/UX Geral:** Adicionado saldo visível na navbar com botão de ocultar, corrigido o bug de exibição de  e renomeado o sistema para FastPix.
+- **Deploy:** Criado um script de instalação () para a VPS do usuário e depurados vários problemas de deploy (SSL, Nginx, permissões).
 
 **Earlier issues found/mentioned but not fixed**
-- A questão central e não resolvida é o erro intermitente de  em produção. Todas as outras questões se tornaram secundárias.
+N/A
 
 **Known issue recurrence from previous fork**
-- **Bug no Salvamento de Configurações do Admin:** Recorrente da sessão anterior. Uma correção foi implementada, mas aguarda verificação.
-- **Erros :** Este é o principal problema recorrente *desta* sessão.
+- **Bug no Salvamento de Configurações do Admin:** Recorrente. Uma correção foi implementada, mas ainda aguarda verificação do usuário.
+- **Recurrence count:** 2
+- **Status:** USER VERIFICATION PENDING
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Backend:** FastAPI, Motor (MongoDB async),  (2FA),  (Push Notifications).
-- **Frontend:** React, React Router, Axios, TailwindCSS, Shadcn/UI,  (geração de PDF), Service Workers.
-- **Padrão de Código:** Foi estabelecida uma instância  centralizada em  para padronizar as chamadas de API e o tratamento de autenticação.
+- **Backend:** FastAPI, Motor (MongoDB async),  (2FA),  (Push Notifications),  (hashing de senha).
+- **Frontend:** React, React Router, Axios, TailwindCSS, Shadcn/UI, Service Workers (PWA).
+- **Deployment:** Bash scripting, Nginx (reverse proxy, SSL), systemd (gerenciamento de serviço), Certbot (Let's Encrypt).
 
 **key DB schema**
-- : { , : ('active' | 'blocked' | 'inactive'), : str }
-- : { ,  }
-- : {  }
-- : {  }
+- : { ..., : Optional[float] }
+- : { ..., : ('user' | 'admin'), : bool, : bool }
+- : { ..., : ('pending' | 'paid' | 'expired'), : datetime }
 
 **changes in tech stack**
-- **Backend:** Adicionado .
-- **Frontend:** Adicionado  e .
-
-**All files of reference**
-- : Modificado para adicionar endpoints de block/delete de usuário, push notifications e para corrigir a lógica de aplicação de taxas.
-- : Novo arquivo crítico que centraliza a configuração do  e o interceptor de autenticação.
-- : Refatorado múltiplas vezes para tentar corrigir o problema de autenticação.
-- : Modificado para carregar configurações de forma mais robusta e para desativar o polling de notificações (temporariamente).
-- : Modificado para exibir a mensagem de bloqueio e carregar o nome do sistema corretamente.
-- : Modificado para adicionar botões e modais de bloqueio/exclusão e para ser responsivo.
-- : Modificado para implementar a geração de PDF.
-- : Modificado para implementar a funcionalidade de pagamento anônimo.
-- : Novo arquivo para o Service Worker.
-
-**Areas that need refactoring**:
-- **Autenticação no Frontend:** O fluxo de autenticação (, , ) é extremamente frágil. Apesar das várias refatorações, ele ainda é a fonte do bug mais crítico da aplicação. Precisa de uma revisão completa e possivelmente de uma abordagem diferente para gerenciar o estado de  vs.  para evitar race conditions.
-
-**key api endpoints**
-- : Bloqueia um usuário com um motivo.
-- : Exclui um usuário.
-- : Obtém a chave pública VAPID.
-- : Registra um endpoint de push notification para um usuário.
-
-**Critical Info for New Agent**
-- **A PRIORIDADE MÁXIMA é resolver o erro intermitente de  em produção.** A aplicação está inutilizável por causa disso. O último passo do agente anterior foi desativar o polling como uma medida de diagnóstico. Seu primeiro passo deve ser confirmar com o usuário se isso resolveu o problema após um novo deploy. Se não, invoque o  imediatamente, pois o problema é complexo e específico do ambiente. Não perca tempo com outras tarefas até que isso seja resolvido.
-- A base para notificações push está implementada, mas foi desativada para a depuração. Uma vez que o bug 401 seja corrigido, essa funcionalidade precisa ser reativada e testada.
-- O usuário testa a aplicação manualmente após cada conjunto de alterações. Não use agentes de teste a menos que seja para um problema recorrente que você possa replicar.
-
-**documents created in this job**
 N/A
 
-**Last 10 User Messages and any pending user messages**
-- **10. User:** Reportou que o erro 401 intermitente persiste, mesmo após várias tentativas de correção. (Status: **IN PROGRESS**)
-- **9. User:** Reportou que o nome do sistema aparece e some rapidamente ao carregar as páginas. (Status: **RESOLVED**)
-- **8. User:** Pediu para desabilitar o botão de pagamento anônimo se o valor for > 500 e usar dados fictícios na chamada da API. (Status: **RESOLVED**)
-- **7. User:** Pediu a implementação de pagamento anônimo com limite de R$ 500 na página pública. (Status: **RESOLVED**)
-- **6. User:** Reportou que o nome do sistema some na tela de login e há um erro de favicon. (Status: **RESOLVED**)
-- **5. User:** Reportou que o token de login expira muito rápido. (Status: **RESOLVED**)
-- **4. User:** Pediu para que as taxas configuradas pelo admin sejam aplicadas a usuários novos e existentes e que o saldo do admin não conte no total sacável. (Status: **RESOLVED**)
-- **3. User:** Reportou um erro  no console e problemas com o gráfico no dashboard. (Status: **RESOLVED**)
-- **2. User:** Pediu para colocar a tag  no HTML. (Status: **RESOLVED**)
-- **1. User:** Pediu para adaptar a página  para mobile e corrigir a cor de valores negativos em . (Status: **RESOLVED**)
+**All files of reference**
+- : **Arquivo crítico**. Foi completamente reescrito para o novo design banco, mas contém os bugs de layout e da função de depósito. Precisa de atenção imediata.
+- : Modificado extensivamente para adicionar expiração de PIX, notificações de ticket, endpoint para a nova dashboard e correções na API externa.
+- : Modificado para adicionar o saldo na navbar e o indicador de notificação de tickets.
+- : Modificado para adicionar a lógica do prompt de instalação do PWA.
+- , , : Arquivos criados/modificados para a funcionalidade PWA.
+- : Novo script para automatizar o deploy em uma VPS Ubuntu.
+
+**Areas that need refactoring**:
+- : O arquivo foi reescrito e introduziu bugs significativos. Precisa ser revisado e corrigido urgentemente para estabilizar a funcionalidade e o layout.
+
+**key api endpoints**
+- : (Hipótese) Endpoint que precisa ser verificado/depurado para a funcionalidade de depósito.
+- : (Novo) Endpoint para verificar se há tickets com novas respostas.
+- : Atualizado para marcar o status de leitura do ticket.
+- : Atualizado para retornar dados do extrato para a nova dashboard.
+
+**Critical Info for New Agent**
+- **FOCO IMEDIATO:** O usuário está bloqueado por bugs na nova dashboard. Sua primeira prioridade é corrigir os dois problemas principais: o layout quebrado no mobile e a funcionalidade de Depositar que não gera PIX.
+- Após corrigir os bugs, a próxima tarefa é implementar a comissão individual por usuário, conforme solicitado.
+- O usuário está gerenciando o próprio deploy em uma VPS. Esteja preparado para ajudar com comandos usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]
+           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+           [--super-prefix=<path>] [--config-env=<name>=<envvar>]
+           <command> [<args>]
+
+These are common Git commands used in various situations:
+
+start a working area (see also: git help tutorial)
+   clone     Clone a repository into a new directory
+   init      Create an empty Git repository or reinitialize an existing one
+
+work on the current change (see also: git help everyday)
+   add       Add file contents to the index
+   mv        Move or rename a file, a directory, or a symlink
+   restore   Restore working tree files
+   rm        Remove files from the working tree and from the index
+
+examine the history and state (see also: git help revisions)
+   bisect    Use binary search to find the commit that introduced a bug
+   diff      Show changes between commits, commit and working tree, etc
+   grep      Print lines matching a pattern
+   log       Show commit logs
+   show      Show various types of objects
+   status    Show the working tree status
+
+grow, mark and tweak your common history
+   branch    List, create, or delete branches
+   commit    Record changes to the repository
+   merge     Join two or more development histories together
+   rebase    Reapply commits on top of another base tip
+   reset     Reset current HEAD to the specified state
+   switch    Switch branches
+   tag       Create, list, delete or verify a tag object signed with GPG
+
+collaborate (see also: git help workflows)
+   fetch     Download objects and refs from another repository
+   pull      Fetch from and integrate with another repository or a local branch
+   push      Update remote refs along with associated objects
+
+'git help -a' and 'git help -g' list available subcommands and some
+concept guides. See 'git help <command>' or 'git help <concept>'
+to read about a specific subcommand or concept.
+See 'git help git' for an overview of the system., yarn run v1.22.22
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command. e reinicialização de serviços (), pois o usuário depende do agente para obter os comandos corretos.
+- Lembre-se sempre de responder em **Português**.
+
+**documents and test reports created in this job**
+- 
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User:** Reportou que a nova dashboard está muito grande no mobile (expande para o lado), o sistema de depósito não gera o PIX e solicitou a implementação de comissão individual por usuário. (Status: **PENDING**)
+2.  **User:** Solicitou a troca de nomes dos botões na dashboard (Meu Link -> Cobrar) e a implementação de um sistema de depósito via PIX em um modal. (Status: **IN PROGRESS/BROKEN**)
+3.  **User:** Pediu o redesenho da dashboard do usuário para um estilo de banco e um indicador de notificação para novos tickets. (Status: **DONE/WITH BUGS**)
+4.  **User:** Pediu um backup do sistema. (Status: **DONE**)
+5.  **User:** Solicitou que o  na API externa fosse opcional. (Status: **DONE**)
+6.  **User:** Reportou que a porcentagem de comissão na UI estava fixa em 1% e não refletia a configuração do admin. (Status: **DONE**)
+7.  **User:** Pediu para mudar o nome do sistema de FastPay para FastPix. (Status: **DONE**)
+8.  **User:** Reportou um bug de  na UI. (Status: **DONE**)
+9.  **User:** Reportou um erro 403 ao ativar notificações push. (Status: **DONE**)
+10. **User:** Reportou que, após o deploy na VPS, o login não funcionava (). (Status: **DONE**)
 
 **Project Health Check:**
-- **Broken:** A autenticação no ambiente de produção está quebrada. Erros intermitentes  tornam o sistema instável e inutilizável, sendo a principal causa de frustração do usuário.
+- **Broken:** A dashboard principal do usuário () está com a UI quebrada em dispositivos móveis e uma funcionalidade core (Depósito) está inoperante.
 - **Mocked:** N/A
 
 **3rd Party Integrations**
-- **FastDePix:** Usada para a geração de QR Codes PIX.
-- **jsPDF (Frontend):** Usada para gerar comprovantes de transferência em PDF no lado do cliente.
+- **FastDePix:** Utilizada para geração de QR Codes PIX.
+- **jsPDF (Frontend):** Utilizada para gerar comprovantes em PDF.
 
 **Testing status**
-- **Testing agent used after significant changes:** NO
+- **Testing agent used after significant changes:** NO (As últimas grandes mudanças não foram testadas pelo agente antes do deploy do usuário)
 - **Troubleshoot agent used after agent stuck in loop:** NO
 - **Test files created:** N/A
-- **Known regressions:** A funcionalidade de autenticação regrediu severamente, tornando-se instável em produção.
+- **Known regressions:** A nova dashboard do usuário é uma regressão em termos de estabilidade e usabilidade em comparação com a versão anterior.
 
 **Credentials to test flow:**
 - **Admin:** Código , senha .
-- **Usuário:** Deve ser criado através da página de registro com o código de um indicador, ex: .
+- **User:** Criar via página de registro com um código de indicação (ex: ).
 
 **What agent forgot to execute**
-- **Tickets de Suporte:** Funcionalidade do escopo original, ainda não iniciada.
-- **Upload de Logo:** Funcionalidade solicitada para o admin poder alterar o logo, não iniciada.
-- **Polling para API Externa:** Tarefa futura de estender a verificação de pagamentos para a API externa, não iniciada.
-- O agente foi completamente consumido pela tentativa de corrigir o bug crítico de autenticação, deixando todas as outras tarefas futuras de lado.</analysis>
+- O agente não testou a nova dashboard após a reescrita, o que levou à entrega de funcionalidades quebradas para o usuário. A implementação da comissão individual e os ajustes de texto solicitados também não foram iniciados.</analysis>
