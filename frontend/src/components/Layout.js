@@ -70,8 +70,8 @@ export const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [config, setConfig] = useState({ nome_sistema: "FastPix", logo_url: "" });
   const [lastTransferCheck, setLastTransferCheck] = useState(null);
+  const [unreadTickets, setUnreadTickets] = useState(0);
   const [showBalance, setShowBalance] = useState(() => {
-    // Carrega preferência do localStorage
     const saved = localStorage.getItem("showBalance");
     return saved !== null ? saved === "true" : true;
   });
@@ -90,8 +90,28 @@ export const Layout = ({ children }) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
   };
 
-  // Saldo a mostrar (disponível + comissões para usuário comum, só disponível para admin)
+  // Saldo a mostrar
   const userBalance = user?.saldo_disponivel || 0;
+
+  // Buscar tickets não lidos
+  useEffect(() => {
+    const fetchUnreadTickets = async () => {
+      try {
+        const endpoint = isAdmin ? '/admin/tickets/unread-count' : '/tickets/unread-count';
+        const response = await api.get(endpoint);
+        setUnreadTickets(response.data.count || 0);
+      } catch (error) {
+        // Silenciosamente falha se endpoint não existir
+      }
+    };
+
+    if (user?.id) {
+      fetchUnreadTickets();
+      // Polling a cada 30 segundos
+      const interval = setInterval(fetchUnreadTickets, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user?.id, isAdmin]);
 
   // Busca configuração pública do sistema
   useEffect(() => {
