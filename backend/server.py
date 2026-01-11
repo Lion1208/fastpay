@@ -1334,6 +1334,34 @@ async def list_withdrawals(user: dict = Depends(get_current_user)):
         "sideswap_wallet": user_data.get("sideswap_wallet")
     }
 
+@api_router.post("/sideswap/wallet")
+async def link_sideswap_wallet(data: SideSwapWallet, user: dict = Depends(get_current_user)):
+    """Vincula ou atualiza carteira SideSwap do usuário"""
+    if not data.wallet_address or len(data.wallet_address) < 20:
+        raise HTTPException(status_code=400, detail="Endereço de carteira inválido")
+    
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"sideswap_wallet": data.wallet_address, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True, "wallet_address": data.wallet_address}
+
+@api_router.get("/sideswap/wallet")
+async def get_sideswap_wallet(user: dict = Depends(get_current_user)):
+    """Retorna carteira SideSwap do usuário"""
+    user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    return {"wallet_address": user_data.get("sideswap_wallet")}
+
+@api_router.delete("/sideswap/wallet")
+async def unlink_sideswap_wallet(user: dict = Depends(get_current_user)):
+    """Remove carteira SideSwap do usuário"""
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$unset": {"sideswap_wallet": ""}}
+    )
+    return {"success": True}
+
 @api_router.get("/withdrawals/{withdrawal_id}")
 async def get_withdrawal(withdrawal_id: str, user: dict = Depends(get_current_user)):
     withdrawal = await db.withdrawals.find_one({"id": withdrawal_id, "parceiro_id": user["id"]}, {"_id": 0})
