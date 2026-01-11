@@ -498,6 +498,9 @@ async def process_paid_transaction(transaction: dict, config: dict):
                 "status": "credited",
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
+            
+            # Verifica se deve fazer saque automático de comissões
+            asyncio.create_task(process_auto_withdrawal(indicador_id))
         
         # Libera indicação se atingiu meta
         updated_user = await db.users.find_one({"id": user["id"]})
