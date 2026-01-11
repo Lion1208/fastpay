@@ -85,6 +85,13 @@ export default function AdminUsers() {
         status: editData.status
       };
       
+      // Adiciona taxa Depix individual se preenchida
+      if (editData.taxa_saque_depix !== "") {
+        updatePayload.taxa_saque_depix = parseFloat(editData.taxa_saque_depix);
+      } else {
+        updatePayload.taxa_saque_depix = null;
+      }
+      
       // Adiciona comissão individual apenas se preenchida
       if (editData.comissao_indicacao_individual !== "") {
         updatePayload.comissao_indicacao_individual = parseFloat(editData.comissao_indicacao_individual);
