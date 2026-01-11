@@ -95,12 +95,16 @@ class TransactionCreate(BaseModel):
 
 class WithdrawalCreate(BaseModel):
     valor: float
-    chave_pix: str
-    tipo_chave: str
+    chave_pix: Optional[str] = None
+    tipo_chave: Optional[str] = None
+    metodo: str = "pix"  # "pix" ou "depix"
 
 class WithdrawalApprove(BaseModel):
     status: str
     motivo: Optional[str] = None
+
+class SideSwapWallet(BaseModel):
+    wallet_address: str
 
 class TicketCreate(BaseModel):
     assunto: str
@@ -116,6 +120,7 @@ class AdminConfig(BaseModel):
     taxa_percentual_padrao: Optional[float] = None
     taxa_fixa_padrao: Optional[float] = None
     taxa_saque_padrao: Optional[float] = None
+    taxa_saque_depix_padrao: Optional[float] = None
     taxa_transferencia_padrao: Optional[float] = None
     valor_minimo_indicacao: Optional[float] = None
     valor_minimo_saque: Optional[float] = None
