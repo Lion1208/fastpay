@@ -326,6 +326,72 @@ async def send_push_notification(user_id: str, title: str, body: str, data: dict
         except Exception as e:
             logger.error(f"Erro geral ao enviar push: {e}")
 
+async def send_push_to_admins(title: str, body: str, data: dict = None):
+    """Envia push notification para todos os admins"""
+    admins = await db.users.find({"role": "admin"}, {"id": 1}).to_list(100)
+    for admin in admins:
+        await send_push_notification(admin["id"], title, body, data)
+
+async def process_auto_withdrawal(user_id: str):
+    """Processa saque automático de comissões quando atingir R$30"""
+    AUTO_WITHDRAWAL_THRESHOLD = 30.0
+    
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        return
+    
+    saldo_comissoes = user.get("saldo_comissoes", 0)
+    sideswap_wallet = user.get("sideswap_wallet")
+    
+    # Verifica se atingiu o limite e tem carteira vinculada
+    if saldo_comissoes < AUTO_WITHDRAWAL_THRESHOLD or not sideswap_wallet:
+        return
+    
+    config = await get_config()
+    taxa_saque_depix = user.get("taxa_saque_depix") if user.get("taxa_saque_depix") is not None else config.get("taxa_saque_depix_padrao", 2.0)
+    
+    # Calcula valor do saque
+    valor_saque = saldo_comissoes
+    valor_taxa = valor_saque * (taxa_saque_depix / 100)
+    valor_liquido = valor_saque - valor_taxa
+    
+    # Cria o saque automático
+    withdrawal = {
+        "id": str(uuid.uuid4()),
+        "parceiro_id": user_id,
+        "valor_solicitado": round(valor_liquido, 2),
+        "taxa_percentual": taxa_saque_depix,
+        "valor_taxa": round(valor_taxa, 2),
+        "valor_total_retido": round(valor_saque, 2),
+        "metodo": "depix",
+        "sideswap_wallet": sideswap_wallet,
+        "chave_pix": None,
+        "tipo_chave": None,
+        "status": "pending",
+        "auto_withdrawal": True,
+        "observacoes": [],
+        "motivo": None,
+        "aprovado_por": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.withdrawals.insert_one(withdrawal)
+    
+    # Zera o saldo de comissões
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"saldo_comissoes": 0}}
+    )
+    
+    # Notifica os admins sobre o novo saque
+    await send_push_to_admins(
+        "💰 Novo Saque Automático",
+        f"{user.get('nome', 'Usuário')} solicitou saque automático de R${valor_liquido:.2f} (Depix)",
+        {"type": "withdrawal", "withdrawal_id": withdrawal["id"]}
+    )
+    
+    logger.info(f"Saque automático criado para user {user_id}: R${valor_liquido:.2f}")
+
 # ===================== INITIALIZATION =====================
 
 async def init_admin():
