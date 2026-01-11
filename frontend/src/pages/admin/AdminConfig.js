@@ -350,10 +350,11 @@ export default function AdminConfig() {
                   <Label className="text-slate-300">Taxa Saque PIX (%)</Label>
                   <Input
                     type="number"
-                    value={config?.taxa_saque_padrao || ""}
+                    value={config?.taxa_saque_padrao ?? ""}
                     onChange={(e) => handleChange("taxa_saque_padrao", parseFloat(e.target.value))}
                     className="input-default"
                     step="0.1"
+                    min="0"
                     placeholder="1.5"
                   />
                 </div>
@@ -361,10 +362,11 @@ export default function AdminConfig() {
                   <Label className="text-slate-300">Taxa Saque Depix (%)</Label>
                   <Input
                     type="number"
-                    value={config?.taxa_saque_depix_padrao || ""}
+                    value={config?.taxa_saque_depix_padrao ?? ""}
                     onChange={(e) => handleChange("taxa_saque_depix_padrao", parseFloat(e.target.value))}
                     className="input-default"
                     step="0.1"
+                    min="0"
                     placeholder="2.0"
                   />
                 </div>
