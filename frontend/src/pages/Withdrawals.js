@@ -273,15 +273,15 @@ export default function Withdrawals() {
 
                 {/* Depix - Carteira SideSwap */}
                 {metodoSaque === "depix" && (
-                  <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/30">
+                  <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/30 overflow-hidden">
                     {sideswapWallet ? (
-                      <div className="space-y-2">
+                      <div className="space-y-2 overflow-hidden">
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-orange-300">Carteira Vinculada:</span>
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-6 px-2 text-orange-400"
+                            className="h-6 px-2 text-orange-400 flex-shrink-0"
                             onClick={() => {
                               setWalletInput(sideswapWallet);
                               setShowSideSwapDialog(true);
@@ -290,9 +290,11 @@ export default function Withdrawals() {
                             <Edit className="w-3 h-3 mr-1" /> Editar
                           </Button>
                         </div>
-                        <p className="text-white text-xs font-mono bg-slate-800/50 p-2 rounded truncate overflow-hidden" title={sideswapWallet}>
-                          {sideswapWallet}
-                        </p>
+                        <div className="bg-slate-800/50 p-2 rounded overflow-hidden">
+                          <p className="text-white text-xs font-mono truncate" title={sideswapWallet}>
+                            {sideswapWallet}
+                          </p>
+                        </div>
                       </div>
                     ) : (
                       <div className="text-center">
