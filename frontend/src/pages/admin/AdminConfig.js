@@ -379,10 +379,11 @@ export default function AdminConfig() {
                   <Label className="text-slate-300">Taxa Transferência (%)</Label>
                   <Input
                     type="number"
-                    value={config?.taxa_transferencia_padrao || ""}
+                    value={config?.taxa_transferencia_padrao ?? ""}
                     onChange={(e) => handleChange("taxa_transferencia_padrao", parseFloat(e.target.value))}
                     className="input-default"
                     step="0.1"
+                    min="0"
                     placeholder="0.5"
                   />
                 </div>
@@ -390,10 +391,11 @@ export default function AdminConfig() {
                   <Label className="text-slate-300">Valor Mín. Saque (R$)</Label>
                   <Input
                     type="number"
-                    value={config?.valor_minimo_saque || ""}
+                    value={config?.valor_minimo_saque ?? ""}
                     onChange={(e) => handleChange("valor_minimo_saque", parseFloat(e.target.value))}
                     className="input-default"
                     step="1"
+                    min="0"
                     placeholder="10"
                   />
                 </div>
