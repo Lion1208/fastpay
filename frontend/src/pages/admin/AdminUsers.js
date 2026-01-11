@@ -60,6 +60,7 @@ export default function AdminUsers() {
       taxa_percentual: user.taxa_percentual?.toString() || "2",
       taxa_fixa: user.taxa_fixa?.toString() || "0.99",
       taxa_saque: user.taxa_saque?.toString() || "1.5",
+      taxa_saque_depix: user.taxa_saque_depix?.toString() || "",
       taxa_transferencia: user.taxa_transferencia?.toString() || "0.5",
       valor_minimo_saque: user.valor_minimo_saque?.toString() || "10",
       valor_minimo_transferencia: user.valor_minimo_transferencia?.toString() || "1",
