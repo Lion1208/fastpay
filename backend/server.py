@@ -1384,6 +1384,14 @@ async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_cur
             {"$set": {"saldo_disponivel": 0}, "$inc": {"saldo_comissoes": -resto}}
         )
     
+    # Notifica admins sobre novo saque
+    metodo_texto = "PIX" if metodo == "pix" else "Depix"
+    asyncio.create_task(send_push_to_admins(
+        "💸 Novo Saque Solicitado",
+        f"{user_data.get('nome', 'Usuário')} solicitou saque de R${data.valor:.2f} ({metodo_texto})",
+        {"type": "withdrawal", "withdrawal_id": withdrawal["id"]}
+    ))
+    
     del withdrawal["_id"]
     return withdrawal
 
