@@ -65,9 +65,9 @@ export default function Withdrawals() {
         api.get(`/dashboard/stats`)
       ]);
       setWithdrawals(withdrawalsRes.data.withdrawals);
-      setTaxaSaque(withdrawalsRes.data.taxa_saque || 1.5);
-      setTaxaSaqueDepix(withdrawalsRes.data.taxa_saque_depix || 2.0);
-      setValorMinimo(withdrawalsRes.data.valor_minimo || 10);
+      setTaxaSaque(withdrawalsRes.data.taxa_saque ?? 1.5);
+      setTaxaSaqueDepix(withdrawalsRes.data.taxa_saque_depix ?? 2.0);
+      setValorMinimo(withdrawalsRes.data.valor_minimo ?? 10);
       setSideswapWallet(withdrawalsRes.data.sideswap_wallet);
       setStats(statsRes.data);
     } catch (error) {
