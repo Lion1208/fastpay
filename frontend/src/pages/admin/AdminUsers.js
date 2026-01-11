@@ -24,6 +24,7 @@ export default function AdminUsers() {
     taxa_percentual: "",
     taxa_fixa: "",
     taxa_saque: "",
+    taxa_saque_depix: "",
     taxa_transferencia: "",
     valor_minimo_saque: "",
     valor_minimo_transferencia: "",
