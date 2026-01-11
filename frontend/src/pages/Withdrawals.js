@@ -290,7 +290,7 @@ export default function Withdrawals() {
                             <Edit className="w-3 h-3 mr-1" /> Editar
                           </Button>
                         </div>
-                        <p className="text-white text-xs font-mono bg-slate-800/50 p-2 rounded truncate">
+                        <p className="text-white text-xs font-mono bg-slate-800/50 p-2 rounded truncate overflow-hidden" title={sideswapWallet}>
                           {sideswapWallet}
                         </p>
                       </div>
