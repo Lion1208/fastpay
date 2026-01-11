@@ -1221,11 +1221,17 @@ async def list_commissions(user: dict = Depends(get_current_user)):
 # ===================== WITHDRAWAL ROUTES =====================
 
 @api_router.get("/withdrawals/calculate")
-async def calculate_withdrawal(valor: float, user: dict = Depends(get_current_user)):
+async def calculate_withdrawal(valor: float, metodo: str = "pix", user: dict = Depends(get_current_user)):
     """Calcula quanto o usuário precisa ter para sacar um valor específico"""
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
     config = await get_config()
-    taxa_saque = user_data.get("taxa_saque") if user_data.get("taxa_saque") is not None else config.get("taxa_saque_padrao", 1.5)
+    
+    # Seleciona taxa baseado no método
+    if metodo == "depix":
+        taxa_saque = user_data.get("taxa_saque_depix") if user_data.get("taxa_saque_depix") is not None else config.get("taxa_saque_depix_padrao", 2.0)
+    else:
+        taxa_saque = user_data.get("taxa_saque") if user_data.get("taxa_saque") is not None else config.get("taxa_saque_padrao", 1.5)
+    
     valor_minimo = user_data.get("valor_minimo_saque") if user_data.get("valor_minimo_saque") is not None else config.get("valor_minimo_saque", 10.0)
     
     valor_taxa = valor * (taxa_saque / 100)
@@ -1239,14 +1245,31 @@ async def calculate_withdrawal(valor: float, user: dict = Depends(get_current_us
         "valor_necessario": round(valor_necessario, 2),
         "saldo_disponivel": total_disponivel,
         "pode_sacar": total_disponivel >= valor_necessario and valor >= valor_minimo,
-        "valor_minimo": valor_minimo
+        "valor_minimo": valor_minimo,
+        "metodo": metodo
     }
 
 @api_router.post("/withdrawals")
 async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_current_user)):
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
     config = await get_config()
-    taxa_saque = user_data.get("taxa_saque") if user_data.get("taxa_saque") is not None else config.get("taxa_saque_padrao", 1.5)
+    
+    # Validar método de saque
+    metodo = data.metodo or "pix"
+    if metodo not in ["pix", "depix"]:
+        raise HTTPException(status_code=400, detail="Método de saque inválido")
+    
+    # Validações específicas por método
+    if metodo == "pix":
+        if not data.chave_pix or not data.tipo_chave:
+            raise HTTPException(status_code=400, detail="Chave PIX e tipo são obrigatórios para saque PIX")
+        taxa_saque = user_data.get("taxa_saque") if user_data.get("taxa_saque") is not None else config.get("taxa_saque_padrao", 1.5)
+    else:  # depix
+        sideswap_wallet = user_data.get("sideswap_wallet")
+        if not sideswap_wallet:
+            raise HTTPException(status_code=400, detail="Você precisa vincular uma carteira SideSwap primeiro")
+        taxa_saque = user_data.get("taxa_saque_depix") if user_data.get("taxa_saque_depix") is not None else config.get("taxa_saque_depix_padrao", 2.0)
+    
     valor_minimo = user_data.get("valor_minimo_saque") if user_data.get("valor_minimo_saque") is not None else config.get("valor_minimo_saque", 10.0)
     
     valor_taxa = data.valor * (taxa_saque / 100)
@@ -1266,8 +1289,10 @@ async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_cur
         "taxa_percentual": taxa_saque,
         "valor_taxa": round(valor_taxa, 2),
         "valor_total_retido": round(valor_necessario, 2),
-        "chave_pix": data.chave_pix,
-        "tipo_chave": data.tipo_chave,
+        "metodo": metodo,
+        "chave_pix": data.chave_pix if metodo == "pix" else None,
+        "tipo_chave": data.tipo_chave if metodo == "pix" else None,
+        "sideswap_wallet": user_data.get("sideswap_wallet") if metodo == "depix" else None,
         "status": "pending",
         "observacoes": [],
         "motivo": None,
@@ -1299,11 +1324,14 @@ async def list_withdrawals(user: dict = Depends(get_current_user)):
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
     config = await get_config()
     taxa_saque = user_data.get("taxa_saque") if user_data.get("taxa_saque") is not None else config.get("taxa_saque_padrao", 1.5)
+    taxa_saque_depix = user_data.get("taxa_saque_depix") if user_data.get("taxa_saque_depix") is not None else config.get("taxa_saque_depix_padrao", 2.0)
     valor_minimo = user_data.get("valor_minimo_saque") if user_data.get("valor_minimo_saque") is not None else config.get("valor_minimo_saque", 10.0)
     return {
         "withdrawals": withdrawals,
         "taxa_saque": taxa_saque,
-        "valor_minimo": valor_minimo
+        "taxa_saque_depix": taxa_saque_depix,
+        "valor_minimo": valor_minimo,
+        "sideswap_wallet": user_data.get("sideswap_wallet")
     }
 
 @api_router.get("/withdrawals/{withdrawal_id}")
