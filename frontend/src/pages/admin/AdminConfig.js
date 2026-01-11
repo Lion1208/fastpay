@@ -347,7 +347,7 @@ export default function AdminConfig() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Taxa Saque (%)</Label>
+                  <Label className="text-slate-300">Taxa Saque PIX (%)</Label>
                   <Input
                     type="number"
                     value={config?.taxa_saque_padrao || ""}
@@ -357,6 +357,20 @@ export default function AdminConfig() {
                     placeholder="1.5"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Taxa Saque Depix (%)</Label>
+                  <Input
+                    type="number"
+                    value={config?.taxa_saque_depix_padrao || ""}
+                    onChange={(e) => handleChange("taxa_saque_depix_padrao", parseFloat(e.target.value))}
+                    className="input-default"
+                    step="0.1"
+                    placeholder="2.0"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-slate-300">Taxa Transferência (%)</Label>
                   <Input
@@ -368,9 +382,6 @@ export default function AdminConfig() {
                     placeholder="0.5"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-slate-300">Valor Mín. Saque (R$)</Label>
                   <Input
@@ -380,17 +391,6 @@ export default function AdminConfig() {
                     className="input-default"
                     step="1"
                     placeholder="10"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-300">Valor Mín. Transferência (R$)</Label>
-                  <Input
-                    type="number"
-                    value={config?.valor_minimo_transferencia || ""}
-                    onChange={(e) => handleChange("valor_minimo_transferencia", parseFloat(e.target.value))}
-                    className="input-default"
-                    step="0.01"
-                    placeholder="1"
                   />
                 </div>
               </div>
