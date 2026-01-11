@@ -325,10 +325,11 @@ export default function AdminConfig() {
                   <Label className="text-slate-300">Taxa Transação (%)</Label>
                   <Input
                     type="number"
-                    value={config?.taxa_percentual_padrao || ""}
+                    value={config?.taxa_percentual_padrao ?? ""}
                     onChange={(e) => handleChange("taxa_percentual_padrao", parseFloat(e.target.value))}
                     className="input-default"
                     step="0.1"
+                    min="0"
                     data-testid="taxa-percentual-input"
                   />
                 </div>
@@ -336,10 +337,11 @@ export default function AdminConfig() {
                   <Label className="text-slate-300">Taxa Fixa (R$)</Label>
                   <Input
                     type="number"
-                    value={config?.taxa_fixa_padrao || ""}
+                    value={config?.taxa_fixa_padrao ?? ""}
                     onChange={(e) => handleChange("taxa_fixa_padrao", parseFloat(e.target.value))}
                     className="input-default"
                     step="0.01"
+                    min="0"
                     data-testid="taxa-fixa-input"
                   />
                 </div>
