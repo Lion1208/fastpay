@@ -423,7 +423,8 @@ export default function Withdrawals() {
                 <ul className="text-[11px] text-slate-300 space-y-0.5">
                   <li>• <strong>Valor mínimo:</strong> {formatCurrency(valorMinimo)}</li>
                   <li>• <strong>Taxa PIX:</strong> {taxaSaque}% | <strong>Taxa Depix:</strong> {taxaSaqueDepix}%</li>
-                  <li>• <strong>Prazo:</strong> Até 8 horas úteis para aprovação</li>
+                  <li>• <strong>Prazo PIX:</strong> Até 8 horas para processamento</li>
+                  <li>• <strong>Prazo Depix:</strong> Até 5 horas para processamento</li>
                 </ul>
               </div>
             </div>
