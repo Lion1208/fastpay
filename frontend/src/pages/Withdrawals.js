@@ -229,11 +229,11 @@ export default function Withdrawals() {
                 Novo Saque
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-slate-900 border-slate-800 max-w-md mx-4">
+            <DialogContent className="bg-slate-900 border-slate-800 max-w-md mx-4 overflow-hidden">
               <DialogHeader>
                 <DialogTitle className="text-white">Solicitar Saque</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 mt-2">
+              <div className="space-y-4 mt-2 overflow-hidden">
                 {/* Saldo Disponível */}
                 <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
                   <p className="text-xs text-slate-400">Saldo Disponível</p>
