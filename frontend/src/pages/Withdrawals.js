@@ -586,7 +586,7 @@ export default function Withdrawals() {
                     variant="outline" 
                     size="sm" 
                     className="text-xs border-orange-500/30 text-orange-400"
-                    onClick={() => window.open('https://play.google.com/store/apps/details?id=io.sideswap.sideswap', '_blank')}
+                    onClick={() => window.open('https://play.google.com/store/apps/details?id=io.sideswap', '_blank')}
                   >
                     <Download className="w-3 h-3 mr-1" /> Android
                   </Button>
@@ -594,7 +594,7 @@ export default function Withdrawals() {
                     variant="outline" 
                     size="sm" 
                     className="text-xs border-orange-500/30 text-orange-400"
-                    onClick={() => window.open('https://apps.apple.com/app/sideswap/id1569478650', '_blank')}
+                    onClick={() => window.open('https://apps.apple.com/us/app/sideswap/id1556476417', '_blank')}
                   >
                     <Download className="w-3 h-3 mr-1" /> iOS
                   </Button>
