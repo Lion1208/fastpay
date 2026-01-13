@@ -290,7 +290,7 @@ echo ""
 log_info "═══ ETAPA 10/10: Configurando Nginx e SSL... ═══"
 
 # Configuração inicial do Nginx (sem SSL)
-cat > /etc/nginx/sites-available/fastpay << EOF
+cat > /etc/nginx/sites-available/bravepix << EOF
 server {
     listen 80;
     listen [::]:80;
