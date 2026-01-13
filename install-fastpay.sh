@@ -338,9 +338,9 @@ server {
 }
 EOF
 
-# Remover default e ativar fastpay
+# Remover default e ativar bravepix
 rm -f /etc/nginx/sites-enabled/default
-ln -sf /etc/nginx/sites-available/fastpay /etc/nginx/sites-enabled/
+ln -sf /etc/nginx/sites-available/bravepix /etc/nginx/sites-enabled/
 
 # Testar configuração
 nginx -t
