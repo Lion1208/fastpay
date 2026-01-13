@@ -238,9 +238,9 @@ echo ""
 log_info "═══ ETAPA 9/10: Criando serviços... ═══"
 
 # Serviço do Backend
-cat > /etc/systemd/system/fastpay.service << EOF
+cat > /etc/systemd/system/bravepix.service << EOF
 [Unit]
-Description=FastPay Backend API
+Description=BravePix Backend API
 After=network.target mongod.service
 Wants=mongod.service
 
@@ -253,16 +253,16 @@ Environment="PATH=${APP_DIR}/backend/venv/bin"
 ExecStart=${APP_DIR}/backend/venv/bin/uvicorn server:app --host 127.0.0.1 --port 8001 --workers 2
 Restart=always
 RestartSec=5
-StandardOutput=append:/var/log/fastpay/backend.log
-StandardError=append:/var/log/fastpay/backend.error.log
+StandardOutput=append:/var/log/bravepix/backend.log
+StandardError=append:/var/log/bravepix/backend.error.log
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
 # Criar diretório de logs
-mkdir -p /var/log/fastpay
-chown -R www-data:www-data /var/log/fastpay
+mkdir -p /var/log/bravepix
+chown -R www-data:www-data /var/log/bravepix
 
 # Permissões
 chown -R www-data:www-data "$APP_DIR"
