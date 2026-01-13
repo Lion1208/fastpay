@@ -271,16 +271,16 @@ chown -R www-data:www-data "$APP_DIR"
 systemctl daemon-reload
 
 # Iniciar serviço
-systemctl start fastpay
-systemctl enable fastpay
+systemctl start bravepix
+systemctl enable bravepix
 
 # Verificar
 sleep 3
-if systemctl is-active --quiet fastpay; then
-    log_success "Serviço FastPay rodando!"
+if systemctl is-active --quiet bravepix; then
+    log_success "Serviço BravePix rodando!"
 else
-    log_error "Erro ao iniciar FastPay. Verificando logs..."
-    journalctl -u fastpay --no-pager -n 20
+    log_error "Erro ao iniciar BravePix. Verificando logs..."
+    journalctl -u bravepix --no-pager -n 20
 fi
 
 #===============================================================================
