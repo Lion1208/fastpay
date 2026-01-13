@@ -281,7 +281,7 @@ export default function PublicPage() {
   }
 
   const corPrimaria = pageData?.pagina_personalizada?.cor_primaria || "#22c55e";
-  const nomeSistema = pageData?.nome_sistema || "FastPix";
+  const nomeSistema = pageData?.nome_sistema || "BravePix";
 
   // Animação de sucesso
   if (showSuccess && transaction?.status === "paid") {

@@ -67,7 +67,7 @@ export const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [config, setConfig] = useState({ nome_sistema: "FastPix", logo_url: "" });
+  const [config, setConfig] = useState({ nome_sistema: "BravePix", logo_url: "" });
   const [lastTransferCheck, setLastTransferCheck] = useState(null);
   const [unreadTickets, setUnreadTickets] = useState(0);
   const [showBalance, setShowBalance] = useState(() => {
