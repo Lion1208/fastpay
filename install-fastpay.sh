@@ -433,13 +433,13 @@ chmod +x /usr/local/bin/bravepix-update
 #===============================================================================
 # Criar script de logs
 #===============================================================================
-cat > /usr/local/bin/fastpay-logs << 'LOGSEOF'
+cat > /usr/local/bin/bravepix-logs << 'LOGSEOF'
 #!/bin/bash
 echo "=== Logs do Backend ==="
-sudo journalctl -u fastpay -f
+sudo journalctl -u bravepix -f
 LOGSEOF
 
-chmod +x /usr/local/bin/fastpay-logs
+chmod +x /usr/local/bin/bravepix-logs
 
 #===============================================================================
 # Resumo Final
