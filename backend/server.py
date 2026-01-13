@@ -209,7 +209,7 @@ async def get_config(admin_id: str = None):
             "valor_minimo_saque": 10.0,
             "valor_minimo_transferencia": 1.0,
             "comissao_indicacao": 1.0,
-            "nome_sistema": "FastPix",
+            "nome_sistema": "BravePix",
             "logo_url": ""
         }
         await db.config.insert_one(config)
@@ -774,7 +774,7 @@ async def setup_2fa(user: dict = Depends(get_current_user)):
     totp = pyotp.TOTP(secret)
     
     config = await get_config()
-    nome_sistema = config.get("nome_sistema", "FastPix")
+    nome_sistema = config.get("nome_sistema", "BravePix")
     
     provisioning_uri = totp.provisioning_uri(
         name=user.get("email", user.get("codigo")),
@@ -1634,7 +1634,7 @@ async def create_transfer(data: TransferCreate, user: dict = Depends(get_current
     
     # Envia push notification para o destinatário
     config = await get_config()
-    nome_sistema = config.get("nome_sistema", "FastPix")
+    nome_sistema = config.get("nome_sistema", "BravePix")
     asyncio.create_task(send_push_notification(
         user_id=destinatario["id"],
         title=f"💰 {nome_sistema}",
@@ -2257,7 +2257,7 @@ async def get_public_page(codigo: str):
         "nome": user.get("nome"),
         "pagina_personalizada": user.get("pagina_personalizada", {}),
         "codigo": user.get("codigo"),
-        "nome_sistema": config.get("nome_sistema", "FastPix"),
+        "nome_sistema": config.get("nome_sistema", "BravePix"),
         "logo_url": config.get("logo_url", ""),
         "pode_indicar": pode_indicar,
         "motivo_bloqueio": motivo_bloqueio
@@ -2589,7 +2589,7 @@ async def promote_to_admin(user_id: str, admin: dict = Depends(get_admin_user)):
         "taxa_transferencia_padrao": config.get("taxa_transferencia_padrao", 0.5),
         "valor_minimo_indicacao": config.get("valor_minimo_indicacao", 1000.0),
         "comissao_indicacao": config.get("comissao_indicacao", 1.0),
-        "nome_sistema": config.get("nome_sistema", "FastPix"),
+        "nome_sistema": config.get("nome_sistema", "BravePix"),
         "logo_url": "",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
@@ -2631,7 +2631,7 @@ async def get_public_config():
     """Retorna configurações públicas do sistema incluindo taxas"""
     config = await get_config()
     return {
-        "nome_sistema": config.get("nome_sistema", "FastPix"),
+        "nome_sistema": config.get("nome_sistema", "BravePix"),
         "logo_url": config.get("logo_url", ""),
         "taxa_percentual_padrao": config.get("taxa_percentual_padrao", 2.0),
         "taxa_fixa_padrao": config.get("taxa_fixa_padrao", 0.99),
