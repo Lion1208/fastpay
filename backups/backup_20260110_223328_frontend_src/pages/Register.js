@@ -20,7 +20,7 @@ export default function Register() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [config, setConfig] = useState({ nome_sistema: "FastPix", logo_url: "" });
+  const [config, setConfig] = useState({ nome_sistema: "BravePix", logo_url: "" });
   const [indicadorValido, setIndicadorValido] = useState(null);
   const { register } = useAuth();
   const navigate = useNavigate();

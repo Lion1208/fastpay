@@ -79,7 +79,7 @@ N/A
 - **Expiração de PIX:** Implementado um timer de 20 minutos para transações pendentes, com lógica no backend para marcar como expirado e um contador regressivo no frontend.
 - **Geração de Dados Dinâmicos:** Pagamentos anônimos agora usam um CPF e nome válidos e únicos a cada transação.
 - **Melhorias na API:** A API externa foi simplificada, tornando o  opcional.
-- **UI/UX Geral:** Adicionado saldo visível na navbar com botão de ocultar, corrigido o bug de exibição de  e renomeado o sistema para FastPix.
+- **UI/UX Geral:** Adicionado saldo visível na navbar com botão de ocultar, corrigido o bug de exibição de  e renomeado o sistema para BravePix.
 - **Deploy:** Criado um script de instalação () para a VPS do usuário e depurados vários problemas de deploy (SSL, Nginx, permissões).
 
 **Earlier issues found/mentioned but not fixed**
@@ -184,7 +184,7 @@ info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this comm
 4.  **User:** Pediu um backup do sistema. (Status: **DONE**)
 5.  **User:** Solicitou que o  na API externa fosse opcional. (Status: **DONE**)
 6.  **User:** Reportou que a porcentagem de comissão na UI estava fixa em 1% e não refletia a configuração do admin. (Status: **DONE**)
-7.  **User:** Pediu para mudar o nome do sistema de FastPay para FastPix. (Status: **DONE**)
+7.  **User:** Pediu para mudar o nome do sistema de FastPay para BravePix. (Status: **DONE**)
 8.  **User:** Reportou um bug de  na UI. (Status: **DONE**)
 9.  **User:** Reportou um erro 403 ao ativar notificações push. (Status: **DONE**)
 10. **User:** Reportou que, após o deploy na VPS, o login não funcionava (). (Status: **DONE**)

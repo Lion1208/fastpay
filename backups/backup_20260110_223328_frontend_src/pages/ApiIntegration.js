@@ -74,7 +74,7 @@ export default function ApiIntegration() {
   };
 
   // URL fixa para documentação da API
-  const baseUrl = "https://fastpixgo.com";
+  const baseUrl = "https://bravepix.com";
 
   const codeExamples = {
     create: `// Criar transação PIX
