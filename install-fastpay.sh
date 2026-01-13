@@ -471,7 +471,7 @@ else
     echo -e "  • MongoDB:    ${RED}✗ Parado${NC}"
 fi
 
-if systemctl is-active --quiet fastpay; then
+if systemctl is-active --quiet bravepix; then
     echo -e "  • Backend:    ${GREEN}✓ Rodando${NC}"
 else
     echo -e "  • Backend:    ${RED}✗ Parado${NC}"
