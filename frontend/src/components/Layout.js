@@ -121,7 +121,7 @@ export const Layout = ({ children }) => {
         setConfig(prev => ({
           ...prev,
           ...response.data,
-          nome_sistema: response.data?.nome_sistema || prev.nome_sistema || "FastPix"
+          nome_sistema: response.data?.nome_sistema || prev.nome_sistema || "BravePix"
         }));
       } catch (error) {
         // Ignora erros silenciosamente, mantém o valor padrão
