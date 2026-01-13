@@ -153,7 +153,7 @@ fi
 mkdir -p /var/www
 cd /var/www
 
-git clone "$GITHUB_REPO" fastpay
+git clone "$GITHUB_REPO" bravepix
 cd "$APP_DIR"
 
 log_success "Repositório clonado!"
