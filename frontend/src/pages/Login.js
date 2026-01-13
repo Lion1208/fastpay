@@ -16,7 +16,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [requires2FA, setRequires2FA] = useState(false);
-  const [config, setConfig] = useState({ nome_sistema: "FastPix", logo_url: "" });
+  const [config, setConfig] = useState({ nome_sistema: "BravePix", logo_url: "" });
   const [blocked, setBlocked] = useState(null); // { blocked: true, reason: "motivo" }
   const { login } = useAuth();
   const navigate = useNavigate();
