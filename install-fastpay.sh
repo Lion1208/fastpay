@@ -405,9 +405,9 @@ log_success "Firewall configurado!"
 #===============================================================================
 # Criar script de atualização
 #===============================================================================
-cat > /usr/local/bin/fastpay-update << 'UPDATEEOF'
+cat > /usr/local/bin/bravepix-update << 'UPDATEEOF'
 #!/bin/bash
-cd /var/www/fastpay
+cd /var/www/bravepix
 git pull origin main
 
 # Backend
@@ -422,13 +422,13 @@ yarn install
 yarn build
 
 # Reiniciar serviços
-sudo systemctl restart fastpay
+sudo systemctl restart bravepix
 sudo systemctl restart nginx
 
-echo "FastPay atualizado com sucesso!"
+echo "BravePix atualizado com sucesso!"
 UPDATEEOF
 
-chmod +x /usr/local/bin/fastpay-update
+chmod +x /usr/local/bin/bravepix-update
 
 #===============================================================================
 # Criar script de logs
