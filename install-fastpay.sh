@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #===============================================================================
-# FastPay - Script de Instalação Automática
+# BravePix - Script de Instalação Automática
 # Ubuntu 24.04 LTS
-# Domínio: fastpixgo.com
+# Domínio: bravepix.com
 #===============================================================================
 
 set -e  # Para em caso de erro
@@ -16,11 +16,11 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configurações
-DOMAIN="fastpixgo.com"
+DOMAIN="bravepix.com"
 GITHUB_REPO="https://github.com/Lion1208/fastpay.git"
-APP_DIR="/var/www/fastpay"
-DB_NAME="fastpay_production"
-EMAIL_SSL="admin@fastpixgo.com"  # Email para SSL (pode mudar)
+APP_DIR="/var/www/bravepix"
+DB_NAME="bravepix_production"
+EMAIL_SSL="admin@bravepix.com"  # Email para SSL (pode mudar)
 
 # Funções de log
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
@@ -31,8 +31,8 @@ log_error() { echo -e "${RED}[✗]${NC} $1"; }
 # Banner
 echo ""
 echo -e "${GREEN}╔═══════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║          FastPay - Instalação Automática                  ║${NC}"
-echo -e "${GREEN}║          Domínio: ${DOMAIN}                          ║${NC}"
+echo -e "${GREEN}║          BravePix - Instalação Automática                 ║${NC}"
+echo -e "${GREEN}║          Domínio: ${DOMAIN}                            ║${NC}"
 echo -e "${GREEN}╚═══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
