@@ -706,6 +706,12 @@ async def login(data: UserLogin):
 @api_router.get("/auth/me")
 async def get_me(user: dict = Depends(get_current_user)):
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0, "senha": 0})
+    
+    # Recalcula saldo real
+    balance = await recalculate_user_balance(user["id"])
+    user_data["saldo_disponivel"] = balance["saldo_disponivel"]
+    user_data["saldo_comissoes"] = balance["saldo_comissoes"]
+    
     return user_data
 
 @api_router.put("/auth/me")
