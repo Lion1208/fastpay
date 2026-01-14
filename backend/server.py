@@ -1395,7 +1395,7 @@ async def calculate_withdrawal(valor: float, metodo: str = "pix", user: dict = D
     
     valor_taxa = valor * (taxa_saque / 100)
     valor_necessario = valor + valor_taxa
-    total_disponivel = balance["saldo_disponivel"] + balance["saldo_comissoes"]
+    total_disponivel = round(balance["saldo_disponivel"] + balance["saldo_comissoes"], 2)
     
     return {
         "valor_solicitado": valor,
