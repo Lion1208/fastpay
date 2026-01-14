@@ -2332,10 +2332,11 @@ async def admin_diagnostico_saldo(user_id: str, admin: dict = Depends(get_admin_
     if not user_data:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
-    # Transações pagas
+    # Transações pagas (exclui transferências que são tratadas separadamente)
     paid_transactions = await db.transactions.find({
         "parceiro_id": user_id,
-        "status": "paid"
+        "status": "paid",
+        "tipo": {"$nin": ["transfer_out", "transfer_in"]}
     }, {"_id": 0}).to_list(10000)
     
     # Análise das transações
@@ -2347,6 +2348,7 @@ async def admin_diagnostico_saldo(user_id: str, admin: dict = Depends(get_admin_
     for t in paid_transactions:
         valor = t.get("valor", 0)
         valor_liquido = t.get("valor_liquido")
+        tipo = t.get("tipo", "pagamento")
         
         # Determina qual valor usar
         if valor_liquido and valor_liquido > 0:
@@ -2358,6 +2360,7 @@ async def admin_diagnostico_saldo(user_id: str, admin: dict = Depends(get_admin_
             if valor_liquido is not None and valor_liquido <= 0:
                 txs_com_problema.append({
                     "id": t.get("id"),
+                    "tipo": tipo,
                     "valor": valor,
                     "valor_liquido": valor_liquido,
                     "problema": "valor_liquido negativo ou zero"
@@ -2368,6 +2371,7 @@ async def admin_diagnostico_saldo(user_id: str, admin: dict = Depends(get_admin_
         
         txs_analise.append({
             "id": t.get("id"),
+            "tipo": tipo,
             "usuario": t.get("nome_pagador", "N/A"),
             "valor_bruto": valor,
             "valor_liquido": valor_liquido,
