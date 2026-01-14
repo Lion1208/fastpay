@@ -527,6 +527,89 @@ export default function AdminConfig() {
           </CardContent>
         </Card>
 
+        {/* Backup/Restore Card */}
+        <Card className="bg-slate-900/50 border-slate-800">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Settings className="w-5 h-5 text-cyan-400" />
+              Backup do Banco de Dados
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+              <p className="text-sm text-slate-400 mb-4">
+                Faça backup completo do banco de dados ou restaure a partir de um arquivo JSON.
+              </p>
+              
+              <div className="flex flex-wrap gap-3">
+                <Button 
+                  onClick={async () => {
+                    try {
+                      const response = await api.get('/admin/backup', { responseType: 'blob' });
+                      const url = window.URL.createObjectURL(new Blob([response.data]));
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.setAttribute('download', `bravepix_backup_${new Date().toISOString().slice(0,10)}.json`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.remove();
+                      toast.success("Backup baixado com sucesso!");
+                    } catch (error) {
+                      toast.error("Erro ao fazer backup");
+                    }
+                  }}
+                  className="bg-cyan-600 hover:bg-cyan-700"
+                >
+                  <Save className="mr-2 w-4 h-4" />
+                  Exportar Backup
+                </Button>
+                
+                <label>
+                  <input
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      
+                      if (!window.confirm("ATENÇÃO: Isso irá SUBSTITUIR todos os dados atuais. Tem certeza?")) {
+                        e.target.value = '';
+                        return;
+                      }
+                      
+                      try {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        await api.post('/admin/restore', formData, {
+                          headers: { 'Content-Type': 'multipart/form-data' }
+                        });
+                        toast.success("Backup restaurado com sucesso!");
+                        window.location.reload();
+                      } catch (error) {
+                        toast.error("Erro ao restaurar backup");
+                      }
+                      e.target.value = '';
+                    }}
+                  />
+                  <Button asChild className="bg-orange-600 hover:bg-orange-700 cursor-pointer">
+                    <span>
+                      <Upload className="mr-2 w-4 h-4" />
+                      Importar Backup
+                    </span>
+                  </Button>
+                </label>
+              </div>
+            </div>
+            
+            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+              <p className="text-sm text-red-400">
+                ⚠️ A restauração de backup irá SUBSTITUIR todos os dados atuais. Use com cuidado!
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Save Button */}
         <div className="flex justify-end">
           <Button
