@@ -2288,6 +2288,81 @@ async def admin_get_stats(admin: dict = Depends(get_admin_user)):
     }
 
 
+# ===================== BACKUP/RESTORE ENDPOINTS =====================
+
+@api_router.get("/admin/backup")
+async def admin_backup_database(admin: dict = Depends(get_admin_user)):
+    """Exporta todo o banco de dados em formato JSON"""
+    collections = ["users", "transactions", "withdrawals", "transfers", "commissions", 
+                   "referrals", "tickets", "push_subscriptions", "config"]
+    
+    backup_data = {
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "exported_by": admin.get("codigo"),
+        "collections": {}
+    }
+    
+    for collection_name in collections:
+        collection = db[collection_name]
+        docs = await collection.find({}, {"_id": 0}).to_list(100000)
+        backup_data["collections"][collection_name] = docs
+    
+    # Converte para JSON
+    json_data = json.dumps(backup_data, ensure_ascii=False, indent=2, default=str)
+    
+    # Retorna como arquivo para download
+    return StreamingResponse(
+        BytesIO(json_data.encode('utf-8')),
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f"attachment; filename=bravepix_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        }
+    )
+
+@api_router.post("/admin/restore")
+async def admin_restore_database(file: UploadFile = File(...), admin: dict = Depends(get_admin_user)):
+    """Restaura o banco de dados a partir de um backup JSON"""
+    if not file.filename.endswith('.json'):
+        raise HTTPException(status_code=400, detail="O arquivo deve ser um JSON")
+    
+    try:
+        content = await file.read()
+        backup_data = json.loads(content.decode('utf-8'))
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Arquivo JSON inválido")
+    
+    if "collections" not in backup_data:
+        raise HTTPException(status_code=400, detail="Formato de backup inválido")
+    
+    collections_restored = []
+    
+    for collection_name, docs in backup_data["collections"].items():
+        if not docs:
+            continue
+        
+        collection = db[collection_name]
+        
+        # Limpa a coleção antes de restaurar
+        await collection.delete_many({})
+        
+        # Insere os documentos
+        if docs:
+            await collection.insert_many(docs)
+        
+        collections_restored.append({
+            "collection": collection_name,
+            "documents": len(docs)
+        })
+    
+    return {
+        "success": True,
+        "message": "Backup restaurado com sucesso",
+        "restored_at": datetime.now(timezone.utc).isoformat(),
+        "collections": collections_restored
+    }
+
+
+
 @api_router.get("/admin/diagnostico-saldo/{identificador}")
 async def admin_diagnostico_saldo(identificador: str, admin: dict = Depends(get_admin_user)):
     """Diagnóstico detalhado do saldo de um usuário - aceita ID ou código"""
