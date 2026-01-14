@@ -942,18 +942,18 @@ async def recalculate_user_balance(user_id: str):
     saldo_disponivel = total_recebido - total_sacado - total_pendente_saque - total_enviado + total_recebido_transferencia
     saldo_comissoes = total_comissoes - total_auto_sacado
     
-    # Garantir que não seja negativo
-    saldo_disponivel = max(0, saldo_disponivel)
-    saldo_comissoes = max(0, saldo_comissoes)
+    # Garantir que não seja negativo e arredondar para evitar erros de ponto flutuante
+    saldo_disponivel = round(max(0, saldo_disponivel), 2)
+    saldo_comissoes = round(max(0, saldo_comissoes), 2)
     
     return {
         "saldo_disponivel": saldo_disponivel,
         "saldo_comissoes": saldo_comissoes,
-        "total_recebido": total_recebido,
-        "total_sacado": total_sacado + total_pendente_saque,
-        "total_enviado": total_enviado,
-        "total_recebido_transferencia": total_recebido_transferencia,
-        "total_comissoes": total_comissoes
+        "total_recebido": round(total_recebido, 2),
+        "total_sacado": round(total_sacado + total_pendente_saque, 2),
+        "total_enviado": round(total_enviado, 2),
+        "total_recebido_transferencia": round(total_recebido_transferencia, 2),
+        "total_comissoes": round(total_comissoes, 2)
     }
 
 @api_router.get("/dashboard/stats")
