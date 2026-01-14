@@ -2286,10 +2286,17 @@ async def admin_get_stats(admin: dict = Depends(get_admin_user)):
     total_users = await db.users.count_documents({"id": {"$in": network_ids}, "role": "user"})
     active_users = await db.users.count_documents({"id": {"$in": network_ids}, "role": "user", "status": "active"})
     
-    transactions = await db.transactions.find({"parceiro_id": {"$in": network_ids}}, {"_id": 0}).to_list(10000)
-    total_transactions = len(transactions)
-    total_volume = sum(t.get("valor", 0) for t in transactions if t.get("status") == "paid")
-    total_taxas = sum(t.get("taxa_total", 0) for t in transactions if t.get("status") == "paid")
+    # Busca transações excluindo transferências (que são tratadas separadamente)
+    transactions = await db.transactions.find({
+        "parceiro_id": {"$in": network_ids},
+        "tipo": {"$nin": ["transfer_out", "transfer_in"]}
+    }, {"_id": 0}).to_list(10000)
+    
+    paid_transactions = [t for t in transactions if t.get("status") == "paid"]
+    total_transactions = len(paid_transactions)
+    # Volume total usa valor bruto (para mostrar quanto foi movimentado)
+    total_volume = round(sum(t.get("valor", 0) for t in paid_transactions), 2)
+    total_taxas = round(sum(t.get("taxa_total", 0) for t in paid_transactions), 2)
     
     pending_withdrawals = await db.withdrawals.count_documents({"parceiro_id": {"$in": network_ids}, "status": "pending"})
     open_tickets = await db.tickets.count_documents({"user_id": {"$in": network_ids}, "status": {"$in": ["open", "in_progress"]}})
@@ -2299,7 +2306,7 @@ async def admin_get_stats(admin: dict = Depends(get_admin_user)):
         {"id": {"$in": network_ids}, "role": {"$ne": "admin"}}, 
         {"_id": 0, "saldo_disponivel": 1, "saldo_comissoes": 1}
     ).to_list(10000)
-    total_sacavel = sum(u.get("saldo_disponivel", 0) + u.get("saldo_comissoes", 0) for u in network_users)
+    total_sacavel = round(sum(u.get("saldo_disponivel", 0) + u.get("saldo_comissoes", 0) for u in network_users), 2)
     
     today = datetime.now(timezone.utc).date()
     chart_data = []
