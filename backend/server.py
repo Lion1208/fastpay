@@ -896,7 +896,16 @@ async def recalculate_user_balance(user_id: str):
         "parceiro_id": user_id,
         "status": "paid"
     }).to_list(10000)
-    total_recebido = sum(t.get("valor_liquido", t.get("valor", 0)) for t in paid_transactions)
+    # Usa valor_liquido se existir e for positivo, senão usa valor
+    def get_valid_valor_liquido(t):
+        vl = t.get("valor_liquido")
+        v = t.get("valor", 0)
+        # Se valor_liquido existe e é positivo, usa ele
+        if vl is not None and vl > 0:
+            return vl
+        # Se valor_liquido é negativo ou não existe, usa valor aplicando taxa padrão (10.23%)
+        return v * 0.8977 if v > 0 else 0
+    total_recebido = sum(get_valid_valor_liquido(t) for t in paid_transactions)
     
     # Saques aprovados (debitam saldo)
     approved_withdrawals = await db.withdrawals.find({
