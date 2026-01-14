@@ -1019,8 +1019,8 @@ async def get_dashboard_stats(user: dict = Depends(get_current_user)):
         chart_data.append({"date": date.strftime("%d/%m"), "valor": day_total})
     
     return {
-        "saldo_disponivel": user_data.get("saldo_disponivel", 0),
-        "saldo_comissoes": user_data.get("saldo_comissoes", 0),
+        "saldo_disponivel": balance["saldo_disponivel"],
+        "saldo_comissoes": balance["saldo_comissoes"],
         "valor_movimentado": user_data.get("valor_movimentado", 0),
         "total_transacoes": total_transacoes,
         "total_recebido": total_recebido,
