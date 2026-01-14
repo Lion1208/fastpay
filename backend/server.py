@@ -2312,10 +2312,10 @@ async def admin_get_stats(admin: dict = Depends(get_admin_user)):
     chart_data = []
     for i in range(7):
         date = (datetime.now(timezone.utc) - timedelta(days=6-i)).date()
-        day_transactions = [t for t in transactions if t.get("status") == "paid" and datetime.fromisoformat(t.get("created_at", "")).date() == date]
+        day_transactions = [t for t in paid_transactions if datetime.fromisoformat(t.get("created_at", "")).date() == date]
         chart_data.append({
             "date": date.strftime("%d/%m"),
-            "volume": sum(t.get("valor", 0) for t in day_transactions),
+            "volume": round(sum(t.get("valor", 0) for t in day_transactions), 2),
             "count": len(day_transactions)
         })
     
