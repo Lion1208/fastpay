@@ -236,8 +236,18 @@ export default function Withdrawals() {
               <div className="space-y-4 mt-2 overflow-hidden">
                 {/* Saldo Disponível */}
                 <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-                  <p className="text-xs text-slate-400">Saldo Disponível</p>
-                  <p className="text-xl font-bold text-green-400">{formatCurrency(totalDisponivel)}</p>
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-xs text-slate-400">Saldo de Vendas</p>
+                    <p className="text-sm font-semibold text-white">{formatCurrency(stats?.saldo_disponivel || 0)}</p>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-xs text-slate-400">Saldo de Comissões</p>
+                    <p className="text-sm font-semibold text-amber-400">{formatCurrency(stats?.saldo_comissoes || 0)}</p>
+                  </div>
+                  <div className="border-t border-slate-700 pt-2 mt-2 flex justify-between items-center">
+                    <p className="text-xs text-slate-400 font-medium">Total Sacável</p>
+                    <p className="text-xl font-bold text-green-400">{formatCurrency(totalDisponivel)}</p>
+                  </div>
                 </div>
 
                 {/* Método de Saque */}
