@@ -1436,7 +1436,7 @@ async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_cur
     
     valor_taxa = data.valor * (taxa_saque / 100)
     valor_necessario = data.valor + valor_taxa
-    total_disponivel = balance["saldo_disponivel"] + balance["saldo_comissoes"]
+    total_disponivel = round(balance["saldo_disponivel"] + balance["saldo_comissoes"], 2)
     
     if valor_necessario > total_disponivel:
         raise HTTPException(status_code=400, detail=f"Saldo insuficiente. Você precisa de R${valor_necessario:.2f} para sacar R${data.valor:.2f}")
@@ -1609,7 +1609,7 @@ async def calculate_transfer(valor: float, user: dict = Depends(get_current_user
     
     valor_taxa = valor * (taxa_transferencia / 100)
     valor_recebido = valor - valor_taxa
-    total_disponivel = user_data.get("saldo_disponivel", 0) + user_data.get("saldo_comissoes", 0)
+    total_disponivel = round(user_data.get("saldo_disponivel", 0) + user_data.get("saldo_comissoes", 0), 2)
     
     return {
         "valor_enviado": valor,
@@ -1642,7 +1642,7 @@ async def create_transfer(data: TransferCreate, user: dict = Depends(get_current
     valor_taxa = data.valor * (taxa_transferencia / 100)
     valor_recebido = data.valor - valor_taxa
     
-    total_disponivel = user_data.get("saldo_disponivel", 0) + user_data.get("saldo_comissoes", 0)
+    total_disponivel = round(user_data.get("saldo_disponivel", 0) + user_data.get("saldo_comissoes", 0), 2)
     if data.valor > total_disponivel:
         raise HTTPException(status_code=400, detail="Saldo insuficiente")
     
