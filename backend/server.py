@@ -2325,12 +2325,18 @@ async def admin_get_stats(admin: dict = Depends(get_admin_user)):
     }
 
 
-@api_router.get("/admin/diagnostico-saldo/{user_id}")
-async def admin_diagnostico_saldo(user_id: str, admin: dict = Depends(get_admin_user)):
-    """Diagnóstico detalhado do saldo de um usuário - mostra todas as transações e cálculos"""
-    user_data = await db.users.find_one({"id": user_id}, {"_id": 0})
+@api_router.get("/admin/diagnostico-saldo/{identificador}")
+async def admin_diagnostico_saldo(identificador: str, admin: dict = Depends(get_admin_user)):
+    """Diagnóstico detalhado do saldo de um usuário - aceita ID ou código"""
+    # Busca por ID ou código
+    user_data = await db.users.find_one(
+        {"$or": [{"id": identificador}, {"codigo": identificador.upper()}]}, 
+        {"_id": 0}
+    )
     if not user_data:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    user_id = user_data["id"]  # Usa o ID real para as queries
     
     # Transações pagas (exclui transferências que são tratadas separadamente)
     paid_transactions = await db.transactions.find({
