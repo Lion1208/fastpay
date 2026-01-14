@@ -2443,7 +2443,8 @@ async def admin_diagnostico_saldo(identificador: str, admin: dict = Depends(get_
         "calculo_final": {
             "formula": "valor_liquido_usado - saques_aprovados - saques_pendentes - transferencias_enviadas + transferencias_recebidas",
             "saldo_disponivel_calculado": round(saldo_calculado, 2),
-            "saldo_comissoes_calculado": round(total_comissoes, 2)
+            "saldo_comissoes_calculado": round(total_comissoes, 2),
+            "saldo_sacavel_total": round(saldo_calculado + total_comissoes, 2)
         },
         "alertas": txs_com_problema if txs_com_problema else None
     }
