@@ -891,10 +891,11 @@ async def login_with_2fa(data: UserLoginWith2FA):
 
 async def recalculate_user_balance(user_id: str):
     """Recalcula o saldo do usuário baseado apenas em transações PAGAS"""
-    # Transações pagas (creditam saldo)
+    # Transações pagas que creditam saldo (exclui transfer_out pois já é tratado em transferências)
     paid_transactions = await db.transactions.find({
         "parceiro_id": user_id,
-        "status": "paid"
+        "status": "paid",
+        "tipo": {"$nin": ["transfer_out", "transfer_in"]}  # Transferências são tratadas separadamente
     }).to_list(10000)
     # Usa valor_liquido se existir e for positivo, senão usa valor bruto
     total_recebido = sum(
