@@ -1376,6 +1376,9 @@ async def calculate_withdrawal(valor: float, metodo: str = "pix", user: dict = D
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
     config = await get_config()
     
+    # Recalcula saldo real
+    balance = await recalculate_user_balance(user["id"])
+    
     # Seleciona taxa baseado no método
     if metodo == "depix":
         taxa_saque = user_data.get("taxa_saque_depix") if user_data.get("taxa_saque_depix") is not None else config.get("taxa_saque_depix_padrao", 2.0)
@@ -1386,7 +1389,7 @@ async def calculate_withdrawal(valor: float, metodo: str = "pix", user: dict = D
     
     valor_taxa = valor * (taxa_saque / 100)
     valor_necessario = valor + valor_taxa
-    total_disponivel = user_data.get("saldo_disponivel", 0) + user_data.get("saldo_comissoes", 0)
+    total_disponivel = balance["saldo_disponivel"] + balance["saldo_comissoes"]
     
     return {
         "valor_solicitado": valor,
@@ -1403,6 +1406,9 @@ async def calculate_withdrawal(valor: float, metodo: str = "pix", user: dict = D
 async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_current_user)):
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
     config = await get_config()
+    
+    # Recalcula saldo real
+    balance = await recalculate_user_balance(user["id"])
     
     # Validar método de saque
     metodo = data.metodo or "pix"
@@ -1424,7 +1430,7 @@ async def create_withdrawal(data: WithdrawalCreate, user: dict = Depends(get_cur
     
     valor_taxa = data.valor * (taxa_saque / 100)
     valor_necessario = data.valor + valor_taxa
-    total_disponivel = user_data.get("saldo_disponivel", 0) + user_data.get("saldo_comissoes", 0)
+    total_disponivel = balance["saldo_disponivel"] + balance["saldo_comissoes"]
     
     if valor_necessario > total_disponivel:
         raise HTTPException(status_code=400, detail=f"Saldo insuficiente. Você precisa de R${valor_necessario:.2f} para sacar R${data.valor:.2f}")
