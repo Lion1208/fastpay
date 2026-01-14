@@ -2323,6 +2323,121 @@ async def admin_get_stats(admin: dict = Depends(get_admin_user)):
         "chart_data": chart_data
     }
 
+
+@api_router.get("/admin/diagnostico-saldo/{user_id}")
+async def admin_diagnostico_saldo(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Diagnóstico detalhado do saldo de um usuário - mostra todas as transações e cálculos"""
+    user_data = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user_data:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Transações pagas
+    paid_transactions = await db.transactions.find({
+        "parceiro_id": user_id,
+        "status": "paid"
+    }, {"_id": 0}).to_list(10000)
+    
+    # Análise das transações
+    txs_analise = []
+    total_valor_bruto = 0
+    total_valor_liquido_usado = 0
+    txs_com_problema = []
+    
+    for t in paid_transactions:
+        valor = t.get("valor", 0)
+        valor_liquido = t.get("valor_liquido")
+        
+        # Determina qual valor usar
+        if valor_liquido and valor_liquido > 0:
+            valor_usado = valor_liquido
+            fonte = "valor_liquido"
+        else:
+            valor_usado = valor
+            fonte = "valor (fallback)"
+            if valor_liquido is not None and valor_liquido <= 0:
+                txs_com_problema.append({
+                    "id": t.get("id"),
+                    "valor": valor,
+                    "valor_liquido": valor_liquido,
+                    "problema": "valor_liquido negativo ou zero"
+                })
+        
+        total_valor_bruto += valor
+        total_valor_liquido_usado += valor_usado
+        
+        txs_analise.append({
+            "id": t.get("id"),
+            "usuario": t.get("nome_pagador", "N/A"),
+            "valor_bruto": valor,
+            "valor_liquido": valor_liquido,
+            "valor_usado_no_calculo": valor_usado,
+            "fonte": fonte,
+            "data": t.get("created_at")
+        })
+    
+    # Saques
+    approved_withdrawals = await db.withdrawals.find({
+        "parceiro_id": user_id,
+        "status": "approved"
+    }, {"_id": 0}).to_list(10000)
+    total_sacado = sum(w.get("valor_total_retido", w.get("valor_solicitado", 0)) for w in approved_withdrawals)
+    
+    pending_withdrawals = await db.withdrawals.find({
+        "parceiro_id": user_id,
+        "status": "pending"
+    }, {"_id": 0}).to_list(10000)
+    total_pendente_saque = sum(w.get("valor_total_retido", w.get("valor_solicitado", 0)) for w in pending_withdrawals)
+    
+    # Transferências
+    sent_transfers = await db.transfers.find({"remetente_id": user_id}, {"_id": 0}).to_list(10000)
+    total_enviado = sum(t.get("valor", 0) for t in sent_transfers)
+    
+    received_transfers = await db.transfers.find({"destinatario_id": user_id}, {"_id": 0}).to_list(10000)
+    total_recebido_transferencia = sum(t.get("valor_recebido", t.get("valor", 0)) for t in received_transfers)
+    
+    # Comissões
+    commissions = await db.commissions.find({
+        "indicador_id": user_id,
+        "status": "credited"
+    }, {"_id": 0}).to_list(10000)
+    total_comissoes = sum(c.get("valor_comissao", 0) for c in commissions)
+    
+    # Cálculo final
+    saldo_calculado = total_valor_liquido_usado - total_sacado - total_pendente_saque - total_enviado + total_recebido_transferencia
+    
+    return {
+        "usuario": {
+            "id": user_id,
+            "nome": user_data.get("nome"),
+            "codigo": user_data.get("codigo"),
+            "saldo_salvo_no_banco": user_data.get("saldo_disponivel", 0),
+            "saldo_comissoes_salvo": user_data.get("saldo_comissoes", 0)
+        },
+        "transacoes": {
+            "quantidade": len(paid_transactions),
+            "total_valor_bruto": round(total_valor_bruto, 2),
+            "total_valor_liquido_usado": round(total_valor_liquido_usado, 2),
+            "detalhes": txs_analise[:20],  # Últimas 20 para não sobrecarregar
+            "transacoes_com_problema": txs_com_problema
+        },
+        "deducoes": {
+            "saques_aprovados": round(total_sacado, 2),
+            "saques_pendentes": round(total_pendente_saque, 2),
+            "transferencias_enviadas": round(total_enviado, 2)
+        },
+        "creditos": {
+            "transferencias_recebidas": round(total_recebido_transferencia, 2),
+            "comissoes": round(total_comissoes, 2)
+        },
+        "calculo_final": {
+            "formula": "valor_liquido_usado - saques_aprovados - saques_pendentes - transferencias_enviadas + transferencias_recebidas",
+            "saldo_disponivel_calculado": round(saldo_calculado, 2),
+            "saldo_comissoes_calculado": round(total_comissoes, 2)
+        },
+        "alertas": txs_com_problema if txs_com_problema else None
+    }
+
+
 # ===================== PUBLIC PAGE ROUTE =====================
 
 @api_router.get("/p/{codigo}")
