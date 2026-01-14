@@ -395,56 +395,9 @@ async def process_auto_withdrawal(user_id: str):
 # ===================== INITIALIZATION =====================
 
 async def init_admin():
-    admin = await db.users.find_one({"codigo": "ADMIN001"})
-    if not admin:
-        admin_id = str(uuid.uuid4())
-        admin_user = {
-            "id": admin_id,
-            "codigo": "ADMIN001",
-            "carteira_id": generate_wallet_id(),
-            "nome": "Administrador",
-            "email": "admin@sistema.com",
-            "senha": hash_password("admin123"),
-            "role": "admin",
-            "is_root_admin": True,  # Admin raiz não pode ser removido
-            "promoted_by": None,  # Ninguém promoveu, é o original
-            "status": "active",
-            "saldo_disponivel": 0.0,
-            "saldo_comissoes": 0.0,
-            "valor_movimentado": 0.0,
-            "indicacoes_liberadas": 999,
-            "indicacoes_usadas": 0,
-            "taxa_percentual": 2.0,
-            "taxa_fixa": 0.99,
-            "taxa_saque": 1.5,
-            "taxa_transferencia": 0.5,
-            "indicador_id": None,
-            "two_factor_enabled": False,
-            "two_factor_secret": None,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-        await db.users.insert_one(admin_user)
-        logger.info("Admin user created: ADMIN001 / admin123")
-    else:
-        # Adiciona campos novos se não existirem
-        update_fields = {}
-        if "carteira_id" not in admin:
-            update_fields["carteira_id"] = generate_wallet_id()
-        if "taxa_saque" not in admin:
-            update_fields["taxa_saque"] = 1.5
-        if "taxa_transferencia" not in admin:
-            update_fields["taxa_transferencia"] = 0.5
-        if "two_factor_enabled" not in admin:
-            update_fields["two_factor_enabled"] = False
-        if "two_factor_secret" not in admin:
-            update_fields["two_factor_secret"] = None
-        if "is_root_admin" not in admin:
-            update_fields["is_root_admin"] = True
-        if "promoted_by" not in admin:
-            update_fields["promoted_by"] = None
-        if update_fields:
-            await db.users.update_one({"codigo": "ADMIN001"}, {"$set": update_fields})
-    
+    # NÃO cria mais admin automaticamente
+    # O primeiro usuário admin deve ser criado manualmente via script ou banco
+    # Apenas garante que a configuração existe
     await get_config()
 
 # ===================== BACKGROUND POLLING JOB =====================
