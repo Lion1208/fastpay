@@ -883,17 +883,98 @@ async def login_with_2fa(data: UserLoginWith2FA):
 
 # ===================== DASHBOARD ROUTES =====================
 
+async def recalculate_user_balance(user_id: str):
+    """Recalcula o saldo do usuário baseado apenas em transações PAGAS"""
+    # Transações pagas (creditam saldo)
+    paid_transactions = await db.transactions.find({
+        "parceiro_id": user_id,
+        "status": "paid"
+    }).to_list(10000)
+    total_recebido = sum(t.get("valor_liquido", t.get("valor", 0)) for t in paid_transactions)
+    
+    # Saques aprovados (debitam saldo)
+    approved_withdrawals = await db.withdrawals.find({
+        "parceiro_id": user_id,
+        "status": "approved"
+    }).to_list(10000)
+    total_sacado = sum(w.get("valor_total_retido", w.get("valor_solicitado", 0)) for w in approved_withdrawals)
+    
+    # Saques pendentes também debitam (saldo já foi retido)
+    pending_withdrawals = await db.withdrawals.find({
+        "parceiro_id": user_id,
+        "status": "pending"
+    }).to_list(10000)
+    total_pendente_saque = sum(w.get("valor_total_retido", w.get("valor_solicitado", 0)) for w in pending_withdrawals)
+    
+    # Transferências enviadas (debitam saldo)
+    sent_transfers = await db.transfers.find({
+        "remetente_id": user_id
+    }).to_list(10000)
+    total_enviado = sum(t.get("valor", 0) for t in sent_transfers)
+    
+    # Transferências recebidas (creditam saldo)
+    received_transfers = await db.transfers.find({
+        "destinatario_id": user_id
+    }).to_list(10000)
+    total_recebido_transferencia = sum(t.get("valor_recebido", t.get("valor", 0)) for t in received_transfers)
+    
+    # Comissões recebidas
+    commissions = await db.commissions.find({
+        "indicador_id": user_id,
+        "status": "credited"
+    }).to_list(10000)
+    total_comissoes = sum(c.get("valor_comissao", 0) for c in commissions)
+    
+    # Saques automáticos de comissão já deduzidos
+    auto_withdrawals = await db.withdrawals.find({
+        "parceiro_id": user_id,
+        "auto_withdrawal": True
+    }).to_list(10000)
+    total_auto_sacado = sum(w.get("valor_total_retido", 0) for w in auto_withdrawals)
+    
+    # Cálculo final
+    saldo_disponivel = total_recebido - total_sacado - total_pendente_saque - total_enviado + total_recebido_transferencia
+    saldo_comissoes = total_comissoes - total_auto_sacado
+    
+    # Garantir que não seja negativo
+    saldo_disponivel = max(0, saldo_disponivel)
+    saldo_comissoes = max(0, saldo_comissoes)
+    
+    return {
+        "saldo_disponivel": saldo_disponivel,
+        "saldo_comissoes": saldo_comissoes,
+        "total_recebido": total_recebido,
+        "total_sacado": total_sacado + total_pendente_saque,
+        "total_enviado": total_enviado,
+        "total_recebido_transferencia": total_recebido_transferencia,
+        "total_comissoes": total_comissoes
+    }
+
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(user: dict = Depends(get_current_user)):
     user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0})
     config = await get_config()
     
+    # Recalcula saldo baseado em transações PAGAS
+    balance = await recalculate_user_balance(user["id"])
+    
+    # Atualiza o saldo no banco se estiver diferente
+    if (user_data.get("saldo_disponivel", 0) != balance["saldo_disponivel"] or 
+        user_data.get("saldo_comissoes", 0) != balance["saldo_comissoes"]):
+        await db.users.update_one(
+            {"id": user["id"]},
+            {"$set": {
+                "saldo_disponivel": balance["saldo_disponivel"],
+                "saldo_comissoes": balance["saldo_comissoes"]
+            }}
+        )
+    
     transactions = await db.transactions.find({"parceiro_id": user["id"]}).to_list(1000)
     today = datetime.now(timezone.utc).date()
     
-    total_transacoes = len(transactions)
-    total_recebido = sum(t.get("valor", 0) for t in transactions if t.get("status") == "paid")
-    transacoes_hoje = sum(1 for t in transactions if datetime.fromisoformat(t.get("created_at", "")).date() == today)
+    total_transacoes = len([t for t in transactions if t.get("status") == "paid"])
+    total_recebido = balance["total_recebido"]
+    transacoes_hoje = sum(1 for t in transactions if t.get("status") == "paid" and datetime.fromisoformat(t.get("created_at", "")).date() == today)
     valor_hoje = sum(t.get("valor", 0) for t in transactions if t.get("status") == "paid" and datetime.fromisoformat(t.get("created_at", "")).date() == today)
     
     referrals = await db.referrals.find({"indicador_id": user["id"]}).to_list(1000)
