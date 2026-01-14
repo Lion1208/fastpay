@@ -2149,13 +2149,8 @@ async def admin_approve_withdrawal(
     
     await db.withdrawals.update_one({"id": withdrawal_id}, {"$set": update_data})
     
-    if data.status == "rejected":
-        # Devolve o valor total retido (valor + taxa)
-        valor_devolver = withdrawal.get("valor_total_retido", withdrawal.get("valor_solicitado", withdrawal.get("valor", 0)))
-        await db.users.update_one(
-            {"id": withdrawal["parceiro_id"]},
-            {"$inc": {"saldo_disponivel": valor_devolver}}
-        )
+    # Quando rejeitado, o saldo será recalculado automaticamente na próxima consulta
+    # pois saques rejeitados não são contabilizados como dedução
     
     return {"message": f"Saque {data.status}"}
 
